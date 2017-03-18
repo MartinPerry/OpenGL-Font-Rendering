@@ -1,0 +1,789 @@
+#include "./TextureAtlasPack.h"
+
+#include "./lodepng.h"
+
+#include "./Macros.h"
+
+//http://www.blackpawn.com/texts/lightmaps/default.html
+
+TextureAtlasPack::TextureAtlasPack(int w, int h, int border)
+{
+	
+	this->w = w;
+	this->h = h;
+	this->border = border;
+	this->method = PACKING_METHOD::TIGHT;
+
+	this->freePixels = w * h;
+	this->rawPackedData = new uint8_t[w * h];
+	memset(this->rawPackedData, 0, sizeof(uint8_t) * w * h);
+
+
+	Node emptyNode;
+	emptyNode.x = 0;
+	emptyNode.y = 0;
+	emptyNode.w = w;
+	emptyNode.h = h;	
+
+	this->freeSpace.push_back(emptyNode);
+	
+}
+
+
+TextureAtlasPack::~TextureAtlasPack()
+{
+	
+}
+
+
+std::unordered_map<CHAR_CODE, TextureAtlasPack::PackedInfo> & TextureAtlasPack::GetPackedInfos()
+{
+	return this->packedInfo;
+}
+
+void TextureAtlasPack::SaveToFile(const std::string & path)
+{
+	//save image as PNG
+
+	
+	lodepng::encode(path.c_str(), this->rawPackedData, this->w, this->h, 
+		LodePNGColorType::LCT_GREY, 8 * sizeof(uint8_t));
+
+
+
+	//save structure as XML
+	/*
+	TiXmlDocument doc;
+	TiXmlDeclaration * decl = new TiXmlDeclaration("1.0", "utf-8", "");
+	doc.LinkEndChild(decl);
+
+	TiXmlElement * root = new TiXmlElement("atlas");
+	doc.LinkEndChild(root);
+	root->SetAttribute("name", this->name.GetConstString());
+	root->SetAttribute("type", "png");
+
+	std::unordered_map<std::string, PackedInfo>::const_iterator it;
+
+	for (it = this->packedInfo.begin(); it != this->packedInfo.end(); it++)
+	{
+
+		
+
+		TiXmlElement * tex = new TiXmlElement("texture");
+		root->LinkEndChild(tex);
+		
+		tex->SetAttribute("name", it->first.GetConstString());
+		
+		tex->SetDoubleAttribute("x", it->second.x);
+		tex->SetDoubleAttribute("y", it->second.y);
+		tex->SetDoubleAttribute("w", it->second.width);
+		tex->SetDoubleAttribute("h", it->second.height);
+		tex->SetAttribute("rot", static_cast<char>(it->second.rotated));
+		
+		
+	}
+
+	std::string infoFileName = dir;
+	infoFileName += this->name;
+	infoFileName += ".atlas";
+	doc.SaveFile(infoFileName.c_str());
+	*/
+
+
+	//-----
+
+
+	
+	/*
+	MyStringAnsi infoFileName = dir;
+	infoFileName += name;
+	infoFileName += ".pack";
+
+	FILE * f;
+	my_fopen(&f, infoFileName.GetConstString(), "wb");
+
+	if (f == NULL)
+	{
+		MY_LOG_ERROR("Failed to create/open file %s", infoFileName.GetConstString());
+		return;
+	}
+
+	int length = name.GetLength();
+	fwrite(&length, sizeof(int), 1, f);
+	fwrite(name.GetConstString(), sizeof(char), name.GetLength(), f);
+
+	int count = this->packedInfo.size();
+	fwrite(&count, sizeof(int), 1, f);
+
+
+	for (it = this->packedInfo.begin(); it != this->packedInfo.end(); it++)
+	{
+		int l = it->first.GetLength();
+		fwrite(&l, sizeof(int), 1, f);
+		fwrite(it->first.GetConstString(), sizeof(char), it->first.GetLength(), f);
+		fwrite(&(it->second), sizeof(PackedInfo), 1, f);
+	}
+
+	fclose(f);
+	*/
+}
+
+
+void TextureAtlasPack::SetTightPacking()
+{
+	this->method = PACKING_METHOD::TIGHT;
+	this->Clear();
+}
+
+void TextureAtlasPack::SetGridPacking(int binW, int binH)
+{
+	this->method = PACKING_METHOD::GRID;
+	this->Clear();
+
+	this->freeSpace.clear();
+
+	binH += 2 * this->border;
+	binW += 2 * this->border;
+	
+
+	int gridedH = this->h - this->h % binH;
+	int gridedW = this->w - this->w % binW;
+
+	for (int y = 0; y < gridedH; y += binH)
+	{
+		for (int x = 0; x < gridedH; x += binW)
+		{
+			Node emptyNode;
+			emptyNode.x = x;
+			emptyNode.y = y;
+			emptyNode.w = binW;
+			emptyNode.h = binH;
+
+			this->freeSpace.push_back(emptyNode);
+		}
+	}
+
+}
+
+//======================== Add textures to atlas ===========================================
+
+void TextureAtlasPack::SetAllGlyphs(std::list<GlyphInfo> * glyphs)
+{
+	this->glyphs = glyphs;
+}
+
+void TextureAtlasPack::SetUnusedGlyphs(const std::list<FontInfo::UsedGlyphIterator> & unused)
+{
+	this->unused = unused;
+}
+
+std::list<FontInfo::UsedGlyphIterator> TextureAtlasPack::GetErasedGlyphs()
+{
+	return this->erased;
+}
+
+int TextureAtlasPack::GetTextureWidth() const
+{
+	return this->w;
+}
+
+int TextureAtlasPack::GetTextureHeight() const
+{
+	return this->h;
+}
+
+
+const uint8_t * TextureAtlasPack::GetTexture() const
+{
+	return this->rawPackedData;
+}
+
+//======================== Create atlas ===========================================
+
+void TextureAtlasPack::Clear()
+{
+	this->freePixels = w * h;
+	
+	this->freeSpace.clear();
+	
+	Node emptyNode;
+	emptyNode.x = 0;
+	emptyNode.y = 0;
+	emptyNode.w = w;
+	emptyNode.h = h;
+	emptyNode.hasOthers = false;
+	
+
+	this->freeSpace.push_back(emptyNode);
+	
+}
+
+/// <summary>
+/// Pack glyphs to texture
+/// </summary>
+/// <returns></returns>
+bool TextureAtlasPack::Pack()
+{
+	bool res = false;
+	if (this->method == PACKING_METHOD::GRID)
+	{
+		res = this->PackGrid();
+	}
+	else
+	{
+		res = this->PackTight();
+	}
+
+	this->CopyDataToTexture();
+
+	return res;
+}
+
+/// <summary>
+/// Pack data using regular grid. 
+/// Each glyph takes the same amount of space
+/// </summary>
+/// <returns></returns>
+bool TextureAtlasPack::PackGrid()
+{	
+
+	PackedInfo info;
+
+
+	for (GlyphInfo & g : *this->glyphs)
+	{
+		if (this->packedInfo.find(g.code) != this->packedInfo.end())
+		{
+			//glyph already in texture
+			continue;
+		}
+
+		if (g.code <= 32)
+		{
+			//do not add space "character"
+			continue;
+		}
+
+		if (this->freeSpace.size() == 0)
+		{		
+			if (this->unused.size() == 0)
+			{
+				return false;
+			}
+
+			//free space from unused
+			
+			CHAR_CODE c;
+
+			if (this->FreeSpace(g.bmpW, g.bmpH, &c) == false)
+			{
+				printf("Empty space in atlas not found and cannot be freed for glyph %lu\n", g.code);
+				return false;
+			}
+
+			info = this->packedInfo[c];			
+			info.filled = false;
+
+			g.tx = info.x + this->border;
+			g.ty = info.y + this->border;
+
+			this->packedInfo.erase(c);
+		}
+		else
+		{
+
+			const Node & empty = this->freeSpace.front();
+
+			info.x = empty.x;
+			info.y = empty.y;
+			info.width = empty.w;
+			info.height = empty.h;
+			info.filled = false;
+
+			g.tx = empty.x + this->border;
+			g.ty = empty.y + this->border;
+					
+
+			this->freeSpace.pop_front();
+		}
+
+		this->packedInfo[g.code] = info;
+	}
+
+	return true;
+}
+
+/// <summary>
+/// Pack glyphs to texture using "tight" packing
+/// Sort data by its required "space" -> fill texture
+/// </summary>
+/// <returns></returns>
+bool TextureAtlasPack::PackTight()
+{
+	
+	this->glyphs->sort(
+		[](const GlyphInfo &a, GlyphInfo &b) { return a.bmpW * a.bmpH > b.bmpW * b.bmpH; }
+	);
+	
+
+	PackedInfo info;
+
+	int b = (2 * this->border);
+
+	for (GlyphInfo & g : *this->glyphs)
+	{	
+		if (this->packedInfo.find(g.code) != this->packedInfo.end())
+		{
+			//glyph already in texture
+			continue;
+		}
+
+		if (g.code <= 32)
+		{
+			//do not add space "character"
+			continue;
+		}
+
+		int px, py;
+		CHAR_CODE c;
+		
+		if (this->FindEmptySpace(g.bmpW + b, g.bmpH + b, &px, &py) == false)
+		{
+			if (this->FreeSpace(g.bmpW + b, g.bmpH + b, &c) == false)
+			{
+				printf("Empty space in atlas not found and cannot be freed for glyph %lu\n", g.code);
+				printf("Requested size: %d %d\n", g.bmpW + b, g.bmpH + b);
+				//return false;
+				continue;
+			}
+
+			info = this->packedInfo[c];
+			this->packedInfo.erase(c);
+		}
+		else
+		{
+			info.x = px;
+			info.y = py;
+			info.width = g.bmpW + b;
+			info.height = g.bmpH + b;
+		}
+		info.filled = false;
+
+		g.tx = px + this->border;
+		g.ty = py + this->border;
+		
+		this->packedInfo[g.code] = info;
+	}		
+
+	return true;
+}
+
+/// <summary>
+/// Real copy of glyph data to texture allocated spaces
+/// </summary>
+void TextureAtlasPack::CopyDataToTexture()
+{
+	const uint8_t BORDER_DEBUG_VALUE = 125;
+
+	for (GlyphInfo & g : *this->glyphs)
+	{
+		auto & it = this->packedInfo.find(g.code);
+		if (it == this->packedInfo.end())
+		{
+			continue;
+		}
+
+		if (it->second.filled) 
+		{
+			continue;
+		}
+
+		if ((it->second.x == -1) && (it->second.y == -1))
+		{
+			continue;
+		}
+				
+		int px = it->second.x + this->border;
+		int py = it->second.y + this->border;
+
+		//draw "border around letter"
+		//if there was some previous letter - it will remove its remains
+		this->DrawBorder(it->second.x, it->second.y,
+			g.bmpW + 2 * this->border, g.bmpH + 2 * this->border, 0);
+		
+		
+		//copy letter data
+		int index = 0;
+		for (int y = py; y < py + g.bmpH; y++)
+		{
+			for (int x = px; x < px + g.bmpW; x++)
+			{
+				this->rawPackedData[x + y * w] = g.rawData[index];
+
+				index++;
+				this->freePixels--;
+			}
+		}
+	
+		it->second.filled = true;
+
+
+		if (this->border != 0)
+		{
+			//debug - draw "visible borders" around letter
+			this->DrawBorder(it->second.x, it->second.y,
+				it->second.width, it->second.height, BORDER_DEBUG_VALUE);
+		}
+
+	}
+	
+}
+
+/// <summary>
+/// Draw border around glyph
+/// </summary>
+/// <param name="px"></param>
+/// <param name="py"></param>
+/// <param name="pw"></param>
+/// <param name="ph"></param>
+/// <param name="borderVal"></param>
+void TextureAtlasPack::DrawBorder(int px, int py, int pw, int ph, uint8_t borderVal)
+{	
+	//erase top border
+	for (int y = py; y < py + this->border; y++)
+	{
+		for (int x = px; x < px + pw; x++)
+		{
+			this->rawPackedData[x + y * w] = borderVal;
+		}
+	}
+
+	//erase bottom border
+	for (int y = py + ph - this->border; y < py + ph; y++)
+	{
+		for (int x = px; x < px + pw; x++)
+		{
+			this->rawPackedData[x + y * w] = borderVal;
+		}
+	}
+
+	//erase left border
+	for (int y = py; y < py + ph; y++)
+	{
+		for (int x = px; x < px + this->border; x++)
+		{
+			this->rawPackedData[x + y * w] = borderVal;
+		}
+	}
+
+	//erase right border
+	for (int y = py; y < py + ph; y++)
+	{
+		for (int x = px + pw - this->border; x < px + pw; x++)
+		{
+			this->rawPackedData[x + y * w] = borderVal;
+		}
+	}
+}
+
+/// <summary>
+/// Fill external buffer with current texture data
+/// </summary>
+/// <param name="memory"></param>
+void TextureAtlasPack::FillBuffer(uint8_t ** memory)
+{
+	int index = 0;
+	for (int y = 0; y < this->h; y++)
+	{		
+		for (int x = 0; x < this->w; x++)
+		{
+			(*memory)[index] = this->rawPackedData[index];			
+			index++;
+		}
+	}
+}
+
+/// <summary>
+/// Find empty space to fit texture in
+/// </summary>
+/// <param name="spaceWidth"></param>
+/// <param name="spaceHeight"></param>
+/// <param name="px"></param>
+/// <param name="py"></param>
+/// <returns></returns>
+bool TextureAtlasPack::FindEmptySpace(int spaceWidth, int spaceHeight, int * px, int * py)
+{
+	
+	*px = -1;
+	*py = -1;
+
+	if (this->freePixels < spaceWidth * spaceHeight)
+	{		
+		return false;
+	}
+	
+	//this->PackFreeSpace();
+
+	size_t size = this->freeSpace.size();
+	size_t index = 0;
+
+	
+	while (index < size)
+	{
+		index++;
+
+		const Node & empty = this->freeSpace.front();	
+		
+		if ((empty.w >= spaceWidth) && (empty.h >= spaceHeight))
+		{
+			//remove "other division" of the "parent" tile
+			//we have used one current division already
+			if (empty.hasOthers)
+			{				
+				this->freeSpace.erase(empty.other[0]);
+				this->freeSpace.erase(empty.other[1]);
+
+				empty.same->hasOthers = false;
+			}
+
+			this->DivideNode(empty, spaceWidth, spaceHeight);
+
+			*px = empty.x;
+			*py = empty.y;
+			
+						
+			this->freeSpace.pop_front();
+
+			return true;
+		}
+		
+				
+		//put back empty node that was pop out						
+		this->freeSpace.splice(this->freeSpace.end(), this->freeSpace, this->freeSpace.begin());								
+	}
+	
+	return false;
+}
+
+/// <summary>
+/// Divide node to three parts - one is of desired size
+/// other two are remained
+/// A:
+/// *--------*------
+/// |findNode|right|
+/// |        |     |
+/// *---------------
+/// | down         |
+/// ----------------
+/// B:
+/// *---------*-----
+/// |findNode|right|
+/// |        |     |
+/// *--------|     |
+/// | down   |     |
+/// ----------------
+/// </summary>
+/// <param name="empty"></param>
+/// <param name="spaceWidth"></param>
+/// <param name="spaceHeight"></param>
+void TextureAtlasPack::DivideNode(const Node & empty, int spaceWidth, int spaceHeight)
+{
+	//empty space of desired size found
+	//divide space to 3 parts
+	//one is desired space, rest are 2 left spaces
+
+	std::random_device rd;
+	std::mt19937 mt = std::mt19937(rd());
+	std::uniform_int_distribution<int> dist01(0, 1);
+
+
+	std::list<Node>::iterator downItA;
+	std::list<Node>::iterator rightItA;
+
+	std::list<Node>::iterator downItB;
+	std::list<Node>::iterator rightItB;
+
+	Node nDown;
+	Node nRight;
+
+	nDown.x = empty.x;
+	nDown.y = empty.y + spaceHeight;
+	nDown.h = empty.h - spaceHeight;
+
+	nRight.x = empty.x + spaceWidth;
+	nRight.y = empty.y;
+	nRight.w = empty.w - spaceWidth;
+
+	nDown.hasOthers = true;
+	nRight.hasOthers = true;
+
+	//random division of the space - 
+	//either  down is wider is first or right is taller is first
+	if (dist01(mt) == 0)
+	{
+		//append A than B to list
+
+		nDown.w = empty.w;				
+		nRight.h = spaceHeight;
+
+		this->freeSpace.push_back(nDown);
+		downItA = std::prev(this->freeSpace.end());
+		this->freeSpace.push_back(nRight);
+		rightItA = std::prev(this->freeSpace.end());
+		
+		nDown.w = spaceWidth;						
+		nRight.h = empty.h;
+		
+		this->freeSpace.push_back(nDown);
+		downItB = std::prev(this->freeSpace.end());
+		this->freeSpace.push_back(nRight);
+		rightItB = std::prev(this->freeSpace.end());
+		
+	}
+	else 
+	{
+		//append B than A to list
+
+		nDown.w = spaceWidth;
+		nRight.h = empty.h;
+
+		this->freeSpace.push_back(nDown);
+		downItB = std::prev(this->freeSpace.end());
+		this->freeSpace.push_back(nRight);
+		rightItB = std::prev(this->freeSpace.end());
+
+		nDown.w = empty.w;
+		nRight.h = spaceHeight;
+
+		this->freeSpace.push_back(nDown);
+		downItA = std::prev(this->freeSpace.end());
+		this->freeSpace.push_back(nRight);
+		rightItA = std::prev(this->freeSpace.end());		
+	}
+		
+
+	//create "tree-like" structure
+	//if node from A or B is later used
+	//remove the other nodes (e.g. used A_left => remove B_left, B_right 
+	//and also set A_right hasOthers = false)
+	downItA->same = rightItA;
+	rightItA->same = downItA;
+
+	downItB->same = rightItB;
+	rightItB->same = downItB;
+
+	downItA->other[0] = downItB;
+	downItA->other[1] = rightItB;
+	rightItA->other[0] = downItB;
+	rightItA->other[1] = rightItB;
+	
+	downItB->other[0] = downItA;
+	downItB->other[1] = rightItA;
+	rightItB->other[0] = downItA;
+	rightItB->other[1] = rightItA;
+
+}
+
+/// <summary>
+/// Try to find free space by removing existing glyphs 
+/// that are currently unused
+/// </summary>
+/// <param name="spaceWidth">requested width</param>
+/// <param name="spaceHeight">requested height</param>
+/// <param name="c">"char code" of glyph, which space will be replaced</param>
+/// <returns></returns>
+bool TextureAtlasPack::FreeSpace(int spaceWidth, int spaceHeight, CHAR_CODE * c)
+{	
+	*c = 0;
+
+	int b = (2 * this->border);
+
+	FontInfo::UsedGlyphIterator r;
+	bool found = false;
+
+	for (auto & it : this->unused)	
+	{
+				
+		if (it->second->bmpW + b < spaceWidth) continue;
+		if (it->second->bmpH + b < spaceHeight) continue;
+		
+		//space find
+		
+		*c = it->first;
+
+		//add glyph to erased
+		this->erased.push_back(it);
+
+		
+		r = it;
+
+		found = true;
+		break;
+	}
+
+
+	if (found)
+	{
+		//found space - remove unused glyph
+		//=> its space is no longer available for future 
+		//free space finding
+		this->unused.remove(r);
+	}
+	
+	return found;
+}
+
+
+/*
+bool TextureAtlasPack::PerPixelFit(int spaceWidth, int spaceHeight, int * px, int * py)
+{
+	*px = -1;
+	*py = -1;
+
+	if (this->freePixels < spaceWidth * spaceHeight)
+	{		
+		return false;
+	}
+
+	for (int y = 0; y <= (this->h - spaceHeight); y++)
+	{
+		for (int x = 0; x <= (this->w - spaceWidth); x++)
+		{
+			if (this->atlasLUT[y][x])
+			{
+				continue;
+			}
+			
+			int foundFreePixels = 0;
+			bool skip = false;
+			//test if space is empty for texture
+			for (int yy = y; (skip == false) && (yy < y + spaceHeight); yy++)
+			{			
+				for (int xx = x; xx < x + spaceWidth; xx++)
+				{
+					if (this->atlasLUT[yy][xx])
+					{		
+						skip = true;
+						break;
+					}
+					foundFreePixels++;
+				}
+				
+			}
+			
+		
+			if (foundFreePixels == (spaceWidth * spaceHeight))			
+			{
+				*px = x;
+				*py = y;
+				return true;
+			}
+
+		}
+	}
+
+
+	return false;
+	
+}
+*/
