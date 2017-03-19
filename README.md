@@ -7,7 +7,7 @@ Overview
 ------------------------------------------
 
 There are plenty of FontRendering libraries. 
-* https://github.com/rougier/freetype-gl - also with UNICODE, too complex
+* https://github.com/rougier/freetype-gl - also with UNICODE, too complex and not easily "bend" to specified task
 * https://github.com/tlorach/OpenGLText - only ASCII
 
 
@@ -38,7 +38,7 @@ Texture packing
 
 Fonts are packed in texture. There are two algorithms for packing. 
 * Fast grid packing - size for all letters is computed and all bins have the same size.
-* Slower Tight packing - texture is divided to bins based on letter size. Letters are sort from ones with the biggest size to small ones.
+* Slower Tight packing (similar to guillotine split placement)- texture is divided to bins based on letter size. Letters are sort from ones with the biggest size to small ones.
 This packing will not use entire texture. They will be holes and sometimes more then 30% of texture can be "empty". However, based on
 input characters, even this sparse texture can hold more characters than gridded one. Approximately 2x slower than grid packing.
 
