@@ -38,9 +38,10 @@ Texture packing
 
 Fonts are packed in texture. There are two algorithms for packing. 
 * Fast grid packing - size for all letters is computed and all bins have the same size.
-* Slower Tight packing (similar to guillotine split placement)- texture is divided to bins based on letter size. Letters are sort from ones with the biggest size to small ones.
+* Slower Tight packing - texture is divided to bins based on letter size. Letters are sort from ones with the biggest size to small ones.
 This packing will not use entire texture. They will be holes and sometimes more then 30% of texture can be "empty". However, based on
 input characters, even this sparse texture can hold more characters than gridded one. Approximately 2x slower than grid packing.
+This algorithm is similar to the one referred as "Guillotine algorithm" in http://clb.demon.fi/files/RectangleBinPack.pdf.
 
 References
 ------------------------------------------
