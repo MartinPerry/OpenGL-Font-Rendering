@@ -56,7 +56,7 @@ public:
 
 protected:
 
-	
+	static const int LETTER_BORDER_SIZE = 0;
 
 	
 	FT_Library library;

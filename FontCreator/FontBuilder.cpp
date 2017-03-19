@@ -13,10 +13,8 @@
 
 FontBuilder::FontBuilder(const std::string & fontFacePath, int w, int h, int fontSize)
 {
-	this->fi.maxAscent = 0;
-	this->fi.maxDescent = 0;
 	
-	this->texPacker = new TextureAtlasPack(w, h, 2);
+	this->texPacker = new TextureAtlasPack(w, h, LETTER_BORDER_SIZE);
 	this->texPacker->SetTightPacking();
 	//this->texPacker->SetGridPacking(fontSize, fontSize);
 
@@ -33,17 +31,23 @@ FontBuilder::FontBuilder(const std::string & fontFacePath, int w, int h, int fon
 
 FontBuilder::~FontBuilder()
 {
+	SAFE_DELETE(this->texPacker);
+
 	this->Release();
 }
 
 void FontBuilder::Release()
-{
+{	
 	FT_Done_Face(this->fontFace);
 	this->fontFace = nullptr;
 
 	FT_Done_FreeType(this->library);
 	this->library = nullptr;
 	
+	for (auto & c : this->fi.glyphs)
+	{
+		SAFE_DELETE_ARRAY(c.rawData);		
+	}
 }
 
 //================================================================
@@ -159,9 +163,6 @@ void FontBuilder::AddString(const utf8_string & strUTF8)
 	{
 		this->AddCharacter(c);
 	}
-
-
-
 }
 
 void FontBuilder::AddAllAsciiLetters()
@@ -262,6 +263,8 @@ void FontBuilder::CreateFontAtlas()
 	//remove unused, that were removed from texture
 	for (auto r : unused)
 	{
+		SAFE_DELETE_ARRAY(r->second->rawData);
+
 		this->fi.glyphs.erase(r->second);
 		this->fi.usedGlyphs.erase(r);
 	}
@@ -271,7 +274,11 @@ void FontBuilder::CreateFontAtlas()
 }
 
 
-
+/// <summary>
+/// Load single glyph info
+/// and fill local structure
+/// </summary>
+/// <param name="c"></param>
 void FontBuilder::LoadGlyphInfo(CHAR_CODE c)
 {
 
@@ -330,28 +337,7 @@ void FontBuilder::LoadGlyphInfo(CHAR_CODE c)
 	FontInfo::GlyphIterator lastIter = std::prev(this->fi.glyphs.end());
 	
 	this->fi.usedGlyphs[gInfo.code] = lastIter;
-	
-
-	//we store ascent and descent globally for entire font
-	//gInfo.asc = glyph->metrics.horiBearingY;
-	//gInfo.desc = glyph->metrics.horiBearingY - glyph->metrics.height;
-
-
-	//update ascent / descent info
-	//it will be only "enlarging" its values, but it is OK
-	//if we load all characters, we get the same value as here after some time
-	int ascent = glyph->metrics.horiBearingY;
-	int descent = glyph->metrics.horiBearingY - glyph->metrics.height;
-
-	if (ascent > this->fi.maxAscent)
-	{
-		this->fi.maxAscent = ascent;
-	}
-
-	if (descent > this->fi.maxDescent)
-	{
-		this->fi.maxDescent = descent;
-	}
+		
 
 }
 

@@ -4,6 +4,8 @@
 class FontBuilder;
 
 #include <vector>
+#include <list>
+#include <unordered_set>
 
 #include "./freeglut/include/GL/wgl/glew.h"
 #include "./freeglut/include/GL/wgl/wglew.h"
@@ -14,6 +16,9 @@ class FontBuilder;
 class FontRenderer
 {
 public:
+	typedef enum TextAlign {ALIGN_LEFT, ALIGN_CENTER} TextAlign;
+	typedef enum TextAnchor { LEFT_TOP, CENTER, LEFT_DOWN } TextAnchor;
+
 	typedef struct Font
 	{
 		std::string name;
@@ -28,17 +33,39 @@ public:
 
 	void Render();
 
-	void AddString(const utf8_string & strUTF8, int x, int y);
+	void ClearStrings();
+
+	void AddString(const utf8_string & strUTF8, int x, int y, 
+		TextAnchor anchor = TextAnchor::LEFT_TOP,
+		TextAlign align = TextAlign::ALIGN_LEFT);
 
 private:
 	
+	typedef struct AABB
+	{
+		int minX;
+		int maxX;
+
+		int minY;
+		int maxY;
+	} AABB;
+
 	typedef struct StringInfo
 	{
 		utf8_string strUTF8;
 		int x;
 		int y;
-	} StringInfo;
+		TextAnchor anchor;
+		TextAlign align;
 
+		int linesCount;
+		int anchorX;
+		int anchorY;
+		std::vector<AABB> linesAABB;
+		AABB aabb;
+
+	} StringInfo;
+	
 	typedef struct Vertex
 	{
 		float x, y;
@@ -88,6 +115,7 @@ private:
 	FontBuilder * fb;
 	std::vector<StringInfo> strs;
 	std::vector<LetterGeom> geom;
+	
 
 	int deviceW;
 	int deviceH;
@@ -101,7 +129,12 @@ private:
 
 	void InitGL();
 	bool GenerateStringGeometry();
-	float MapRange(float fromMin, float fromMax, float toMin, float toMax, float s);
+
+	std::vector<AABB> CalcStringAABB(const utf8_string & strUTF8, 
+		int x, int y, AABB & globalAABB);
+	int CalcStringLines(const utf8_string & strUTF8) const;
+	void CalcAnchoredPosition();
+	void CalcLineAlign(const StringInfo & si, int lineId, int & x, int & y) const;
 
 	void CreateVAO();
 	GLuint CompileGLSLShader(GLenum target, const char* shader);

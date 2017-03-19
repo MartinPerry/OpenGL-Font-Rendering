@@ -32,7 +32,7 @@ TextureAtlasPack::TextureAtlasPack(int w, int h, int border)
 
 TextureAtlasPack::~TextureAtlasPack()
 {
-	
+	SAFE_DELETE_ARRAY(this->rawPackedData);
 }
 
 
@@ -50,82 +50,7 @@ void TextureAtlasPack::SaveToFile(const std::string & path)
 		LodePNGColorType::LCT_GREY, 8 * sizeof(uint8_t));
 
 
-
-	//save structure as XML
-	/*
-	TiXmlDocument doc;
-	TiXmlDeclaration * decl = new TiXmlDeclaration("1.0", "utf-8", "");
-	doc.LinkEndChild(decl);
-
-	TiXmlElement * root = new TiXmlElement("atlas");
-	doc.LinkEndChild(root);
-	root->SetAttribute("name", this->name.GetConstString());
-	root->SetAttribute("type", "png");
-
-	std::unordered_map<std::string, PackedInfo>::const_iterator it;
-
-	for (it = this->packedInfo.begin(); it != this->packedInfo.end(); it++)
-	{
-
-		
-
-		TiXmlElement * tex = new TiXmlElement("texture");
-		root->LinkEndChild(tex);
-		
-		tex->SetAttribute("name", it->first.GetConstString());
-		
-		tex->SetDoubleAttribute("x", it->second.x);
-		tex->SetDoubleAttribute("y", it->second.y);
-		tex->SetDoubleAttribute("w", it->second.width);
-		tex->SetDoubleAttribute("h", it->second.height);
-		tex->SetAttribute("rot", static_cast<char>(it->second.rotated));
-		
-		
-	}
-
-	std::string infoFileName = dir;
-	infoFileName += this->name;
-	infoFileName += ".atlas";
-	doc.SaveFile(infoFileName.c_str());
-	*/
-
-
-	//-----
-
-
 	
-	/*
-	MyStringAnsi infoFileName = dir;
-	infoFileName += name;
-	infoFileName += ".pack";
-
-	FILE * f;
-	my_fopen(&f, infoFileName.GetConstString(), "wb");
-
-	if (f == NULL)
-	{
-		MY_LOG_ERROR("Failed to create/open file %s", infoFileName.GetConstString());
-		return;
-	}
-
-	int length = name.GetLength();
-	fwrite(&length, sizeof(int), 1, f);
-	fwrite(name.GetConstString(), sizeof(char), name.GetLength(), f);
-
-	int count = this->packedInfo.size();
-	fwrite(&count, sizeof(int), 1, f);
-
-
-	for (it = this->packedInfo.begin(); it != this->packedInfo.end(); it++)
-	{
-		int l = it->first.GetLength();
-		fwrite(&l, sizeof(int), 1, f);
-		fwrite(it->first.GetConstString(), sizeof(char), it->first.GetLength(), f);
-		fwrite(&(it->second), sizeof(PackedInfo), 1, f);
-	}
-
-	fclose(f);
-	*/
 }
 
 
@@ -427,13 +352,14 @@ void TextureAtlasPack::CopyDataToTexture()
 	
 		it->second.filled = true;
 
-
+#ifdef _DEBUG
 		if (this->border != 0)
 		{
 			//debug - draw "visible borders" around letter
 			this->DrawBorder(it->second.x, it->second.y,
 				it->second.width, it->second.height, BORDER_DEBUG_VALUE);
 		}
+#endif
 
 	}
 	

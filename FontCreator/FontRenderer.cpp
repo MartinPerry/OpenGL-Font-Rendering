@@ -1,7 +1,9 @@
 #include "./FontRenderer.h"
 
-#include "./FontBuilder.h"
+#include <limits>
 
+#include "./FontBuilder.h"
+#include "./Macros.h"
 
 //=============================================================================
 // GL helpers
@@ -29,7 +31,7 @@ void CheckOpenGLError(const char* stmt, const char* fname, int line)
 		error += ") ";
 
 		printf("OpenGL error %s, at %s:%i - for %s\n", error.c_str(), fname, line, stmt);
-		abort();
+		//abort();
 	}
 }
 
@@ -63,7 +65,7 @@ const char* FontRenderer::Shader::vSource = {
     {\n\
         gl_Position = vec4(POSITION.x, POSITION.y, 0.0, 1.0); \n\
 		gl_Position.xy = 2.0 * gl_Position.xy - 1.0; \n\
-gl_Position.y *= -1;\n\
+		gl_Position.y *= -1;\n\
         texCoord = TEXCOORD0.xy; \n\
     }\n\
 " };
@@ -98,6 +100,23 @@ FontRenderer::FontRenderer(int deviceW, int deviceH, Font f)
 
 FontRenderer::~FontRenderer()
 {
+	
+	SAFE_DELETE(this->fb);
+
+	//this will end in error, if OpenGL is not initialized during
+	//destruction
+	//however, that should be OK
+
+	(glUseProgram(0));
+	(glBindTexture(GL_TEXTURE_2D, 0));
+	(glBindBuffer(GL_ARRAY_BUFFER, 0));
+	(glBindVertexArray(0));
+
+	(glDeleteProgram(shader.program));
+	(glDeleteTextures(1, &this->fontTex));
+	(glDeleteBuffers(1, &this->vbo));
+	(glDeleteVertexArrays(1, &this->vao));
+
 }
 
 /// <summary>
@@ -130,40 +149,23 @@ void FontRenderer::InitGL()
 
 	//create VBO
 	GL_CHECK(glGenBuffers(1, &this->vbo));
-	
-	/*
-	Vertex a, b, c, d;
-	a.x = 0;
-	a.y = 0;
-	a.u = 0;
-	a.v = 0;
-
-	b.x = 1;
-	b.y = 0;
-	b.u = 1;
-	b.v = 0;
-
-	c.x = 1;
-	c.y = 1;
-	c.u = 1;
-	c.v = 1;
-
-	d.x = 0;
-	d.y = 1;
-	d.u = 0;
-	d.v = 1;
-
-	LetterGeom l;
-	l.AddQuad(a, b, c, d);
-	this->geom.push_back(l);
-
-	GL_CHECK(glBindBuffer(GL_ARRAY_BUFFER, this->vbo));
-	GL_CHECK(glBufferData(GL_ARRAY_BUFFER, geom.size() * sizeof(LetterGeom), &(geom.front()), GL_STREAM_DRAW));
-	*/
-
-
+		
 	//create VAO
 	this->CreateVAO();
+
+
+
+	//create texture
+	GL_CHECK(glGenTextures(1, &this->fontTex));
+	GL_CHECK(glBindTexture(GL_TEXTURE_2D, this->fontTex));
+
+	GL_CHECK(glTexImage2D(GL_TEXTURE_2D, 0, GL_RED,
+		this->fb->GetTextureWidth(), this->fb->GetTextureHeight(), 0,
+		GL_RED, GL_UNSIGNED_BYTE, nullptr));
+	GL_CHECK(glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST));
+	GL_CHECK(glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST));
+	GL_CHECK(glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE));
+	GL_CHECK(glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE));
 
 }
 
@@ -191,18 +193,6 @@ void FontRenderer::CreateVAO()
 
 	GL_CHECK(glBindVertexArray(0));
 	GL_CHECK(glBindBuffer(GL_ARRAY_BUFFER, 0));
-
-	//create texture
-	GL_CHECK(glGenTextures(1, &this->fontTex));
-	GL_CHECK(glBindTexture(GL_TEXTURE_2D, this->fontTex));
-
-	GL_CHECK(glTexImage2D(GL_TEXTURE_2D, 0, GL_RED,
-		this->fb->GetTextureWidth(), this->fb->GetTextureHeight(), 0,
-		GL_RED, GL_UNSIGNED_BYTE, nullptr));
-	GL_CHECK(glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST));
-	GL_CHECK(glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST));
-	GL_CHECK(glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE));
-	GL_CHECK(glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE));
 
 	
 }
@@ -299,14 +289,11 @@ void FontRenderer::Render()
 	{
 		return;
 	}
-
-	//bs.setStates();
-	
+		
+	//activate texture
 	GL_CHECK(glActiveTexture(GL_TEXTURE0));
 	GL_CHECK(glBindTexture(GL_TEXTURE_2D, fontTex));
-	//glTextureBuffer(m_texQuads, GL_RGBA32F, m_vbo);
-
-
+	
 	//activate shader
 	GL_CHECK(glUseProgram(shader.program));
 	GL_CHECK(glUniform4f(shader.colorLocation, 1, 1, 0, 0));
@@ -328,18 +315,54 @@ void FontRenderer::Render()
 }
 
 /// <summary>
+/// Remove all added strings
+/// </summary>
+void FontRenderer::ClearStrings()
+{
+	this->strChanged = true;
+	this->strs.clear();
+}
+
+/// <summary>
 /// Add new string to be rendered
+/// If string already exist - do not add
+/// Existing string => same x, y, align, anchor, content
 /// </summary>
 /// <param name="strUTF8"></param>
 /// <param name="x"></param>
 /// <param name="y"></param>
-void FontRenderer::AddString(const utf8_string & strUTF8, int x, int y)
+void FontRenderer::AddString(const utf8_string & strUTF8, 
+	int x, int y, 
+	TextAnchor anchor, TextAlign align)
 {
+	for (auto & s : this->strs)
+	{
+		if ((s.x == x) && (s.y == y) && (s.align == align) && (s.anchor == anchor))
+		{
+			if (s.strUTF8 == strUTF8)
+			{
+				//same string on the same position and with same align
+				//already exist - do not add it again
+				return;
+			}
+		}
+	}
+
+	//new string - add it
+
 	this->strChanged = true;
+
+	//fill basic structure info
 	FontRenderer::StringInfo i;
 	i.strUTF8 = strUTF8;
 	i.x = x;
 	i.y = y;
+	i.anchor = anchor;
+	i.align = align;
+	i.anchorX = x;
+	i.anchorY = y;
+	i.linesCount = this->CalcStringLines(strUTF8);
+
 
 	this->strs.push_back(i);
 
@@ -347,17 +370,178 @@ void FontRenderer::AddString(const utf8_string & strUTF8, int x, int y)
 }
 
 /// <summary>
-/// Linear mapping of value from - to
+/// Calculate number of lines in input string
 /// </summary>
-/// <param name="fromMin"></param>
-/// <param name="fromMax"></param>
-/// <param name="toMin"></param>
-/// <param name="toMax"></param>
-/// <param name="s"></param>
+/// <param name="strUTF8"></param>
 /// <returns></returns>
-float FontRenderer::MapRange(float fromMin, float fromMax, float toMin, float toMax, float s)
+int FontRenderer::CalcStringLines(const utf8_string & strUTF8) const
 {
-	return toMin + (s - fromMin) * (toMax - toMin) / (fromMax - fromMin);
+	int count = 1;
+	for (auto c : strUTF8)
+	{
+		if (c == '\n')
+		{
+			count++;			
+		}
+	}
+	return count;
+}
+
+/// <summary>
+/// Calculate AABB of entire text and AABB for every line
+/// </summary>
+/// <param name="strUTF8"></param>
+/// <param name="x"></param>
+/// <param name="y"></param>
+/// <param name="globalAABB"></param>
+/// <returns></returns>
+std::vector<FontRenderer::AABB> FontRenderer::CalcStringAABB(const utf8_string & strUTF8, 
+	int x, int y, FontRenderer::AABB & globalAABB)
+{
+
+	FontRenderer::AABB aabb;
+	aabb.minX = std::numeric_limits<int>::max();
+	aabb.minY = std::numeric_limits<int>::max();
+
+	aabb.maxX = std::numeric_limits<int>::min();
+	aabb.maxY = std::numeric_limits<int>::min();
+
+	FontRenderer::AABB lineAabb = aabb;
+	std::vector<AABB> aabbs;
+
+	const FontInfo & fi = this->fb->GetFontInfo();
+
+	int startX = x;
+	
+	for (auto c : strUTF8)
+	{
+		if (c == '\n')
+		{
+			x = startX;
+			y += fi.newLineOffset;
+
+			aabbs.push_back(lineAabb);
+			lineAabb = aabb;
+
+			continue;
+		}
+		
+
+		auto it = fi.usedGlyphs.find(c);
+		if (it == fi.usedGlyphs.end())
+		{
+			continue;
+		}
+
+		GlyphInfo & gi = *it->second;
+
+		int fx = x + gi.bmpX;
+		int fy = y - gi.bmpY;
+
+
+		if (fx > lineAabb.maxX) lineAabb.maxX = fx;
+		if (fy > lineAabb.maxY) lineAabb.maxY = fy;
+
+		if (fx < lineAabb.minX) lineAabb.minX = fx;
+		if (fy < lineAabb.minY) lineAabb.minY = fy;
+
+
+		if (fx + gi.bmpW > lineAabb.maxX) lineAabb.maxX = fx + gi.bmpW;
+		if (fy + gi.bmpH > lineAabb.maxY) lineAabb.maxY = fy + gi.bmpH;
+
+		if (fx + gi.bmpW < lineAabb.minX) lineAabb.minX = fx + gi.bmpW;
+		if (fy + gi.bmpH < lineAabb.minY) lineAabb.minY = fy + gi.bmpH;
+
+		
+		x += (gi.adv >> 6);
+	}
+	
+
+	aabbs.push_back(lineAabb);
+	globalAABB = aabb;
+
+	for (auto & a : aabbs)
+	{
+		if (a.minX < globalAABB.minX) globalAABB.minX = a.minX;
+		if (a.minY < globalAABB.minY) globalAABB.minY = a.minY;
+
+		if (a.maxX > globalAABB.maxX) globalAABB.maxX = a.maxX;
+		if (a.maxY > globalAABB.maxY) globalAABB.maxY = a.maxY;
+	}
+
+
+	return aabbs;
+}
+
+/// <summary>
+/// Calculate start position of text using anchors
+/// </summary>
+void FontRenderer::CalcAnchoredPosition()
+{	
+	//Calculate anchored position of text
+	const FontInfo & fi = this->fb->GetFontInfo();
+
+	for (auto & si : this->strs)
+	{		
+		if (si.align == TextAlign::ALIGN_CENTER)
+		{
+			si.linesAABB = this->CalcStringAABB(si.strUTF8, si.x, si.y, si.aabb);
+		}
+
+		if (si.anchor == TextAnchor::LEFT_TOP)
+		{
+			si.anchorX = si.x;
+			si.anchorY = si.y;
+			si.anchorY += fi.newLineOffset; //y position is "line letter start" - move it to letter height
+		}
+		else if (si.anchor == TextAnchor::CENTER)
+		{
+			if (si.linesAABB.size() == 0)
+			{
+				si.linesAABB = this->CalcStringAABB(si.strUTF8, si.x, si.y, si.aabb);
+			}
+
+			si.anchorX = si.x - (si.aabb.maxX - si.aabb.minX) / 2;
+			
+			si.anchorY = si.y;
+			si.anchorY += fi.newLineOffset; //move top position to TOP_LEFT
+			si.anchorY -= (si.linesCount * fi.newLineOffset) / 2; //calc center from all lines and move TOP_LEFT down
+
+		}
+		else if (si.anchor == TextAnchor::LEFT_DOWN)
+		{
+			si.anchorX = si.x;			
+			si.anchorY = si.y;
+			si.anchorY -= (si.linesCount - 1) * fi.newLineOffset; //move down - default Y is at (TOP_LEFT - newLineOffset)
+		}
+	}
+}
+
+/// <summary>
+/// Calc align of each line from string
+/// </summary>
+/// <param name="si"></param>
+/// <param name="lineId"></param>
+/// <param name="x"></param>
+/// <param name="y"></param>
+void FontRenderer::CalcLineAlign(const StringInfo & si, int lineId, int & x, int & y) const
+{
+	if (si.align == TextAlign::ALIGN_LEFT)
+	{
+		return;
+	}
+
+	if (si.align == TextAlign::ALIGN_CENTER)
+	{
+		int blockCenterX = (si.aabb.maxX - si.aabb.minX) / 2;
+		//int blockCenterY = (si.aabb.maxY - si.aabb.minY) / 2;
+
+		int lineCenterX = (si.linesAABB[lineId].maxX - si.linesAABB[lineId].minX) / 2;
+		//int lineCenterY = (si.linesAABB[lineId].maxY - si.linesAABB[lineId].minY) / 2;
+
+		x = x + (blockCenterX - lineCenterX);
+		
+	}
 }
 
 /// <summary>
@@ -371,9 +555,17 @@ bool FontRenderer::GenerateStringGeometry()
 		return false;
 	}
 
+	//first we must build font atlas - it will load glyph infos
 	this->fb->CreateFontAtlas();
-	this->fb->Save("gl.png");
 
+	//calculate anchored position
+	this->CalcAnchoredPosition();
+
+	//DEBUG !!!
+	//this->fb->Save("gl.png");
+	//-------
+
+	//Fill font texture
 	GL_CHECK(glBindTexture(GL_TEXTURE_2D, this->fontTex));
 	GL_CHECK(glTexSubImage2D(GL_TEXTURE_2D, 0,
 		0, 0,
@@ -382,7 +574,7 @@ bool FontRenderer::GenerateStringGeometry()
 	GL_CHECK(glBindTexture(GL_TEXTURE_2D, 0));
 
 	
-
+	//Build geometry
 	const FontInfo & fi = this->fb->GetFontInfo();
 
 	float psW = 1.0f / static_cast<float>(deviceW);	//pixel size in width
@@ -392,25 +584,34 @@ bool FontRenderer::GenerateStringGeometry()
 	float tH = 1.0f / static_cast<float>(this->fb->GetTextureHeight()); //pixel size in height
 
 	this->geom.clear();
-
+	
+	
 	for (auto si : this->strs)
 	{
+		int lineId = 0;
+		int x = si.anchorX;
+		int y = si.anchorY;
 		
-		int x = si.x;
-		int y = si.y;
+		int startX = x;
+		int startY = y;
 
-		for (auto c : si.strUTF8)
+		this->CalcLineAlign(si, lineId, x, y);
+		
+		
+		for (auto cc : si.strUTF8)
 		{
-			if (c == '\n')
-			{
-				//to do
-				x = si.x;
-				y += fi.newLineOffset; // ?
+			if (cc == '\n')
+			{				
+				x = startX;
+				y += fi.newLineOffset;
+				lineId++;
+
+				this->CalcLineAlign(si, lineId, x, y);
 
 				continue;
 			}
 
-			auto it = fi.usedGlyphs.find(c);
+			auto it = fi.usedGlyphs.find(cc);
 			if (it == fi.usedGlyphs.end())
 			{
 				continue;
@@ -418,30 +619,37 @@ bool FontRenderer::GenerateStringGeometry()
 
 			GlyphInfo & gi = *it->second;
 
+			if (cc <= 32)
+			{
+				x += (gi.adv >> 6);
+				continue;
+			}
+
+			
 			int fx = x + gi.bmpX;
 			int fy = y - gi.bmpY;
 
 			//build geometry		
 			Vertex a, b, c, d;
-			a.x = fx;
-			a.y = fy;
-			a.u = gi.tx;
-			a.v = gi.ty;
+			a.x = static_cast<float>(fx);
+			a.y = static_cast<float>(fy);
+			a.u = static_cast<float>(gi.tx);
+			a.v = static_cast<float>(gi.ty);
 
-			b.x = fx + gi.bmpW;
-			b.y = fy;
-			b.u = gi.tx + gi.bmpW;
-			b.v = gi.ty;
+			b.x = static_cast<float>(fx + gi.bmpW);
+			b.y = static_cast<float>(fy);
+			b.u = static_cast<float>(gi.tx + gi.bmpW);
+			b.v = static_cast<float>(gi.ty);
 
-			c.x = fx + gi.bmpW;
-			c.y = fy + gi.bmpH;
-			c.u = gi.tx + gi.bmpW;
-			c.v = gi.ty + gi.bmpH;
+			c.x = static_cast<float>(fx + gi.bmpW);
+			c.y = static_cast<float>(fy + gi.bmpH);
+			c.u = static_cast<float>(gi.tx + gi.bmpW);
+			c.v = static_cast<float>(gi.ty + gi.bmpH);
 
-			d.x = fx;
-			d.y = fy + gi.bmpH;
-			d.u = gi.tx;
-			d.v = gi.ty + gi.bmpH;
+			d.x = static_cast<float>(fx);
+			d.y = static_cast<float>(fy + gi.bmpH);
+			d.u = static_cast<float>(gi.tx);
+			d.v = static_cast<float>(gi.ty + gi.bmpH);
 
 			a.Mul(psW, psH, tW, tH);
 			b.Mul(psW, psH, tW, tH);
@@ -458,34 +666,7 @@ bool FontRenderer::GenerateStringGeometry()
 
 	this->strChanged = false;
 
-	/*
-	this->geom.clear();
-
-	Vertex a, b, c, d;
-	a.x = 0;
-	a.y = 0;
-	a.u = 0;
-	a.v = 0;
-
-	b.x = 1;
-	b.y = 0;
-	b.u = 1;
-	b.v = 0;
-
-	c.x = 1;
-	c.y = 1;
-	c.u = 1;
-	c.v = 1;
-
-	d.x = 0;
-	d.y = 1;
-	d.u = 0;
-	d.v = 1;
-
-	LetterGeom l;
-	l.AddQuad(a, b, c, d);
-	this->geom.push_back(l);
-	*/
+	
 	GL_CHECK(glBindBuffer(GL_ARRAY_BUFFER, this->vbo));
 	GL_CHECK(glBufferData(GL_ARRAY_BUFFER, geom.size() * sizeof(LetterGeom), &(geom.front()), GL_STREAM_DRAW));
 	GL_CHECK(glBindBuffer(GL_ARRAY_BUFFER, 0));

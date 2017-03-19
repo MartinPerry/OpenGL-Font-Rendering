@@ -48,8 +48,7 @@ typedef struct FontInfo
 	std::string fontFaceName;
 	int fontSize;
 
-	int maxAscent;
-	int maxDescent;
+	
 	int newLineOffset;
 
 	//FontTexture texture;
