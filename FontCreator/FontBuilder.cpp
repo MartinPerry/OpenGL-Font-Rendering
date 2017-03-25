@@ -21,7 +21,7 @@ FontBuilder::FontBuilder(const std::string & fontFacePath, int w, int h, int fon
 
 	this->library = nullptr;
 	this->fontFace = nullptr;
-
+	this->inited = false;
 
 	this->Initialize(fontFacePath);
 
@@ -48,11 +48,19 @@ void FontBuilder::Release()
 	{
 		SAFE_DELETE_ARRAY(c.rawData);		
 	}
+
+	this->inited = false;
 }
 
 //================================================================
 // Initialization
 //================================================================
+
+bool FontBuilder::IsInited() const
+{
+	return this->inited;
+}
+
 
 void FontBuilder::Initialize(const std::string & fontFacePath)
 {
@@ -83,6 +91,7 @@ void FontBuilder::Initialize(const std::string & fontFacePath)
 	}
 
 	FT_Select_Charmap(this->fontFace, FT_ENCODING_UNICODE);	
+	this->inited = true;
 }
 
 

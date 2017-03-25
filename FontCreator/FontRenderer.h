@@ -19,6 +19,8 @@ public:
 	typedef enum TextAlign {ALIGN_LEFT, ALIGN_CENTER} TextAlign;
 	typedef enum TextAnchor { LEFT_TOP, CENTER, LEFT_DOWN } TextAnchor;
 
+	typedef struct Color { float r, g, b; float a; } Color;
+
 	typedef struct Font
 	{
 		std::string name;
@@ -35,7 +37,13 @@ public:
 
 	void ClearStrings();
 
-	void AddString(const utf8_string & strUTF8, int x, int y, 
+	void AddString(const utf8_string & strUTF8, 
+		double x, double y, Color color = { 1,1,1,1 },
+		TextAnchor anchor = TextAnchor::LEFT_TOP,
+		TextAlign align = TextAlign::ALIGN_LEFT);
+
+	void AddString(const utf8_string & strUTF8, 
+		int x, int y, Color color = {1,1,1,1},
 		TextAnchor anchor = TextAnchor::LEFT_TOP,
 		TextAlign align = TextAlign::ALIGN_LEFT);
 
@@ -55,6 +63,7 @@ private:
 		utf8_string strUTF8;
 		int x;
 		int y;
+		Color color;
 		TextAnchor anchor;
 		TextAlign align;
 
@@ -70,6 +79,7 @@ private:
 	{
 		float x, y;
 		float u, v;
+		float r, g, b, a;
 
 		void Mul(float pW, float pH, float tW, float tH)
 		{
@@ -95,6 +105,18 @@ private:
 			v[4] = c;
 			v[5] = d;
 		}
+
+		void SetColor(Color & c)
+		{
+			for (int i = 0; i < 6; i++)
+			{
+				v[i].r = c.r;
+				v[i].g = c.g;
+				v[i].b = c.b;
+				v[i].a = c.a;
+			}
+		}
+
 	} LetterGeom;
 
 	typedef struct Shader
@@ -102,10 +124,11 @@ private:
 		GLuint program;
 
 		
-		GLuint colorLocation;
+		
 		
 		GLuint positionLocation;
 		GLuint texCoordLocation;
+		GLuint colorLocation;
 
 		static const char * vSource;
 		static const char * pSource;

@@ -11,7 +11,6 @@
 
 #ifdef _MSC_VER		
 #pragma comment(lib, "opengl32.lib")
-#pragma comment(lib, "glew32.lib")	
 #endif
 
 #ifdef _WIN32
@@ -34,11 +33,11 @@
 
 #ifdef _MSC_VER
 #if defined(DEBUG)|defined(_DEBUG)
-#pragma comment(lib, "freeglut.lib")		
-#pragma comment(lib, "glew32.lib")
+#pragma comment(lib, "./libs/freeglut.lib")		
+#pragma comment(lib, "./libs/glew32.lib")
 #else
-#pragma comment(lib, "freeglut.lib")		
-#pragma comment(lib, "glew32.lib")
+#pragma comment(lib, "./libs/freeglut.lib")		
+#pragma comment(lib, "./libs/glew32.lib")
 #endif	
 #endif
 
@@ -58,6 +57,7 @@ void reshape(int width, int height) {
 //------------------------------------------------------------------------------
 void display() {
 
+	glClearColor(1, 0, 0, 1);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 	glViewport(0, 0, g_width, g_height);
@@ -66,15 +66,17 @@ void display() {
 	glMatrixMode(GL_MODELVIEW);
 	glLoadIdentity();
 
-	glDisable(GL_LIGHTING);
+	//glDisable(GL_LIGHTING);
 	
 		
 	// fill mode always
 	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 	glDisable(GL_CULL_FACE);
+	
 	// Stencil / Depth buffer and test disabled
 	glDisable(GL_STENCIL_TEST);
 	glStencilMask(0);
+
 	glDisable(GL_DEPTH_TEST);
 	glDepthMask(GL_FALSE);
 	// Blend on for alpha
@@ -82,9 +84,9 @@ void display() {
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	// Color active
-	glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
-	glPrimitiveRestartIndex(-1);
-	glEnable(GL_PRIMITIVE_RESTART);
+	//glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
+	//glPrimitiveRestartIndex(-1);
+	//glEnable(GL_PRIMITIVE_RESTART);
 	
 
 	//render here
@@ -93,7 +95,9 @@ void display() {
 		FontRenderer::LEFT_TOP,
 		FontRenderer::ALIGN_LEFT);
 	*/
-	fr->AddString(u8"Pøíliš\nžluouèký\nkùò", 400, 300,
+	
+	fr->AddString(u8"Pøíliš\nžluouèký\nkùò", 0.5f, 0.5f,
+		{1,1,0,1},
 		FontRenderer::CENTER,
 		FontRenderer::ALIGN_CENTER);
 	//fr->AddString(u8"lll", 200, 300);
@@ -117,11 +121,7 @@ void idle() {
 
 //------------------------------------------------------------------------------
 void initGL() {	
-	glEnable(GL_LIGHT0);	
-	glEnable(GL_DEPTH_TEST);
-	glDepthFunc(GL_LEQUAL);
-
-	
+			
 	fr = new FontRenderer(g_width, g_height, { "arial.ttf", 40, 512, 512 });
 }
 
@@ -137,9 +137,9 @@ int main(int argc, char ** argv)
 
 	glutInit(&argc, argv);
 	glutSetOption(GLUT_ACTION_ON_WINDOW_CLOSE, GLUT_ACTION_CONTINUE_EXECUTION);
-	glutInitDisplayMode(GLUT_RGBA | GLUT_DOUBLE | GLUT_DEPTH);
+	glutInitDisplayMode(GLUT_RGBA | GLUT_SINGLE | GLUT_DEPTH);
 	glutInitWindowSize(g_width, g_height);
-	glutCreateWindow("Text test");
+	glutCreateWindow("Font Rendering Example");
 
 	glutDisplayFunc(display);
 	glutReshapeFunc(reshape);		

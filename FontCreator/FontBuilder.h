@@ -5,9 +5,9 @@ class TextureAtlasPack;
 
 #ifdef _MSC_VER
 #if defined(DEBUG)|defined(_DEBUG)
-#pragma comment(lib, "freetype265MTd.lib")		
+#pragma comment(lib, "./libs/freetype265MTd.lib")		
 #else
-#pragma comment(lib, "freetype265MT.lib")		
+#pragma comment(lib, "./libs/freetype265MT.lib")		
 #endif	
 #endif
 
@@ -32,6 +32,7 @@ public:
 	~FontBuilder();
 
 	void Release();
+	bool IsInited() const;
 
 	void AddString(const utf8_string & strUTF8);
 	void AddCharacter(CHAR_CODE c);
@@ -61,7 +62,7 @@ protected:
 	
 	FT_Library library;
 	FT_Face fontFace;
-
+	bool inited;
 
 	FontInfo fi;
 	

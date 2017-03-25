@@ -59,31 +59,34 @@ const char* FontRenderer::Shader::vSource = {
     \n\
     in vec2 POSITION;\n\
     in vec2 TEXCOORD0;\n\
+	in vec4 COLOR;\n\
     out vec2 texCoord;\n\
+	out vec4 color;\n\
 	\n\
     void main()\n\
     {\n\
         gl_Position = vec4(POSITION.x, POSITION.y, 0.0, 1.0); \n\
 		gl_Position.xy = 2.0 * gl_Position.xy - 1.0; \n\
 		gl_Position.y *= -1;\n\
-        texCoord = TEXCOORD0.xy; \n\
+        texCoord = TEXCOORD0; \n\
+		color = COLOR; \n\
     }\n\
 " };
 
 const char* FontRenderer::Shader::pSource = {
 	"#version 140\n\
-    uniform vec4 color; \n\
     uniform sampler2D fontTex;\n\
     in vec2 texCoord;\n\
+	in vec4 color;\n\
     out vec4 fragColor;\n\
 	\n\
     void main()\n\
     {\n\
-        float distance = (texture2D( fontTex, texCoord.xy ).x); \n\
-        fragColor.rgb = color.rgb; \n\
-		fragColor.rgb = vec3(distance); \n\
-        fragColor.a = color.a * distance;\n\
-		fragColor.a = 1;\n\
+        float distance = texture2D( fontTex, texCoord.xy ).x; \n\
+        fragColor.rgb = color.xyz; \n\
+		//fragColor.rgb = vec3(distance); \n\
+        fragColor.a = color.w * distance;\n\
+		//fragColor.a = 1;\n\
     }\n\
 " };
 
@@ -136,7 +139,7 @@ void FontRenderer::InitGL()
 
 	//get location of data in shader
 
-	GL_CHECK(shader.colorLocation = glGetUniformLocation(shader.program, "color"));
+	//GL_CHECK(shader.colorLocation = glGetUniformLocation(shader.program, "color"));
 
 	GLint fontTexLoc = 0;
 	GL_CHECK(fontTexLoc = glGetUniformLocation(shader.program, "fontTex"));
@@ -145,6 +148,7 @@ void FontRenderer::InitGL()
 
 	GL_CHECK(shader.positionLocation = glGetAttribLocation(shader.program, "POSITION"));
 	GL_CHECK(shader.texCoordLocation = glGetAttribLocation(shader.program, "TEXCOORD0"));
+	GL_CHECK(shader.colorLocation = glGetAttribLocation(shader.program, "COLOR"));
 
 
 	//create VBO
@@ -174,6 +178,11 @@ void FontRenderer::InitGL()
 /// </summary>
 void FontRenderer::CreateVAO()
 {
+	const size_t VERTEX_SIZE = sizeof(Vertex);
+	const size_t POSITION_OFFSET = 0 * sizeof(float);
+	const size_t TEX_COORD_OFFSET = 2 * sizeof(float);
+	const size_t COLOR_OFFSET = 4 * sizeof(float);
+
 	//init
 	GL_CHECK(glGenVertexArrays(1, &this->vao));
 
@@ -184,12 +193,18 @@ void FontRenderer::CreateVAO()
 	GL_CHECK(glEnableVertexAttribArray(this->shader.positionLocation));
 	GL_CHECK(glVertexAttribPointer(this->shader.positionLocation, 2,
 		GL_FLOAT, GL_FALSE,
-		4 * sizeof(float), (void*)(0)));
+		VERTEX_SIZE, (void*)(POSITION_OFFSET)));
 
 	GL_CHECK(glEnableVertexAttribArray(this->shader.texCoordLocation));
 	GL_CHECK(glVertexAttribPointer(this->shader.texCoordLocation, 2,
 		GL_FLOAT, GL_FALSE,
-		4 * sizeof(float), (void*)(2 * sizeof(float))));
+		VERTEX_SIZE, (void*)(TEX_COORD_OFFSET)));
+
+	GL_CHECK(glEnableVertexAttribArray(this->shader.colorLocation));
+	GL_CHECK(glVertexAttribPointer(this->shader.colorLocation, 4,
+		GL_FLOAT, GL_FALSE,
+		VERTEX_SIZE, (void*)(COLOR_OFFSET)));
+
 
 	GL_CHECK(glBindVertexArray(0));
 	GL_CHECK(glBindBuffer(GL_ARRAY_BUFFER, 0));
@@ -296,7 +311,7 @@ void FontRenderer::Render()
 	
 	//activate shader
 	GL_CHECK(glUseProgram(shader.program));
-	GL_CHECK(glUniform4f(shader.colorLocation, 1, 1, 0, 0));
+	//GL_CHECK(glUniform4f(shader.colorLocation, 0, 0, 1, 1));
 
 	//render
 	GL_CHECK(glBindBuffer(GL_ARRAY_BUFFER, this->vbo));
@@ -324,6 +339,25 @@ void FontRenderer::ClearStrings()
 }
 
 /// <summary>
+/// Add new string to be rendered - string coordinates
+/// are in percents
+/// If string already exist - do not add
+/// Existing string => same x, y, align, anchor, content
+/// </summary>
+/// <param name="strUTF8"></param>
+/// <param name="x"></param>
+/// <param name="y"></param>
+void FontRenderer::AddString(const utf8_string & strUTF8,
+	double x, double y, Color color,
+	TextAnchor anchor, TextAlign align)
+{
+	int xx = static_cast<int>(x * this->deviceW);
+	int yy = static_cast<int>(y * this->deviceH);
+
+	this->AddString(strUTF8, xx, yy, color, anchor, align);
+}
+
+/// <summary>
 /// Add new string to be rendered
 /// If string already exist - do not add
 /// Existing string => same x, y, align, anchor, content
@@ -332,12 +366,13 @@ void FontRenderer::ClearStrings()
 /// <param name="x"></param>
 /// <param name="y"></param>
 void FontRenderer::AddString(const utf8_string & strUTF8, 
-	int x, int y, 
+	int x, int y, Color color,
 	TextAnchor anchor, TextAlign align)
 {
 	for (auto & s : this->strs)
 	{
-		if ((s.x == x) && (s.y == y) && (s.align == align) && (s.anchor == anchor))
+		if ((s.x == x) && (s.y == y) && 			
+			(s.align == align) && (s.anchor == anchor))
 		{
 			if (s.strUTF8 == strUTF8)
 			{
@@ -357,6 +392,7 @@ void FontRenderer::AddString(const utf8_string & strUTF8,
 	i.strUTF8 = strUTF8;
 	i.x = x;
 	i.y = y;
+	i.color = color;
 	i.anchor = anchor;
 	i.align = align;
 	i.anchorX = x;
@@ -658,6 +694,7 @@ bool FontRenderer::GenerateStringGeometry()
 
 			LetterGeom l;
 			l.AddQuad(a, b, c, d);
+			l.SetColor(si.color);
 			this->geom.push_back(l);
 
 			x += (gi.adv >> 6);
@@ -666,11 +703,12 @@ bool FontRenderer::GenerateStringGeometry()
 
 	this->strChanged = false;
 
-	
-	GL_CHECK(glBindBuffer(GL_ARRAY_BUFFER, this->vbo));
-	GL_CHECK(glBufferData(GL_ARRAY_BUFFER, geom.size() * sizeof(LetterGeom), &(geom.front()), GL_STREAM_DRAW));
-	GL_CHECK(glBindBuffer(GL_ARRAY_BUFFER, 0));
-	
+	if (this->geom.size() != 0)
+	{
+		GL_CHECK(glBindBuffer(GL_ARRAY_BUFFER, this->vbo));
+		GL_CHECK(glBufferData(GL_ARRAY_BUFFER, geom.size() * sizeof(LetterGeom), &(geom.front()), GL_STREAM_DRAW));
+		GL_CHECK(glBindBuffer(GL_ARRAY_BUFFER, 0));
+	}
 
 	return true;
 }
