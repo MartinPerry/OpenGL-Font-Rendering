@@ -3,7 +3,7 @@
 #include <limits>
 
 #include "./FontBuilder.h"
-#include "./Macros.h"
+
 
 //=============================================================================
 // GL helpers
@@ -97,6 +97,9 @@ FontRenderer::FontRenderer(int deviceW, int deviceH, Font f)
 {
 	this->fb = new FontBuilder(f.name, f.textureWidth, f.textureHeight, f.size);
 	this->fb->SetGridPacking(f.size, f.size);
+
+	ci.mark = u8"\u2022";
+	ci.offset = this->fb->GetFontInfo().newLineOffset / 2;
 
 	this->InitGL();
 }
@@ -338,6 +341,29 @@ void FontRenderer::ClearStrings()
 	this->strs.clear();
 }
 
+void FontRenderer::SetCaptionInfo(const utf8_string & mark, int offset)
+{
+	ci.mark = mark;
+	ci.offset = offset;
+}
+
+
+void FontRenderer::AddStringCaption(const utf8_string & strUTF8,
+	double x, double y, Color color)
+{
+	int xx = static_cast<int>(x * this->deviceW);
+	int yy = static_cast<int>(y * this->deviceH);
+
+	this->AddStringCaption(strUTF8, xx, yy, color);
+}
+
+void FontRenderer::AddStringCaption(const utf8_string & strUTF8,
+	int x, int y, Color color)
+{
+	this->AddString(ci.mark, x, y, color, TextAnchor::CENTER, TextAlign::ALIGN_CENTER, TextType::CAPTION);
+	this->AddString(strUTF8, x, y, color, TextAnchor::CENTER, TextAlign::ALIGN_CENTER, TextType::CAPTION);
+}
+
 /// <summary>
 /// Add new string to be rendered - string coordinates
 /// are in percents
@@ -353,8 +379,8 @@ void FontRenderer::AddString(const utf8_string & strUTF8,
 {
 	int xx = static_cast<int>(x * this->deviceW);
 	int yy = static_cast<int>(y * this->deviceH);
-
-	this->AddString(strUTF8, xx, yy, color, anchor, align);
+	
+	this->AddString(strUTF8, xx, yy, color, anchor, align, TextType::TEXT);
 }
 
 /// <summary>
@@ -365,14 +391,22 @@ void FontRenderer::AddString(const utf8_string & strUTF8,
 /// <param name="strUTF8"></param>
 /// <param name="x"></param>
 /// <param name="y"></param>
-void FontRenderer::AddString(const utf8_string & strUTF8, 
+void FontRenderer::AddString(const utf8_string & strUTF8,
 	int x, int y, Color color,
 	TextAnchor anchor, TextAlign align)
+{
+	this->AddString(strUTF8, x, y, color, anchor, align, TextType::TEXT);
+}
+
+
+void FontRenderer::AddString(const utf8_string & strUTF8, 
+	int x, int y, Color color,
+	TextAnchor anchor, TextAlign align, TextType type)
 {
 	for (auto & s : this->strs)
 	{
 		if ((s.x == x) && (s.y == y) && 			
-			(s.align == align) && (s.anchor == anchor))
+			(s.align == align) && (s.anchor == anchor) && (s.type == type))
 		{
 			if (s.strUTF8 == strUTF8)
 			{
@@ -395,6 +429,7 @@ void FontRenderer::AddString(const utf8_string & strUTF8,
 	i.color = color;
 	i.anchor = anchor;
 	i.align = align;
+	i.type = type;
 	i.anchorX = x;
 	i.anchorY = y;
 	i.linesCount = this->CalcStringLines(strUTF8);
@@ -519,11 +554,11 @@ void FontRenderer::CalcAnchoredPosition()
 
 	for (auto & si : this->strs)
 	{		
-		if (si.align == TextAlign::ALIGN_CENTER)
+		if (si.linesAABB.size() != 0) 
 		{
-			si.linesAABB = this->CalcStringAABB(si.strUTF8, si.x, si.y, si.aabb);
+			continue;
 		}
-
+		
 		if (si.anchor == TextAnchor::LEFT_TOP)
 		{
 			si.anchorX = si.x;
@@ -550,6 +585,17 @@ void FontRenderer::CalcAnchoredPosition()
 			si.anchorY = si.y;
 			si.anchorY -= (si.linesCount - 1) * fi.newLineOffset; //move down - default Y is at (TOP_LEFT - newLineOffset)
 		}
+
+		if ((si.type == TextType::CAPTION) && (si.strUTF8 != ci.mark))
+		{
+			si.linesAABB = this->CalcStringAABB(si.strUTF8, si.anchorX, si.anchorY, si.aabb);
+
+			int h = (si.aabb.maxY - si.aabb.minY) / 2;
+			si.anchorY -= (h + ci.offset);
+		}
+		
+		si.linesAABB = this->CalcStringAABB(si.strUTF8, si.anchorX, si.anchorY, si.aabb);
+		
 	}
 }
 

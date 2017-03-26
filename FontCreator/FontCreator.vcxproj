@@ -151,18 +151,20 @@
     <ClCompile Include="lodepng.cpp" />
     <ClCompile Include="example_demo.cpp" />
     <ClCompile Include="TextureAtlasPack.cpp" />
-    <ClCompile Include="tinyutf8.cpp" />
-    <ClCompile Include="utf8.cpp" />
+    <ClCompile Include="Unicode\tinyutf8.cpp" />
+    <ClCompile Include="Unicode\uninorms.cpp" />
+    <ClCompile Include="Unicode\utf8.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Externalncludes.h" />
     <ClInclude Include="FontBuilder.h" />
     <ClInclude Include="FontRenderer.h" />
     <ClInclude Include="FontStructures.h" />
     <ClInclude Include="lodepng.h" />
-    <ClInclude Include="Macros.h" />
     <ClInclude Include="TextureAtlasPack.h" />
-    <ClInclude Include="tinyutf8.h" />
-    <ClInclude Include="utf8.h" />
+    <ClInclude Include="Unicode\tinyutf8.h" />
+    <ClInclude Include="Unicode\uninorms.h" />
+    <ClInclude Include="Unicode\utf8.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

@@ -3,13 +3,6 @@
 
 class TextureAtlasPack;
 
-#ifdef _MSC_VER
-#if defined(DEBUG)|defined(_DEBUG)
-#pragma comment(lib, "./libs/freetype265MTd.lib")		
-#else
-#pragma comment(lib, "./libs/freetype265MT.lib")		
-#endif	
-#endif
 
 #include <string>
 #include <stdint.h>
@@ -23,7 +16,7 @@ class TextureAtlasPack;
 #include "./FontStructures.h"
 #include "./TextureAtlasPack.h"
 
-#include "./tinyutf8.h"
+#include "./Externalncludes.h"
 
 class FontBuilder
 {

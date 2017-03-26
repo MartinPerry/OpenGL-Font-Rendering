@@ -13,6 +13,12 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
+    <Filter Include="Header Files\Unicode">
+      <UniqueIdentifier>{c094e58a-b522-4d8c-9be8-c084ccd65614}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Unicode">
+      <UniqueIdentifier>{24d4c87d-be4f-4b7b-a7ad-3cd588956080}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="TextureAtlasPack.cpp">
@@ -24,17 +30,20 @@
     <ClCompile Include="FontBuilder.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="utf8.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="tinyutf8.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="FontRenderer.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="example_demo.cpp">
       <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Unicode\tinyutf8.cpp">
+      <Filter>Source Files\Unicode</Filter>
+    </ClCompile>
+    <ClCompile Include="Unicode\uninorms.cpp">
+      <Filter>Source Files\Unicode</Filter>
+    </ClCompile>
+    <ClCompile Include="Unicode\utf8.cpp">
+      <Filter>Source Files\Unicode</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -47,19 +56,22 @@
     <ClInclude Include="FontBuilder.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Macros.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="FontStructures.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="utf8.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="tinyutf8.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="FontRenderer.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Unicode\tinyutf8.h">
+      <Filter>Header Files\Unicode</Filter>
+    </ClInclude>
+    <ClInclude Include="Unicode\uninorms.h">
+      <Filter>Header Files\Unicode</Filter>
+    </ClInclude>
+    <ClInclude Include="Unicode\utf8.h">
+      <Filter>Header Files\Unicode</Filter>
+    </ClInclude>
+    <ClInclude Include="Externalncludes.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

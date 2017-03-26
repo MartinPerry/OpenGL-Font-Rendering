@@ -4,9 +4,9 @@
 #include "./TextureAtlasPack.h"
 
 
-#include "./Macros.h"
+#include "./Externalncludes.h"
 
-#include "./utf8.h"
+
 
 //http://www.freetype.org/freetype2/documentation.html
 //http://en.wikibooks.org/wiki/OpenGL_Programming/Modern_OpenGL_Tutorial_Text_Rendering_01
@@ -103,6 +103,8 @@ void FontBuilder::SetFontSize(int size)
 	}
 
 	this->fi.fontSize = size;
+
+	//https://www.freetype.org/freetype2/docs/tutorial/step1.html
 
 	if (FT_Set_Pixel_Sizes(this->fontFace, 0, size))
 	{
@@ -225,6 +227,9 @@ void FontBuilder::CreateFontAtlas()
 {		
 	if (this->newCodes.size() == 0)
 	{
+		//all is reused - clear reused
+		this->reused.clear();
+
 		return;
 	}
 
@@ -258,15 +263,15 @@ void FontBuilder::CreateFontAtlas()
 	if (this->texPacker->Pack() == false)
 	{
 		printf("Problem - no space, but we need all characters\n");
-		return;
+		
+		//here do something if packing failed
+
+		//BUT we still need to continue and erase "unused" glyphs from this->fi
+		//because before packing run out of space, it could remove glyphs from
+		//texture
 	}
 	
-
-	//packing successfully finished
-	//there was a space in texture and new glyphs can be added
-	this->newCodes.clear();
-	this->reused.clear();
-
+	
 	unused = this->texPacker->GetErasedGlyphs();
 
 	//remove unused, that were removed from texture
@@ -278,8 +283,11 @@ void FontBuilder::CreateFontAtlas()
 		this->fi.usedGlyphs.erase(r);
 	}
 
-	
 
+	//packing successfully finished
+	//there was a space in texture and new glyphs can be added
+	this->newCodes.clear();
+	this->reused.clear();
 }
 
 
@@ -290,6 +298,11 @@ void FontBuilder::CreateFontAtlas()
 /// <param name="c"></param>
 void FontBuilder::LoadGlyphInfo(CHAR_CODE c)
 {
+	if (this->fi.usedGlyphs.find(c) != this->fi.usedGlyphs.end())
+	{
+		//glyph already exist
+		return;
+	}
 
 	FT_UInt ci = FT_Get_Char_Index(this->fontFace, c);
 

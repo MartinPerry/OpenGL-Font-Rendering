@@ -7,17 +7,14 @@ class FontBuilder;
 #include <list>
 #include <unordered_set>
 
-#include "./freeglut/include/GL/wgl/glew.h"
-#include "./freeglut/include/GL/wgl/wglew.h"
-#include "./freeglut/include/GL/glut.h"
-
-#include "./tinyutf8.h"
+#include "./Externalncludes.h"
 
 class FontRenderer
 {
 public:
 	typedef enum TextAlign {ALIGN_LEFT, ALIGN_CENTER} TextAlign;
 	typedef enum TextAnchor { LEFT_TOP, CENTER, LEFT_DOWN } TextAnchor;
+	typedef enum TextType { TEXT, CAPTION } TextType;
 
 	typedef struct Color { float r, g, b; float a; } Color;
 
@@ -37,16 +34,26 @@ public:
 
 	void ClearStrings();
 
+	void SetCaptionInfo(const utf8_string & mark, int offset);
+
+	void AddStringCaption(const utf8_string & strUTF8,
+		double x, double y, Color color = { 1,1,1,1 });
+
+	void AddStringCaption(const utf8_string & strUTF8,
+		int x, int y, Color color = { 1,1,1,1 });
+
 	void AddString(const utf8_string & strUTF8, 
 		double x, double y, Color color = { 1,1,1,1 },
 		TextAnchor anchor = TextAnchor::LEFT_TOP,
 		TextAlign align = TextAlign::ALIGN_LEFT);
 
-	void AddString(const utf8_string & strUTF8, 
-		int x, int y, Color color = {1,1,1,1},
+	void AddString(const utf8_string & strUTF8,
+		int x, int y, Color color = { 1,1,1,1 },
 		TextAnchor anchor = TextAnchor::LEFT_TOP,
 		TextAlign align = TextAlign::ALIGN_LEFT);
 
+
+	
 private:
 	
 	typedef struct AABB
@@ -58,6 +65,13 @@ private:
 		int maxY;
 	} AABB;
 
+	typedef struct CaptionInfo
+	{
+		utf8_string mark;
+		int offset;
+
+	} CaptionInfo;
+
 	typedef struct StringInfo
 	{
 		utf8_string strUTF8;
@@ -66,6 +80,7 @@ private:
 		Color color;
 		TextAnchor anchor;
 		TextAlign align;
+		TextType type;
 
 		int linesCount;
 		int anchorX;
@@ -138,7 +153,7 @@ private:
 	FontBuilder * fb;
 	std::vector<StringInfo> strs;
 	std::vector<LetterGeom> geom;
-	
+	CaptionInfo ci;
 
 	int deviceW;
 	int deviceH;
@@ -149,6 +164,12 @@ private:
 	GLuint fontTex;
 	Shader shader;
 	
+
+	void AddString(const utf8_string & strUTF8,
+		int x, int y, Color color = { 1,1,1,1 },
+		TextAnchor anchor = TextAnchor::LEFT_TOP,
+		TextAlign align = TextAlign::ALIGN_LEFT,
+		TextType type = TextType::TEXT);
 
 	void InitGL();
 	bool GenerateStringGeometry();

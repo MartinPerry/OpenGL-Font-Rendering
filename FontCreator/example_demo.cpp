@@ -4,21 +4,15 @@
 #include "./FontBuilder.h"
 #include "./FontRenderer.h"
 
-#include "./utf8.h"
+#include "./Unicode/utf8.h"
+#include "./Unicode/uninorms.h"
 
 #include <chrono>
 #include <iostream>
 
-#ifdef _MSC_VER		
-#pragma comment(lib, "opengl32.lib")
-#endif
 
 #ifdef _WIN32
 #include <windows.h>
-#endif
-
-
-#ifdef _WIN32
 #ifdef _DEBUG
 #include <vld.h>
 #endif
@@ -32,13 +26,9 @@
 
 
 #ifdef _MSC_VER
-#if defined(DEBUG)|defined(_DEBUG)
+#pragma comment(lib, "opengl32.lib")
 #pragma comment(lib, "./libs/freeglut.lib")		
 #pragma comment(lib, "./libs/glew32.lib")
-#else
-#pragma comment(lib, "./libs/freeglut.lib")		
-#pragma comment(lib, "./libs/glew32.lib")
-#endif	
 #endif
 
 
@@ -95,11 +85,15 @@ void display() {
 		FontRenderer::LEFT_TOP,
 		FontRenderer::ALIGN_LEFT);
 	*/
-	
+	/*
 	fr->AddString(u8"P¯Ìliö\nûluùouËk˝\nk˘Ú", 0.5f, 0.5f,
 		{1,1,0,1},
 		FontRenderer::CENTER,
 		FontRenderer::ALIGN_CENTER);
+	*/
+
+	fr->AddStringCaption(u8"P¯Ìliö\nûluùouËk˝\nk˘Ú", 0.5f, 0.5f, { 1,1,0,1 });
+
 	//fr->AddString(u8"lll", 200, 300);
 	fr->Render();
 
@@ -126,6 +120,25 @@ void initGL() {
 }
 
 
+void Normalize()
+{
+	
+	utf8_string u8str = u8"\u4e0a\u6d77 P¯Ìliö ûluùouËk˝ k˘Ú ˙pÏl Ô·belskÈ Ûdy";
+
+	for (auto c : u8str)
+	{
+		std::u32string uu;
+		uu.push_back(c);
+		//ufal::unilib::uninorms::nfc(uu);
+		ufal::unilib::uninorms::nfd(uu);
+
+		printf("%i ", uu.size());
+
+		//ufal::unilib::uninorms::nfkc(uu);
+		//ufal::unilib::uninorms::nfkd(uu);
+	}
+}
+
 int main(int argc, char ** argv)
 {
 #ifdef _WIN32 
@@ -133,6 +146,8 @@ int main(int argc, char ** argv)
 	VLDSetReportOptions(VLD_OPT_REPORT_TO_DEBUGGER | VLD_OPT_REPORT_TO_FILE, L"leaks.txt");
 #endif
 #endif
+	
+
 	
 
 	glutInit(&argc, argv);

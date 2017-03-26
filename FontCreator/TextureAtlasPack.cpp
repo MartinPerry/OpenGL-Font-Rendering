@@ -1,8 +1,5 @@
 #include "./TextureAtlasPack.h"
 
-#include "./lodepng.h"
-
-#include "./Macros.h"
 
 //http://www.blackpawn.com/texts/lightmaps/default.html
 
@@ -149,6 +146,8 @@ void TextureAtlasPack::Clear()
 /// <returns></returns>
 bool TextureAtlasPack::Pack()
 {
+	this->erased.clear();
+
 	bool res = false;
 	if (this->method == PACKING_METHOD::GRID)
 	{
@@ -171,24 +170,22 @@ bool TextureAtlasPack::Pack()
 /// <returns></returns>
 bool TextureAtlasPack::PackGrid()
 {	
-
 	PackedInfo info;
-
 
 	for (GlyphInfo & g : *this->glyphs)
 	{
+		if (g.code <= 32)
+		{
+			//do not add white-space "characters"
+			continue;
+		}
+
 		if (this->packedInfo.find(g.code) != this->packedInfo.end())
 		{
 			//glyph already in texture
 			continue;
 		}
-
-		if (g.code <= 32)
-		{
-			//do not add space "character"
-			continue;
-		}
-
+		
 		if (this->freeSpace.size() == 0)
 		{		
 			if (this->unused.size() == 0)
@@ -198,21 +195,17 @@ bool TextureAtlasPack::PackGrid()
 
 			//free space from unused
 			
-			CHAR_CODE c;
+			CHAR_CODE removedCode;
 
-			if (this->FreeSpace(g.bmpW, g.bmpH, &c) == false)
+			if (this->FreeSpace(g.bmpW, g.bmpH, &removedCode) == false)
 			{
 				printf("Empty space in atlas not found and cannot be freed for glyph %lu\n", g.code);
 				return false;
 			}
 
-			info = this->packedInfo[c];			
-			info.filled = false;
+			info = this->packedInfo[removedCode];
 
-			g.tx = info.x + this->border;
-			g.ty = info.y + this->border;
-
-			this->packedInfo.erase(c);
+			this->packedInfo.erase(removedCode);
 		}
 		else
 		{
@@ -222,15 +215,15 @@ bool TextureAtlasPack::PackGrid()
 			info.x = empty.x;
 			info.y = empty.y;
 			info.width = empty.w;
-			info.height = empty.h;
-			info.filled = false;
-
-			g.tx = empty.x + this->border;
-			g.ty = empty.y + this->border;
-					
+			info.height = empty.h;								
 
 			this->freeSpace.pop_front();
 		}
+
+		info.filled = false;
+
+		g.tx = info.x + this->border;
+		g.ty = info.y + this->border;
 
 		this->packedInfo[g.code] = info;
 	}
