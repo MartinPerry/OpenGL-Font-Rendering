@@ -100,6 +100,7 @@ FontRenderer::FontRenderer(int deviceW, int deviceH, Font f)
 
 	ci.mark = u8"\u2022";
 	ci.offset = this->fb->GetFontInfo().newLineOffset / 2;
+	ci.offset *= 1.2; //add extra 20%
 
 	this->InitGL();
 }
@@ -586,12 +587,25 @@ void FontRenderer::CalcAnchoredPosition()
 			si.anchorY -= (si.linesCount - 1) * fi.newLineOffset; //move down - default Y is at (TOP_LEFT - newLineOffset)
 		}
 
-		if ((si.type == TextType::CAPTION) && (si.strUTF8 != ci.mark))
+		if (si.type == TextType::CAPTION)
 		{
-			si.linesAABB = this->CalcStringAABB(si.strUTF8, si.anchorX, si.anchorY, si.aabb);
+			if (si.strUTF8 == ci.mark)
+			{
+				auto it = fi.usedGlyphs.find(ci.mark[0]);
+				if (it != fi.usedGlyphs.end())
+				{
+					//si.anchorX -= (it->second->bmpW);
+					si.anchorY -= (it->second->bmpH);
+				}
+				
+			}
+			else
+			{
+				si.linesAABB = this->CalcStringAABB(si.strUTF8, si.anchorX, si.anchorY, si.aabb);
 
-			int h = (si.aabb.maxY - si.aabb.minY) / 2;
-			si.anchorY -= (h + ci.offset);
+				int h = (si.aabb.maxY - si.aabb.minY);
+				si.anchorY -= (h / 2 + ci.offset);
+			}
 		}
 		
 		si.linesAABB = this->CalcStringAABB(si.strUTF8, si.anchorX, si.anchorY, si.aabb);
