@@ -27,6 +27,8 @@ public:
 
 	} Font;
 
+	static const Color DEFAULT_COLOR;
+
 	FontRenderer(int deviceW, int deviceH, Font f);
 	~FontRenderer();
 
@@ -37,18 +39,18 @@ public:
 	void SetCaptionInfo(const utf8_string & mark, int offset);
 
 	void AddStringCaption(const utf8_string & strUTF8,
-		double x, double y, Color color = { 1,1,1,1 });
+		double x, double y, Color color = DEFAULT_COLOR);
 
 	void AddStringCaption(const utf8_string & strUTF8,
-		int x, int y, Color color = { 1,1,1,1 });
+		int x, int y, Color color = DEFAULT_COLOR);
 
 	void AddString(const utf8_string & strUTF8, 
-		double x, double y, Color color = { 1,1,1,1 },
+		double x, double y, Color color = DEFAULT_COLOR,
 		TextAnchor anchor = TextAnchor::LEFT_TOP,
 		TextAlign align = TextAlign::ALIGN_LEFT);
 
 	void AddString(const utf8_string & strUTF8,
-		int x, int y, Color color = { 1,1,1,1 },
+		int x, int y, Color color = DEFAULT_COLOR,
 		TextAnchor anchor = TextAnchor::LEFT_TOP,
 		TextAlign align = TextAlign::ALIGN_LEFT);
 
@@ -174,6 +176,8 @@ private:
 	void InitGL();
 	bool GenerateStringGeometry();
 
+	AABB EstimateStringAABB(const utf8_string & strUTF8,
+		int x, int y);
 	std::vector<AABB> CalcStringAABB(const utf8_string & strUTF8, 
 		int x, int y, AABB & globalAABB);
 	int CalcStringLines(const utf8_string & strUTF8) const;

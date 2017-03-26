@@ -92,6 +92,7 @@ void display() {
 		FontRenderer::ALIGN_CENTER);
 	*/
 
+	
 	fr->AddStringCaption(u8"Pøíliš\nžluouèký\nkùò", 0.5f, 0.5f, { 1,1,0,1 });
 
 	//fr->AddString(u8"lll", 200, 300);

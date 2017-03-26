@@ -92,6 +92,8 @@ const char* FontRenderer::Shader::pSource = {
 
 //=============================================================================
 
+const FontRenderer::Color FontRenderer::DEFAULT_COLOR = { 1,1,1,1 };
+
 FontRenderer::FontRenderer(int deviceW, int deviceH, Font f)
 	: deviceW(deviceW), deviceH(deviceH), strChanged(false)
 {
@@ -100,7 +102,7 @@ FontRenderer::FontRenderer(int deviceW, int deviceH, Font f)
 
 	ci.mark = u8"\u2022";
 	ci.offset = this->fb->GetFontInfo().newLineOffset / 2;
-	ci.offset *= 1.2; //add extra 20%
+	ci.offset = static_cast<int>(ci.offset * 1.2); //add extra 20%
 
 	this->InitGL();
 }
@@ -418,7 +420,28 @@ void FontRenderer::AddString(const utf8_string & strUTF8,
 		}
 	}
 
-	//new string - add it
+	AABB estimAABB = this->EstimateStringAABB(strUTF8, x, y);
+	
+	//test if entire string is outside visible area
+	
+	int w = estimAABB.maxX - estimAABB.minX;
+	int h = estimAABB.maxY - estimAABB.minY;
+
+	if (anchor == TextAnchor::CENTER)
+	{
+		estimAABB.minX -= (w / 2);
+		estimAABB.maxX -= (w / 2);
+		estimAABB.minY -= (h / 2);
+		estimAABB.maxY -= (h / 2);
+	}
+
+	if (estimAABB.maxX <= 0) return;
+	if (estimAABB.maxY <= 0) return;
+	if (estimAABB.minX > this->deviceW) return;
+	if (estimAABB.minY > this->deviceH) return;
+	
+
+	//new visible string - add it
 
 	this->strChanged = true;
 
@@ -435,6 +458,7 @@ void FontRenderer::AddString(const utf8_string & strUTF8,
 	i.anchorY = y;
 	i.linesCount = this->CalcStringLines(strUTF8);
 
+	
 
 	this->strs.push_back(i);
 
@@ -457,6 +481,80 @@ int FontRenderer::CalcStringLines(const utf8_string & strUTF8) const
 		}
 	}
 	return count;
+}
+
+/// <summary>
+/// Estimate AABB based on font size - each glyph will have the same size
+/// </summary>
+/// <param name="strUTF8"></param>
+/// <param name="x"></param>
+/// <param name="y"></param>
+/// <returns></returns>
+FontRenderer::AABB FontRenderer::EstimateStringAABB(const utf8_string & strUTF8, int x, int y)
+{
+	FontRenderer::AABB aabb;
+	aabb.minX = std::numeric_limits<int>::max();
+	aabb.minY = std::numeric_limits<int>::max();
+
+	aabb.maxX = std::numeric_limits<int>::min();
+	aabb.maxY = std::numeric_limits<int>::min();
+
+	
+	const FontInfo & fi = this->fb->GetFontInfo();
+	int w = fi.fontSize;
+	int h = fi.fontSize;
+	int adv = fi.fontSize;
+
+	int startX = x;
+
+	for (auto c : strUTF8)
+	{
+		if (c == '\n')
+		{
+			x = startX;
+			y += fi.newLineOffset;
+			
+			continue;
+		}
+
+		auto it = fi.usedGlyphs.find(c);
+		if (it != fi.usedGlyphs.end())
+		{
+			GlyphInfo & gi = *it->second;
+			w = gi.bmpW;
+			h = gi.bmpH;
+			adv = gi.adv >> 6;
+		}
+		else 
+		{
+			w = fi.fontSize;
+			h = fi.fontSize;
+			adv = fi.fontSize;
+		}
+			
+
+		int fx = x + w;
+		int fy = y - h;
+
+
+		if (fx > aabb.maxX) aabb.maxX = fx;
+		if (fy > aabb.maxY) aabb.maxY = fy;
+
+		if (fx < aabb.minX) aabb.minX = fx;
+		if (fy < aabb.minY) aabb.minY = fy;
+
+
+		if (fx + w > aabb.maxX) aabb.maxX = fx + w;
+		if (fy + h > aabb.maxY) aabb.maxY = fy + h;
+
+		if (fx + w < aabb.minX) aabb.minX = fx + w;
+		if (fy + h < aabb.minY) aabb.minY = fy + h;
+
+
+		x += adv;
+	}
+
+	return aabb;
 }
 
 /// <summary>
