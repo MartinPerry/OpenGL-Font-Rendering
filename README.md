@@ -25,11 +25,20 @@ There is a demo program `example_demo.cpp`. It is using [FreeGlut](http://freegl
 Simple example
 ------------------------------------------
 ````c++
-FontRenderer * fr = new FontRenderer(g_width, g_height, { "arial.ttf", fontPixelSize, cacheTextureW, cacheTextureH });
+StringRenderer * fr = new StringRenderer(g_width, g_height, { "arial.ttf", fontPixelSize, cacheTextureW, cacheTextureH });
 
-fr->AddString(u8"Příliš\nžluťoučký\nkůň", posX, posY, FontRenderer::CENTER, FontRenderer::ALIGN_CENTER);
+fr->AddString(u8"Příliš\nžluťoučký\nkůň", posX, posY, { 1,1,0,1 }, FontRenderer::CENTER, FontRenderer::ALIGN_CENTER);
 		
 fr->Render();
+
+
+
+NumberRenderer * nr = new NumberRenderer(g_width, g_height, { "arial.ttf", fontPixelSize, cacheTextureW, cacheTextureH });
+
+nr->AddNumber(-45.75, posX, posY, { 1,1,0,1 }, FontRenderer::CENTER);
+		
+nr->Render();
+
 ````
 
 
