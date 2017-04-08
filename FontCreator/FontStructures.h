@@ -46,7 +46,7 @@ typedef struct FontInfo
 	typedef std::unordered_map<CHAR_CODE, GlyphIterator>::iterator UsedGlyphIterator;
 
 	std::string fontFaceName;
-	int fontSize;
+	int fontSizePixels;
 
 	
 	int newLineOffset;
@@ -57,5 +57,17 @@ typedef struct FontInfo
 	
 
 } FontInfo;
+
+
+typedef struct Font
+{
+	std::string name;
+	int size;	
+	int textureWidth;
+	int textureHeight;
+
+	int screenDpi = 0;	
+
+} Font;
 
 #endif

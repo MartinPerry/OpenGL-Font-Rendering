@@ -7,6 +7,8 @@ class FontBuilder;
 #include <list>
 #include <unordered_set>
 
+#include "./FontStructures.h"
+
 #include "./Externalncludes.h"
 
 class AbstractRenderer
@@ -24,14 +26,7 @@ public:
 			(c.b == b) && (c.a == a); }
 	} Color;
 
-	typedef struct Font
-	{
-		std::string name;
-		int size;
-		int textureWidth;
-		int textureHeight;
-
-	} Font;
+	
 
 	static const Color DEFAULT_COLOR;
 

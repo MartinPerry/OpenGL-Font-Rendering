@@ -21,7 +21,7 @@ class TextureAtlasPack;
 class FontBuilder
 {
 public:
-	FontBuilder(const std::string & fontFacePath, int w, int h, int fontSize);
+	FontBuilder(Font f);
 	~FontBuilder();
 
 	void Release();
@@ -36,7 +36,7 @@ public:
 	void SetGridPacking(int binW, int binH);
 
 	const std::string & GetFontFaceName() const;
-	int GetFontSize();
+	int GetFontSizePixels();
 	const FontInfo & GetFontInfo() const;
 	int GetTextureWidth() const;
 	int GetTextureHeight() const;
@@ -65,7 +65,9 @@ protected:
 	TextureAtlasPack * texPacker;
 		
 	void Initialize(const std::string & fontFacePath);
-	void SetFontSize(int size);
+	void SetFontSizePixels(int size);
+	void SetFontSizePts(int size, int dpi);
+
 	void LoadGlyphInfo(CHAR_CODE c);
 
 	

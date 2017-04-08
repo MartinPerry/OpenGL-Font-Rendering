@@ -123,8 +123,18 @@ void idle() {
 //------------------------------------------------------------------------------
 void initGL() {	
 			
-	fr = new StringRenderer(g_width, g_height, { "arial.ttf", 40, 512, 512 });
-	fn = new NumberRenderer(g_width, g_height, { "arial.ttf", 40, 512, 512 });
+	Font f; // { "arial.ttf", 40, 512, 512, 0, 0 };
+	f.name = "arial.ttf";	
+	f.textureWidth = 512;
+	f.textureHeight = 512;
+	f.size = 40;
+	f.screenDpi = 72;
+	//f.size = 50;
+	//f.screenDpi = 0;
+	
+
+	fr = new StringRenderer(g_width, g_height, f);
+	fn = new NumberRenderer(g_width, g_height, f);
 }
 
 

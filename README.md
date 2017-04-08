@@ -25,18 +25,22 @@ There is a demo program `example_demo.cpp`. It is using [FreeGlut](http://freegl
 Simple example
 ------------------------------------------
 ````c++
-StringRenderer * fr = new StringRenderer(g_width, g_height, { "arial.ttf", fontPixelSize, cacheTextureW, cacheTextureH });
 
-fr->AddString(u8"Příliš\nžluťoučký\nkůň", posX, posY, { 1,1,0,1 }, FontRenderer::CENTER, FontRenderer::ALIGN_CENTER);
-		
+Font f;
+f.name = "arial.ttf";	
+f.textureWidth = 512;
+f.textureHeight = 512;
+f.size = 40;
+f.screenDpi = 0; //if 0 => will use size directly in pixels, otherwise use dpi and size is in pt
+
+
+StringRenderer * fr = new StringRenderer(g_width, g_height, f);
+fr->AddString(u8"Příliš\nžluťoučký\nkůň", posX, posY, { 1,1,0,1 }, AbstractRenderer::CENTER, AbstractRenderer::ALIGN_CENTER);		
 fr->Render();
 
 
-
-NumberRenderer * nr = new NumberRenderer(g_width, g_height, { "arial.ttf", fontPixelSize, cacheTextureW, cacheTextureH });
-
-nr->AddNumber(-45.75, posX, posY, { 1,1,0,1 }, FontRenderer::CENTER);
-		
+NumberRenderer * nr = new NumberRenderer(g_width, g_height, f);
+nr->AddNumber(-45.75, posX, posY, { 1,1,0,1 }, AbstractRenderer::CENTER);		
 nr->Render();
 
 ````

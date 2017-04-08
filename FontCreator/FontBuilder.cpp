@@ -11,10 +11,10 @@
 //http://www.freetype.org/freetype2/documentation.html
 //http://en.wikibooks.org/wiki/OpenGL_Programming/Modern_OpenGL_Tutorial_Text_Rendering_01
 
-FontBuilder::FontBuilder(const std::string & fontFacePath, int w, int h, int fontSize)
+FontBuilder::FontBuilder(Font f)
 {
 	
-	this->texPacker = new TextureAtlasPack(w, h, LETTER_BORDER_SIZE);
+	this->texPacker = new TextureAtlasPack(f.textureWidth, f.textureHeight, LETTER_BORDER_SIZE);
 	this->texPacker->SetTightPacking();
 	//this->texPacker->SetGridPacking(fontSize, fontSize);
 
@@ -23,9 +23,16 @@ FontBuilder::FontBuilder(const std::string & fontFacePath, int w, int h, int fon
 	this->fontFace = nullptr;
 	this->inited = false;
 
-	this->Initialize(fontFacePath);
+	this->Initialize(f.name);
 
-	this->SetFontSize(fontSize);
+	if (f.screenDpi == 0)
+	{
+		this->SetFontSizePixels(f.size);
+	}
+	else 
+	{
+		this->SetFontSizePts(f.size, f.screenDpi);
+	}
 }
 
 
@@ -95,24 +102,37 @@ void FontBuilder::Initialize(const std::string & fontFacePath)
 }
 
 
-void FontBuilder::SetFontSize(int size)
+void FontBuilder::SetFontSizePts(int size, int dpi)
 {
-	if (size == this->fi.fontSize)
+	//https://www.freetype.org/freetype2/docs/glyphs/glyphs-2.html
+	
+	if (FT_Set_Char_Size(this->fontFace, 0, size * 64, dpi, dpi))
 	{
+		printf("Failed to set font size in points\n");
 		return;
 	}
 
-	this->fi.fontSize = size;
+	this->fi.fontSizePixels = (size * dpi / 72); // this->fontFace->size->metrics.y_ppem;
 
+	this->fi.newLineOffset = this->fontFace->size->metrics.height / 64;
+}
+
+void FontBuilder::SetFontSizePixels(int size)
+{
+	
 	//https://www.freetype.org/freetype2/docs/tutorial/step1.html
+
+	
 
 	if (FT_Set_Pixel_Sizes(this->fontFace, 0, size))
 	{
-		printf("Failed to set font size\n");
+		printf("Failed to set font size in pixels\n");
 		return;
 	}
 
 	//http://stackoverflow.com/questions/28009564/new-line-pixel-distance-in-freetype
+
+	this->fi.fontSizePixels = size;
 
 	// get the scaled line spacing (for 48pt), also measured in 64ths of a pixel
 	this->fi.newLineOffset = this->fontFace->size->metrics.height / 64;
@@ -127,9 +147,9 @@ const std::string & FontBuilder::GetFontFaceName() const
 	return this->fi.fontFaceName;
 }
 
-int FontBuilder::GetFontSize()
+int FontBuilder::GetFontSizePixels()
 {
-	return this->fi.fontSize;
+	return this->fi.fontSizePixels;
 }
 
 const FontInfo & FontBuilder::GetFontInfo() const

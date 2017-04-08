@@ -95,7 +95,8 @@ const AbstractRenderer::Color AbstractRenderer::DEFAULT_COLOR = { 1,1,1,1 };
 AbstractRenderer::AbstractRenderer(int deviceW, int deviceH, Font f)
 	: deviceW(deviceW), deviceH(deviceH), strChanged(false)
 {
-	this->fb = new FontBuilder(f.name, f.textureWidth, f.textureHeight, f.size);
+
+	this->fb = new FontBuilder(f);
 	this->fb->SetGridPacking(f.size, f.size);
 
 	ci.mark = u8"\u2022";

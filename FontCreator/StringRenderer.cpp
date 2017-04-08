@@ -185,9 +185,9 @@ AbstractRenderer::AABB StringRenderer::EstimateStringAABB(const utf8_string & st
 
 
 	const FontInfo & fi = this->fb->GetFontInfo();
-	int w = fi.fontSize;
-	int h = fi.fontSize;
-	int adv = fi.fontSize;
+	int w = fi.fontSizePixels;
+	int h = fi.fontSizePixels;
+	int adv = fi.fontSizePixels;
 
 	int startX = x;
 
@@ -211,9 +211,9 @@ AbstractRenderer::AABB StringRenderer::EstimateStringAABB(const utf8_string & st
 		}
 		else
 		{
-			w = fi.fontSize;
-			h = fi.fontSize;
-			adv = fi.fontSize;
+			w = fi.fontSizePixels;
+			h = fi.fontSizePixels;
+			adv = fi.fontSizePixels;
 		}
 
 
