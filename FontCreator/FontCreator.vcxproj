@@ -147,9 +147,11 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="FontBuilder.cpp" />
-    <ClCompile Include="FontRenderer.cpp" />
+    <ClCompile Include="AbstractRenderer.cpp" />
     <ClCompile Include="lodepng.cpp" />
     <ClCompile Include="example_demo.cpp" />
+    <ClCompile Include="NumberRenderer.cpp" />
+    <ClCompile Include="StringRenderer.cpp" />
     <ClCompile Include="TextureAtlasPack.cpp" />
     <ClCompile Include="Unicode\tinyutf8.cpp" />
     <ClCompile Include="Unicode\uninorms.cpp" />
@@ -158,9 +160,11 @@
   <ItemGroup>
     <ClInclude Include="Externalncludes.h" />
     <ClInclude Include="FontBuilder.h" />
-    <ClInclude Include="FontRenderer.h" />
+    <ClInclude Include="AbstractRenderer.h" />
     <ClInclude Include="FontStructures.h" />
     <ClInclude Include="lodepng.h" />
+    <ClInclude Include="NumberRenderer.h" />
+    <ClInclude Include="StringRenderer.h" />
     <ClInclude Include="TextureAtlasPack.h" />
     <ClInclude Include="Unicode\tinyutf8.h" />
     <ClInclude Include="Unicode\uninorms.h" />

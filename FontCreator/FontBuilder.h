@@ -42,7 +42,7 @@ public:
 	int GetTextureHeight() const;
 	const uint8_t * GetTexture() const;
 
-	void CreateFontAtlas();
+	bool CreateFontAtlas();
 		
 	void Save(const std::string & fileName);
 	

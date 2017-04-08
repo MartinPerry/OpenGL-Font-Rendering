@@ -223,14 +223,14 @@ void FontBuilder::AddCharacter(CHAR_CODE c)
 
 
 
-void FontBuilder::CreateFontAtlas()
+bool FontBuilder::CreateFontAtlas()
 {		
 	if (this->newCodes.size() == 0)
 	{
 		//all is reused - clear reused
 		this->reused.clear();
 
-		return;
+		return false;
 	}
 
 
@@ -288,6 +288,8 @@ void FontBuilder::CreateFontAtlas()
 	//there was a space in texture and new glyphs can be added
 	this->newCodes.clear();
 	this->reused.clear();
+
+	return true;
 }
 
 

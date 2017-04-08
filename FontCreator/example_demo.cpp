@@ -2,7 +2,8 @@
 #include "./TextureAtlasPack.h"
 
 #include "./FontBuilder.h"
-#include "./FontRenderer.h"
+#include "./StringRenderer.h"
+#include "./NumberRenderer.h"
 
 #include "./Unicode/utf8.h"
 #include "./Unicode/uninorms.h"
@@ -14,7 +15,7 @@
 #ifdef _WIN32
 #include <windows.h>
 #ifdef _DEBUG
-#include <vld.h>
+//#include <vld.h>
 #endif
 #endif
 
@@ -35,7 +36,8 @@
 int g_width = 800;
 int g_height = 600;
 
-FontRenderer * fr;
+StringRenderer * fr;
+NumberRenderer * fn;
 
 //------------------------------------------------------------------------------
 void reshape(int width, int height) {
@@ -98,6 +100,10 @@ void display() {
 	//fr->AddString(u8"lll", 200, 300);
 	fr->Render();
 
+	//fn->AddNumber(-45.27, 100, 100);
+	fn->AddNumberCaption(-45.27, 100, 100);
+	fn->Render();
+
 	glutSwapBuffers();
 	glutPostRedisplay();
 	
@@ -117,7 +123,8 @@ void idle() {
 //------------------------------------------------------------------------------
 void initGL() {	
 			
-	fr = new FontRenderer(g_width, g_height, { "arial.ttf", 40, 512, 512 });
+	fr = new StringRenderer(g_width, g_height, { "arial.ttf", 40, 512, 512 });
+	fn = new NumberRenderer(g_width, g_height, { "arial.ttf", 40, 512, 512 });
 }
 
 
@@ -144,7 +151,7 @@ int main(int argc, char ** argv)
 {
 #ifdef _WIN32 
 #ifdef _DEBUG
-	VLDSetReportOptions(VLD_OPT_REPORT_TO_DEBUGGER | VLD_OPT_REPORT_TO_FILE, L"leaks.txt");
+	//VLDSetReportOptions(VLD_OPT_REPORT_TO_DEBUGGER | VLD_OPT_REPORT_TO_FILE, L"leaks.txt");
 #endif
 #endif
 	

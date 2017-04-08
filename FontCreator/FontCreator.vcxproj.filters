@@ -30,9 +30,6 @@
     <ClCompile Include="FontBuilder.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="FontRenderer.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="example_demo.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -44,6 +41,15 @@
     </ClCompile>
     <ClCompile Include="Unicode\utf8.cpp">
       <Filter>Source Files\Unicode</Filter>
+    </ClCompile>
+    <ClCompile Include="AbstractRenderer.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="StringRenderer.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="NumberRenderer.cpp">
+      <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -59,9 +65,6 @@
     <ClInclude Include="FontStructures.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="FontRenderer.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="Unicode\tinyutf8.h">
       <Filter>Header Files\Unicode</Filter>
     </ClInclude>
@@ -72,6 +75,15 @@
       <Filter>Header Files\Unicode</Filter>
     </ClInclude>
     <ClInclude Include="Externalncludes.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="StringRenderer.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="AbstractRenderer.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="NumberRenderer.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
