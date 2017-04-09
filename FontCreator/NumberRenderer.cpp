@@ -8,6 +8,8 @@
 NumberRenderer::NumberRenderer(int deviceW, int deviceH, Font f)
 	: AbstractRenderer(deviceW, deviceH, f)
 {
+	this->checkIfExist = true;
+
 	//prepare numbers
 	utf8_string strUTF8 = u8"0123456789,.-";
 
@@ -58,10 +60,24 @@ NumberRenderer::~NumberRenderer()
 {
 }
 
+/// <summary>
+/// Set whether we want to check if added number already exist
+/// </summary>
+/// <param name="val"></param>
+void NumberRenderer::SetExistenceCheck(bool val)
+{
+	this->checkIfExist = val;
+}
+
 void NumberRenderer::SetDecimalPrecission(int digits)
 {
 	this->decimalPlaces = digits;
 	this->decimalMult = std::pow(10, decimalPlaces);
+}
+
+size_t NumberRenderer::GetNumbersCount() const
+{
+	return this->nmbrs.size();
 }
 
 /// <summary>
@@ -135,16 +151,19 @@ void NumberRenderer::AddNumberInternal(double val,
 	int x, int y, Color color,
 	TextAnchor anchor, TextType type)
 {
-	for (auto & s : this->nmbrs)
+	if (this->checkIfExist)
 	{
-		if ((s.x == x) && (s.y == y) &&
-			(s.anchor == anchor) && (s.type == type))
+		for (auto & s : this->nmbrs)
 		{
-			if (s.val == val)
+			if ((s.x == x) && (s.y == y) &&
+				(s.anchor == anchor) && (s.type == type))
 			{
-				//same number on the same position and with same align
-				//already exist - do not add it again
-				return;
+				if (s.val == val)
+				{
+					//same number on the same position and with same align
+					//already exist - do not add it again
+					return;
+				}
 			}
 		}
 	}
@@ -152,16 +171,16 @@ void NumberRenderer::AddNumberInternal(double val,
 	AbstractRenderer::AABB aabb = this->CalcNumberAABB(val, x, y);
 
 	//test if entire string is outside visible area
-
-	int w = aabb.maxX - aabb.minX;
-	int h = aabb.maxY - aabb.minY;
-
+	
 	if (anchor == TextAnchor::CENTER)
 	{
-		aabb.minX -= (w / 2);
-		aabb.maxX -= (w / 2);
-		aabb.minY -= (h / 2);
-		aabb.maxY -= (h / 2);
+		int w2 = (aabb.maxX - aabb.minX) / 2;
+		int h2 = (aabb.maxY - aabb.minY) / 2;
+
+		aabb.minX -= w2;
+		aabb.maxX -= w2;
+		aabb.minY -= h2;
+		aabb.maxY -= h2;
 	}
 
 	if (aabb.maxX <= 0) return;
@@ -373,7 +392,7 @@ bool NumberRenderer::GenerateGeometry()
 	this->geom.clear();
 
 
-	for (auto si : this->nmbrs)
+	for (const NumberRenderer::NumberInfo & si : this->nmbrs)
 	{
 		int lineId = 0;
 		int x = si.anchorX;
@@ -387,8 +406,7 @@ bool NumberRenderer::GenerateGeometry()
 		{			
 			int xx = si.x - (this->captionMark.bmpW) / 2;
 
-			int yy = si.y;
-			yy += fi.newLineOffset; //move top position to TOP_LEFT
+			int yy = si.y + fi.newLineOffset; //move top position to TOP_LEFT
 			yy -= (fi.newLineOffset) / 2; //calc center from all lines and move TOP_LEFT down
 			yy -= (this->captionMark.bmpH);
 
@@ -408,7 +426,7 @@ bool NumberRenderer::GenerateGeometry()
 			int cc = (intPart % 10) + '0';
 			intPart /= 10;
 			
-			GlyphInfo & gi = this->gi[cc];
+			const GlyphInfo & gi = this->gi[cc];
 
 			this->AddQuad(gi, x, y, si);
 
@@ -425,7 +443,7 @@ bool NumberRenderer::GenerateGeometry()
 				int cc = (fractPart % 10) + '0';
 				fractPart /= 10;
 
-				GlyphInfo & gi = this->gi[cc];
+				const GlyphInfo & gi = this->gi[cc];
 
 				this->AddQuad(gi, x, y, si);
 
@@ -452,7 +470,7 @@ bool NumberRenderer::GenerateGeometry()
 /// <param name="x"></param>
 /// <param name="y"></param>
 /// <param name="ni"></param>
-void NumberRenderer::AddQuad(GlyphInfo & gi, int x, int y, const NumberInfo & ni)
+void NumberRenderer::AddQuad(const GlyphInfo & gi, int x, int y, const NumberInfo & ni)
 {
 	float psW = 1.0f / static_cast<float>(deviceW);	//pixel size in width
 	float psH = 1.0f / static_cast<float>(deviceH); //pixel size in height

@@ -453,7 +453,7 @@ bool StringRenderer::GenerateGeometry()
 	this->geom.clear();
 
 
-	for (auto si : this->strs)
+	for (const StringRenderer::StringInfo & si : this->strs)
 	{
 		int lineId = 0;
 		int x = si.anchorX;

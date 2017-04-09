@@ -14,9 +14,11 @@ public:
 	NumberRenderer(int deviceW, int deviceH, Font f);
 	~NumberRenderer();
 
+	void SetExistenceCheck(bool val);
 	void SetDecimalPrecission(int digits);
 
 	void Clear();
+	size_t GetNumbersCount() const;
 
 	void AddNumberCaption(double val,
 		int x, int y, Color color = DEFAULT_COLOR);
@@ -29,6 +31,8 @@ public:
 		int x, int y, Color color = DEFAULT_COLOR,
 		TextAnchor anchor = TextAnchor::LEFT_TOP);
 
+
+	
 protected:
 
 	
@@ -53,6 +57,8 @@ protected:
 
 	} StringInfo;
 
+	bool checkIfExist;
+
 	int decimalPlaces;
 	double decimalMult;
 	std::vector<NumberInfo> nmbrs;
@@ -72,7 +78,7 @@ protected:
 	
 	void CalcAnchoredPosition();
 	
-	void AddQuad(GlyphInfo & gi, int x, int y, const NumberInfo & ni);
+	void AddQuad(const GlyphInfo & gi, int x, int y, const NumberInfo & ni);
 
 };
 
