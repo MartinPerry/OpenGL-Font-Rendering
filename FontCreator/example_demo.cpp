@@ -122,19 +122,26 @@ void idle() {
 
 //------------------------------------------------------------------------------
 void initGL() {	
-			
+		
+	//http://dpi.lv
+
 	Font f; // { "arial.ttf", 40, 512, 512, 0, 0 };
 	f.name = "arial.ttf";	
 	f.textureWidth = 512;
 	f.textureHeight = 512;
-	f.size = 40;
-	f.screenDpi = 72;
-	//f.size = 50;
+	f.size = 16;
+	f.screenDpi = 260;
+	//f.size = 57;
 	//f.screenDpi = 0;
 	
 
 	fr = new StringRenderer(g_width, g_height, f);
 	fn = new NumberRenderer(g_width, g_height, f);
+
+
+	fr->AddStringCaption(u8"Pøíliš\nžluouèký\nkùò", 0.5f, 0.5f, { 1,1,0,1 });
+	fr->Render();
+	fr->GetFontBuilder()->Save("D://88.png");
 }
 
 

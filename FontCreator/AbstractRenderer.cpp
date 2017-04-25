@@ -95,9 +95,9 @@ const AbstractRenderer::Color AbstractRenderer::DEFAULT_COLOR = { 1,1,1,1 };
 AbstractRenderer::AbstractRenderer(int deviceW, int deviceH, Font f)
 	: deviceW(deviceW), deviceH(deviceH), strChanged(false)
 {
-
+	
 	this->fb = new FontBuilder(f);
-	this->fb->SetGridPacking(f.size, f.size);
+	this->fb->SetGridPacking(this->fb->GetFontInfo().fontSizePixels, this->fb->GetFontInfo().fontSizePixels);
 
 	ci.mark = u8"\u2022";
 	ci.offset = this->fb->GetFontInfo().newLineOffset / 2;
