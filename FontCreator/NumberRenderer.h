@@ -11,7 +11,9 @@ class NumberRenderer : public AbstractRenderer
 {
 public:
 
-	NumberRenderer(int deviceW, int deviceH, Font f);
+	static const utf8_string NUMBERS_STRING;
+
+	NumberRenderer(Font fs, RenderSettings r);
 	~NumberRenderer();
 
 	void SetExistenceCheck(bool val);

@@ -169,6 +169,8 @@
     <ClInclude Include="Unicode\tinyutf8.h" />
     <ClInclude Include="Unicode\uninorms.h" />
     <ClInclude Include="Unicode\utf8.h" />
+    <ClInclude Include="Utils\CharacterExtraxtor.h" />
+    <ClInclude Include="Utils\win_dirent.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

@@ -10,7 +10,7 @@ utf8_string utf8_string::build_from_escaped(const char * strRaw)
 	strCpy[lenRaw] = 0;
 
 	char * str = new char[lenRaw + 1];
-	u8_unescape(str, lenRaw, strCpy);
+	u8_unescape(str, lenRaw + 1, strCpy);
 
 	delete[] strCpy;
 	utf8_string s = utf8_string(str);

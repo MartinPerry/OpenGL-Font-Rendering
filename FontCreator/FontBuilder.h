@@ -8,6 +8,7 @@ class TextureAtlasPack;
 #include <stdint.h>
 #include <unordered_map>
 #include <unordered_set>
+#include <vector>
 
 #include <ft2build.h>
 #include FT_FREETYPE_H
@@ -21,7 +22,7 @@ class TextureAtlasPack;
 class FontBuilder
 {
 public:
-	FontBuilder(Font f);
+	FontBuilder(const std::vector<Font> & fonts, RenderSettings r);
 	~FontBuilder();
 
 	void Release();
@@ -35,9 +36,13 @@ public:
 	void SetTightPacking();
 	void SetGridPacking(int binW, int binH);
 
-	const std::string & GetFontFaceName() const;
-	int GetFontSizePixels();
-	const FontInfo & GetFontInfo() const;
+	
+	const std::vector<FontInfo> & GetFontInfos() const;
+	int GetMaxFontPixelSize() const;
+	int GetMaxNewLineOffset() const;
+	int GetNewLineOffsetBasedOnFirstGlyph(CHAR_CODE c) const;
+	FontInfo::UsedGlyphIterator GetGlyph(CHAR_CODE c, bool & exist);
+
 	int GetTextureWidth() const;
 	int GetTextureHeight() const;
 	const uint8_t * GetTexture() const;
@@ -54,21 +59,21 @@ protected:
 
 	
 	FT_Library library;
-	FT_Face fontFace;
-	bool inited;
+	
 
-	FontInfo fi;
+	std::vector<FontInfo> fis;
 	
 	std::unordered_set<CHAR_CODE> reused; //codes that were already added and are also in current string
 	std::unordered_set<CHAR_CODE> newCodes; //newly added codes
 
 	TextureAtlasPack * texPacker;
 		
-	void Initialize(const std::string & fontFacePath);
-	void SetFontSizePixels(int size);
-	void SetFontSizePts(int size, int dpi);
+	int InitializeFont(const std::string & fontFacePath);
+	void SetFontSizePixels(FontInfo & f, int size);
+	void SetFontSizePts(FontInfo & f, int size, int dpi);
 
 	void LoadGlyphInfo(CHAR_CODE c);
+	bool LoadGlyphInfo(CHAR_CODE c, FontInfo & fi);
 
 	
 

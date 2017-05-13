@@ -8,6 +8,8 @@
 #include "./Unicode/utf8.h"
 #include "./Unicode/uninorms.h"
 
+#include "./Utils/CharacterExtraxtor.h"
+
 #include <chrono>
 #include <iostream>
 
@@ -125,21 +127,37 @@ void initGL() {
 		
 	//http://dpi.lv
 
-	Font f; // { "arial.ttf", 40, 512, 512, 0, 0 };
-	f.name = "arial.ttf";	
-	f.textureWidth = 512;
-	f.textureHeight = 512;
+	Font f;
+	//f.name = "test.ttf";	
+	f.name = "f1.ttf";
+	//f.name = "NotoSansCJKtc-Regular.otf";	
 	f.size = 16;
-	f.screenDpi = 260;
-	//f.size = 57;
-	//f.screenDpi = 0;
-	
 
-	fr = new StringRenderer(g_width, g_height, f);
-	fn = new NumberRenderer(g_width, g_height, f);
+	Font f2;
+	//f.name = "test.ttf";	
+	f2.name = "f2.otf";
+	//f.name = "NotoSansCJKtc-Regular.otf";	
+	f2.size = 16;
+
+
+	Font f3;	
+	f3.name = "arial.ttf";	
+	f3.size = 16;
+	
+	
+	RenderSettings r;
+	r.screenDpi = 260;
+	r.textureW = 512;
+	r.textureH = 512;
+	r.deviceW = g_width;
+	r.deviceH = g_height;
+
+	fr = new StringRenderer({ f, f2, f3 }, r);
+	fn = new NumberRenderer(f3, r);
 
 
 	fr->AddStringCaption(u8"P¯Ìliö\nûluùouËk˝\nk˘Ú", 0.5f, 0.5f, { 1,1,0,1 });
+	//fr->AddStringCaption(u8"AbBd", 0.5f, 0.5f, { 1,1,0,1 });
 	fr->Render();
 	fr->GetFontBuilder()->Save("D://88.png");
 }
@@ -172,8 +190,14 @@ int main(int argc, char ** argv)
 #endif
 #endif
 	
-
-	
+	//CharacterExtractor cr({ "arial.ttf" }, "arial_out.ttf");
+	//CharacterExtractor cr(std::vector<std::string>({ "arial.ttf" }), "arial_out.ttf");
+	CharacterExtractor cr("../ii/noto-otf/", "merged_out.ttf");
+	cr.SetOutputDir("../ii/");
+	cr.AddText(u8"ûluùouËk˝");
+	//cr.AddText(u8"Ahoj");
+	//cr.AddDirectory("D:\\Martin\\Programming\\test\\Ventusky\\VentuskyWin\\VentuskyWin\\DATA\\cities\\");
+	cr.GenerateScript("run.sh");
 
 	glutInit(&argc, argv);
 	glutSetOption(GLUT_ACTION_ON_WINDOW_CLOSE, GLUT_ACTION_CONTINUE_EXECUTION);

@@ -9,7 +9,7 @@ class StringRenderer : public AbstractRenderer
 {
 public:
 
-	StringRenderer(int deviceW, int deviceH, Font f);
+	StringRenderer(const std::vector<Font> & fs, RenderSettings r);
 	~StringRenderer();
 
 	void SetCaptionInfo(const utf8_string & mark, int offset);

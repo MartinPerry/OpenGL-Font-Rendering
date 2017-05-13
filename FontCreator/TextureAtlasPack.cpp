@@ -89,9 +89,9 @@ void TextureAtlasPack::SetGridPacking(int binW, int binH)
 
 //======================== Add textures to atlas ===========================================
 
-void TextureAtlasPack::SetAllGlyphs(std::list<GlyphInfo> * glyphs)
+void TextureAtlasPack::SetAllGlyphs(std::vector<FontInfo> * fontInfos)
 {
-	this->glyphs = glyphs;
+	this->fontInfos = fontInfos;
 }
 
 void TextureAtlasPack::SetUnusedGlyphs(const std::list<FontInfo::UsedGlyphIterator> & unused)
@@ -172,60 +172,63 @@ bool TextureAtlasPack::PackGrid()
 {	
 	PackedInfo info;
 
-	for (GlyphInfo & g : *this->glyphs)
+	for (auto & fi : *this->fontInfos)
 	{
-		if (g.code <= 32)
+		for (GlyphInfo & g : fi.glyphs)
 		{
-			//do not add white-space "characters"
-			continue;
-		}
-
-		if (this->packedInfo.find(g.code) != this->packedInfo.end())
-		{
-			//glyph already in texture
-			continue;
-		}
-		
-		if (this->freeSpace.size() == 0)
-		{		
-			if (this->unused.size() == 0)
+			if (g.code <= 32)
 			{
-				return false;
+				//do not add white-space "characters"
+				continue;
 			}
 
-			//free space from unused
-			
-			CHAR_CODE removedCode;
-
-			if (this->FreeSpace(g.bmpW, g.bmpH, &removedCode) == false)
+			if (this->packedInfo.find(g.code) != this->packedInfo.end())
 			{
-				printf("Empty space in atlas not found and cannot be freed for glyph %lu\n", g.code);
-				return false;
+				//glyph already in texture
+				continue;
 			}
 
-			info = this->packedInfo[removedCode];
+			if (this->freeSpace.size() == 0)
+			{
+				if (this->unused.size() == 0)
+				{
+					return false;
+				}
 
-			this->packedInfo.erase(removedCode);
+				//free space from unused
+
+				CHAR_CODE removedCode;
+
+				if (this->FreeSpace(g.bmpW, g.bmpH, &removedCode) == false)
+				{
+					printf("Empty space in atlas not found and cannot be freed for glyph %lu\n", g.code);
+					return false;
+				}
+
+				info = this->packedInfo[removedCode];
+
+				this->packedInfo.erase(removedCode);
+			}
+			else
+			{
+
+				const Node & empty = this->freeSpace.front();
+
+				info.x = empty.x;
+				info.y = empty.y;
+				info.width = empty.w;
+				info.height = empty.h;
+
+				this->freeSpace.pop_front();
+			}
+
+			info.filled = false;
+
+			g.tx = info.x + this->border;
+			g.ty = info.y + this->border;
+
+			this->packedInfo[g.code] = info;
 		}
-		else
-		{
-
-			const Node & empty = this->freeSpace.front();
-
-			info.x = empty.x;
-			info.y = empty.y;
-			info.width = empty.w;
-			info.height = empty.h;								
-
-			this->freeSpace.pop_front();
-		}
-
-		info.filled = false;
-
-		g.tx = info.x + this->border;
-		g.ty = info.y + this->border;
-
-		this->packedInfo[g.code] = info;
 	}
 
 	return true;
@@ -238,60 +241,65 @@ bool TextureAtlasPack::PackGrid()
 /// <returns></returns>
 bool TextureAtlasPack::PackTight()
 {
-	
-	this->glyphs->sort(
-		[](const GlyphInfo &a, GlyphInfo &b) { return a.bmpW * a.bmpH > b.bmpW * b.bmpH; }
-	);
+	for (auto & fi : *this->fontInfos)
+	{
+		fi.glyphs.sort(
+			[](const GlyphInfo &a, GlyphInfo &b) { return a.bmpW * a.bmpH > b.bmpW * b.bmpH; }
+		);
+	}
 	
 
 	PackedInfo info;
 
 	int b = (2 * this->border);
 
-	for (GlyphInfo & g : *this->glyphs)
-	{	
-		if (this->packedInfo.find(g.code) != this->packedInfo.end())
+	for (auto & fi : *this->fontInfos)
+	{
+		for (GlyphInfo & g : fi.glyphs)
 		{
-			//glyph already in texture
-			continue;
-		}
-
-		if (g.code <= 32)
-		{
-			//do not add space "character"
-			continue;
-		}
-
-		int px, py;
-		CHAR_CODE c;
-		
-		if (this->FindEmptySpace(g.bmpW + b, g.bmpH + b, &px, &py) == false)
-		{
-			if (this->FreeSpace(g.bmpW + b, g.bmpH + b, &c) == false)
+			if (this->packedInfo.find(g.code) != this->packedInfo.end())
 			{
-				printf("Empty space in atlas not found and cannot be freed for glyph %lu\n", g.code);
-				printf("Requested size: %d %d\n", g.bmpW + b, g.bmpH + b);
-				//return false;
+				//glyph already in texture
 				continue;
 			}
 
-			info = this->packedInfo[c];
-			this->packedInfo.erase(c);
-		}
-		else
-		{
-			info.x = px;
-			info.y = py;
-			info.width = g.bmpW + b;
-			info.height = g.bmpH + b;
-		}
-		info.filled = false;
+			if (g.code <= 32)
+			{
+				//do not add space "character"
+				continue;
+			}
 
-		g.tx = px + this->border;
-		g.ty = py + this->border;
-		
-		this->packedInfo[g.code] = info;
-	}		
+			int px, py;
+			CHAR_CODE c;
+
+			if (this->FindEmptySpace(g.bmpW + b, g.bmpH + b, &px, &py) == false)
+			{
+				if (this->FreeSpace(g.bmpW + b, g.bmpH + b, &c) == false)
+				{
+					printf("Empty space in atlas not found and cannot be freed for glyph %lu\n", g.code);
+					printf("Requested size: %d %d\n", g.bmpW + b, g.bmpH + b);
+					//return false;
+					continue;
+				}
+
+				info = this->packedInfo[c];
+				this->packedInfo.erase(c);
+			}
+			else
+			{
+				info.x = px;
+				info.y = py;
+				info.width = g.bmpW + b;
+				info.height = g.bmpH + b;
+			}
+			info.filled = false;
+
+			g.tx = px + this->border;
+			g.ty = py + this->border;
+
+			this->packedInfo[g.code] = info;
+		}
+	}
 
 	return true;
 }
@@ -303,57 +311,60 @@ void TextureAtlasPack::CopyDataToTexture()
 {
 	const uint8_t BORDER_DEBUG_VALUE = 125;
 
-	for (GlyphInfo & g : *this->glyphs)
+	for (auto & fi : *this->fontInfos)
 	{
-		auto & it = this->packedInfo.find(g.code);
-		if (it == this->packedInfo.end())
+		for (GlyphInfo & g : fi.glyphs)
 		{
-			continue;
-		}
-
-		if (it->second.filled) 
-		{
-			continue;
-		}
-
-		if ((it->second.x == -1) && (it->second.y == -1))
-		{
-			continue;
-		}
-				
-		int px = it->second.x + this->border;
-		int py = it->second.y + this->border;
-
-		//draw "border around letter"
-		//if there was some previous letter - it will remove its remains
-		this->DrawBorder(it->second.x, it->second.y,
-			g.bmpW + 2 * this->border, g.bmpH + 2 * this->border, 0);
-		
-		
-		//copy letter data
-		int index = 0;
-		for (int y = py; y < py + g.bmpH; y++)
-		{
-			for (int x = px; x < px + g.bmpW; x++)
+			auto & it = this->packedInfo.find(g.code);
+			if (it == this->packedInfo.end())
 			{
-				this->rawPackedData[x + y * w] = g.rawData[index];
-
-				index++;
-				this->freePixels--;
+				continue;
 			}
-		}
-	
-		it->second.filled = true;
+
+			if (it->second.filled)
+			{
+				continue;
+			}
+
+			if ((it->second.x == -1) && (it->second.y == -1))
+			{
+				continue;
+			}
+
+			int px = it->second.x + this->border;
+			int py = it->second.y + this->border;
+
+			//draw "border around letter"
+			//if there was some previous letter - it will remove its remains
+			this->DrawBorder(it->second.x, it->second.y,
+				g.bmpW + 2 * this->border, g.bmpH + 2 * this->border, 0);
+
+
+			//copy letter data
+			int index = 0;
+			for (int y = py; y < py + g.bmpH; y++)
+			{
+				for (int x = px; x < px + g.bmpW; x++)
+				{
+					this->rawPackedData[x + y * w] = g.rawData[index];
+
+					index++;
+					this->freePixels--;
+				}
+			}
+
+			it->second.filled = true;
 
 #ifdef _DEBUG
-		if (this->border != 0)
-		{
-			//debug - draw "visible borders" around letter
-			this->DrawBorder(it->second.x, it->second.y,
-				it->second.width, it->second.height, BORDER_DEBUG_VALUE);
-		}
+			if (this->border != 0)
+			{
+				//debug - draw "visible borders" around letter
+				this->DrawBorder(it->second.x, it->second.y,
+					it->second.width, it->second.height, BORDER_DEBUG_VALUE);
+			}
 #endif
 
+		}
 	}
 	
 }

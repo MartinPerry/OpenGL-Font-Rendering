@@ -5,15 +5,16 @@
 #include "./FontBuilder.h"
 
 
-NumberRenderer::NumberRenderer(int deviceW, int deviceH, Font f)
-	: AbstractRenderer(deviceW, deviceH, f)
+const utf8_string NumberRenderer::NUMBERS_STRING = u8"0123456789,.-";
+
+NumberRenderer::NumberRenderer(Font fs, RenderSettings r)
+	: AbstractRenderer({ fs }, r)
 {
 	this->checkIfExist = true;
 
 	//prepare numbers
-	utf8_string strUTF8 = u8"0123456789,.-";
-
-	this->fb->AddString(strUTF8);
+	
+	this->fb->AddString(NUMBERS_STRING);
 	this->fb->AddString(this->ci.mark);
 
 	if (this->fb->CreateFontAtlas())
@@ -27,30 +28,36 @@ NumberRenderer::NumberRenderer(int deviceW, int deviceH, Font f)
 		//Fill font texture
 		this->FillTexture();
 	}
-
-	const FontInfo & fi = this->fb->GetFontInfo();
-
-	for (auto c : strUTF8)
+	
+	for (auto c : NUMBERS_STRING)
 	{
-		auto it = fi.usedGlyphs.find(c);
-
-		if (it == fi.usedGlyphs.end())
+		bool exist;
+		auto it = this->fb->GetGlyph(c, exist);
+		if (!exist)
 		{
 			throw std::invalid_argument("Unknown number character");;
 		}
+		
 
 		this->gi[it->first] = *it->second;		
 	}
 	
 
-
-	auto it = fi.usedGlyphs.find(this->ci.mark[0]);
-	if (it == fi.usedGlyphs.end())
-	{
-		throw std::invalid_argument("Unknown number character");;
+	bool exist;
+	auto it = this->fb->GetGlyph(this->ci.mark[0], exist);
+	if (!exist)
+	{		
+		it = this->fb->GetGlyph('.', exist);
+		if (!exist)
+		{
+			throw std::invalid_argument("Unknown mark character");;
+		}
+		this->captionMark = *it->second;
 	}
-	this->captionMark = *it->second;
-	
+	else
+	{
+		this->captionMark = *it->second;
+	}
 		
 	this->SetDecimalPrecission(2);
 
@@ -331,7 +338,7 @@ AbstractRenderer::AABB NumberRenderer::CalcNumberAABB(double val, int x, int y)
 void NumberRenderer::CalcAnchoredPosition()
 {
 	//Calculate anchored position of text
-	const FontInfo & fi = this->fb->GetFontInfo();
+	int newLineOffset = this->fb->GetMaxNewLineOffset();
 
 	for (auto & si : this->nmbrs)
 	{		
@@ -339,15 +346,15 @@ void NumberRenderer::CalcAnchoredPosition()
 		{
 			si.anchorX = si.x;
 			si.anchorY = si.y;
-			si.anchorY += fi.newLineOffset; //y position is "line letter start" - move it to letter height
+			si.anchorY += newLineOffset; //y position is "line letter start" - move it to letter height
 		}
 		else if (si.anchor == TextAnchor::CENTER)
 		{			
 			si.anchorX = si.x - (si.aabb.maxX - si.aabb.minX) / 2;
 
 			si.anchorY = si.y;
-			si.anchorY += fi.newLineOffset; //move top position to TOP_LEFT
-			si.anchorY -= (fi.newLineOffset) / 2; //calc center from all lines and move TOP_LEFT down
+			si.anchorY += newLineOffset; //move top position to TOP_LEFT
+			si.anchorY -= (newLineOffset) / 2; //calc center from all lines and move TOP_LEFT down
 
 		}
 		else if (si.anchor == TextAnchor::LEFT_DOWN)
@@ -386,11 +393,10 @@ bool NumberRenderer::GenerateGeometry()
 
 
 	//Build geometry
-	const FontInfo & fi = this->fb->GetFontInfo();
-
 	
 	this->geom.clear();
 
+	int newLineOffset = this->fb->GetMaxNewLineOffset();
 
 	for (const NumberRenderer::NumberInfo & si : this->nmbrs)
 	{
@@ -406,8 +412,8 @@ bool NumberRenderer::GenerateGeometry()
 		{			
 			int xx = si.x - (this->captionMark.bmpW) / 2;
 
-			int yy = si.y + fi.newLineOffset; //move top position to TOP_LEFT
-			yy -= (fi.newLineOffset) / 2; //calc center from all lines and move TOP_LEFT down
+			int yy = si.y + newLineOffset; //move top position to TOP_LEFT
+			yy -= (newLineOffset) / 2; //calc center from all lines and move TOP_LEFT down
 			yy -= (this->captionMark.bmpH);
 
 			this->AddQuad(this->captionMark, xx, yy, si);

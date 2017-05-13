@@ -31,7 +31,7 @@ public:
 
 	std::unordered_map<CHAR_CODE, PackedInfo> & GetPackedInfos();
 
-	void SetAllGlyphs(std::list<GlyphInfo> * glyphs);
+	void SetAllGlyphs(std::vector<FontInfo> * fontInfos);
 	void SetUnusedGlyphs(const std::list<FontInfo::UsedGlyphIterator> & unused);
 	std::list<FontInfo::UsedGlyphIterator> GetErasedGlyphs();
 
@@ -70,7 +70,8 @@ private:
 	std::list<Node> freeSpace;
 	
 		
-	std::list<GlyphInfo> * glyphs;
+	//std::list<GlyphInfo> * glyphs;
+	std::vector<FontInfo> * fontInfos;
 	std::list<FontInfo::UsedGlyphIterator> unused;
 	std::list<FontInfo::UsedGlyphIterator> erased;
 

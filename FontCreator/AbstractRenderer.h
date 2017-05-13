@@ -30,13 +30,14 @@ public:
 
 	static const Color DEFAULT_COLOR;
 
-	AbstractRenderer(int deviceW, int deviceH, Font f);
+	AbstractRenderer(const std::vector<Font> & fs, RenderSettings r);
 	virtual ~AbstractRenderer();
 
 	FontBuilder * GetFontBuilder();
 	void SetCanvasSize(int w, int h);
 
-	
+	void SetEnabled(bool val);
+	bool IsEnabled() const;
 
 	void Render();
 
@@ -135,6 +136,8 @@ protected:
 	GLuint fontTex;
 	Shader shader;
 	
+	bool renderEnabled;
+
 	virtual bool GenerateGeometry() = 0;
 	 
 	void InitGL();

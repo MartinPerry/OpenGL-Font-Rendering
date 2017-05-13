@@ -35,16 +35,18 @@ void CheckOpenGLError(const char* stmt, const char* fname, int line)
 	}
 }
 
-#ifdef _DEBUG
-#define GL_CHECK(stmt) do { \
-            stmt; \
-            CheckOpenGLError(#stmt, __FILE__, __LINE__); \
-        } while (0);
-#else
-#define GL_CHECK(stmt) stmt
+#ifndef GL_CHECK
+    #if defined(_DEBUG) || defined(DEBUG)
+        #define GL_CHECK(stmt) do { \
+                stmt; \
+                CheckOpenGLError(#stmt, __FILE__, __LINE__); \
+            } while (0);
+    #else
+        #define GL_CHECK(stmt) stmt
+    #endif
 #endif
 
-#ifdef _DEBUG
+#if defined(_DEBUG) || defined(DEBUG)
 #define NV_REPORT_COMPILE_ERRORS
 #endif
 
@@ -55,7 +57,8 @@ void CheckOpenGLError(const char* stmt, const char* fname, int line)
 
 
 const char* AbstractRenderer::Shader::vSource = {
-	"\n\
+    "\n\
+	\n\
     attribute vec2 POSITION;\n\
     attribute vec2 TEXCOORD0;\n\
 	attribute vec4 COLOR;\n\
@@ -73,7 +76,8 @@ const char* AbstractRenderer::Shader::vSource = {
 " };
 
 const char* AbstractRenderer::Shader::pSource = {
-	"\n\
+    "\n\
+    \n\
     uniform sampler2D fontTex;\n\
     varying vec2 texCoord;\n\
 	varying vec4 color;\n\
@@ -92,15 +96,17 @@ const char* AbstractRenderer::Shader::pSource = {
 
 const AbstractRenderer::Color AbstractRenderer::DEFAULT_COLOR = { 1,1,1,1 };
 
-AbstractRenderer::AbstractRenderer(int deviceW, int deviceH, Font f)
-	: deviceW(deviceW), deviceH(deviceH), strChanged(false)
+AbstractRenderer::AbstractRenderer(const std::vector<Font> & fs, RenderSettings r)
+	: deviceW(r.deviceW), deviceH(r.deviceH), strChanged(false), renderEnabled(true)
 {
 	
-	this->fb = new FontBuilder(f);
-	this->fb->SetGridPacking(this->fb->GetFontInfo().fontSizePixels, this->fb->GetFontInfo().fontSizePixels);
+	this->fb = new FontBuilder(fs, r);
+
+	int ps = this->fb->GetMaxFontPixelSize();
+	this->fb->SetGridPacking(ps, ps);
 
 	ci.mark = u8"\u2022";
-	ci.offset = this->fb->GetFontInfo().newLineOffset / 2;
+	ci.offset = this->fb->GetNewLineOffsetBasedOnFirstGlyph(ci.mark[0]) / 2;
 	ci.offset = static_cast<int>(ci.offset * 1.2); //add extra 20%
 	
 	this->InitGL();
@@ -115,15 +121,15 @@ AbstractRenderer::~AbstractRenderer()
 	//destruction
 	//however, that should be OK
 
-	(glUseProgram(0));
-	(glBindTexture(GL_TEXTURE_2D, 0));
-	(glBindBuffer(GL_ARRAY_BUFFER, 0));
-	(glBindVertexArray(0));
+	GL_CHECK(glUseProgram(0));
+	GL_CHECK(glBindTexture(GL_TEXTURE_2D, 0));
+	GL_CHECK(glBindBuffer(GL_ARRAY_BUFFER, 0));
+	GL_CHECK(glBindVertexArray(0));
 
-	(glDeleteProgram(shader.program));
-	(glDeleteTextures(1, &this->fontTex));
-	(glDeleteBuffers(1, &this->vbo));
-	(glDeleteVertexArrays(1, &this->vao));
+	GL_CHECK(glDeleteProgram(shader.program));
+	GL_CHECK(glDeleteTextures(1, &this->fontTex));
+	GL_CHECK(glDeleteBuffers(1, &this->vbo));
+	GL_CHECK(glDeleteVertexArrays(1, &this->vao));
 
 }
 
@@ -171,7 +177,7 @@ void AbstractRenderer::InitGL()
 	GL_CHECK(glGenTextures(1, &this->fontTex));
 	GL_CHECK(glBindTexture(GL_TEXTURE_2D, this->fontTex));
 
-	GL_CHECK(glTexImage2D(GL_TEXTURE_2D, 0, GL_RED,
+	GL_CHECK(glTexImage2D(GL_TEXTURE_2D, 0, GL_R8,
 		this->fb->GetTextureWidth(), this->fb->GetTextureHeight(), 0,
 		GL_RED, GL_UNSIGNED_BYTE, nullptr));
 	GL_CHECK(glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST));
@@ -307,6 +313,16 @@ void AbstractRenderer::SetCanvasSize(int w, int h)
 }
 
 
+void AbstractRenderer::SetEnabled(bool val)
+{
+	this->renderEnabled = val;
+}
+
+bool AbstractRenderer::IsEnabled() const
+{
+	return this->renderEnabled;
+}
+
 FontBuilder * AbstractRenderer::GetFontBuilder()
 {
 	return this->fb;
@@ -318,6 +334,11 @@ FontBuilder * AbstractRenderer::GetFontBuilder()
 /// </summary>
 void AbstractRenderer::Render()
 {
+	if (this->renderEnabled == false)
+	{
+		return;
+	}
+
 	bool vboChanged = this->GenerateGeometry();
 
 	if (geom.empty())
@@ -337,7 +358,7 @@ void AbstractRenderer::Render()
 	GL_CHECK(glBindBuffer(GL_ARRAY_BUFFER, this->vbo));
 	GL_CHECK(glBindVertexArray(this->vao));
 
-	GL_CHECK(glDrawArrays(GL_TRIANGLES, 0, geom.size() * 6));
+	GL_CHECK(glDrawArrays(GL_TRIANGLES, 0, static_cast<int>(geom.size()) * 6));
 
 	GL_CHECK(glBindVertexArray(0));
 

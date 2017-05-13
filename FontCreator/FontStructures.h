@@ -1,6 +1,8 @@
 #ifndef _FONT_STRUCTURES_H_
 #define _FONT_STRUCTURES_H_
 
+typedef struct FT_FaceRec_*  FT_Face;
+
 #include <stdint.h>
 #include <unordered_map>
 
@@ -56,6 +58,10 @@ typedef struct FontInfo
 	std::list<GlyphInfo> glyphs;
 	
 
+	FT_Face fontFace;
+	int index;
+
+
 } FontInfo;
 
 
@@ -63,11 +69,19 @@ typedef struct Font
 {
 	std::string name;
 	int size;	
-	int textureWidth;
-	int textureHeight;
-
-	int screenDpi = 0;	
-
+	
 } Font;
+
+typedef struct RenderSettings
+{
+	int deviceW;
+	int deviceH;
+
+	int textureW;
+	int textureH;
+
+	int screenDpi = 0;
+
+} RenderSettings;
 
 #endif

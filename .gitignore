@@ -3,3 +3,5 @@ Release
 /dp4FontViewer64.exe
 /FontCreator.VC.db
 .vs
+FontTools
+/arial_unicode.ttf

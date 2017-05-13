@@ -11,28 +11,41 @@
 //http://www.freetype.org/freetype2/documentation.html
 //http://en.wikibooks.org/wiki/OpenGL_Programming/Modern_OpenGL_Tutorial_Text_Rendering_01
 
-FontBuilder::FontBuilder(Font f)
+FontBuilder::FontBuilder(const std::vector<Font> & fonts, RenderSettings r)
 {
 	
-	this->texPacker = new TextureAtlasPack(f.textureWidth, f.textureHeight, LETTER_BORDER_SIZE);
+	this->texPacker = new TextureAtlasPack(r.textureW, r.textureH, LETTER_BORDER_SIZE);
 	this->texPacker->SetTightPacking();
 	//this->texPacker->SetGridPacking(fontSize, fontSize);
 
 
-	this->library = nullptr;
-	this->fontFace = nullptr;
-	this->inited = false;
-
-	this->Initialize(f.name);
-
-	if (f.screenDpi == 0)
+	if (FT_Init_FreeType(&this->library))
 	{
-		this->SetFontSizePixels(f.size);
+		printf("Failed to initialize FreeType library.");
+		//return;
 	}
-	else 
+
+	
+	for (auto & f : fonts)
 	{
-		this->SetFontSizePts(f.size, f.screenDpi);
+		int index = this->InitializeFont(f.name);
+
+		if (index == -1)
+		{
+			continue;
+		}
+
+		if (r.screenDpi == 0)
+		{
+			this->SetFontSizePixels(this->fis[index], f.size);
+		}
+		else
+		{
+			this->SetFontSizePts(this->fis[index], f.size, r.screenDpi);
+		}
 	}
+
+
 }
 
 
@@ -45,18 +58,23 @@ FontBuilder::~FontBuilder()
 
 void FontBuilder::Release()
 {	
-	FT_Done_Face(this->fontFace);
-	this->fontFace = nullptr;
+	for (auto & f : this->fis)
+	{
+		FT_Done_Face(f.fontFace);
+		f.fontFace = nullptr;
+	}
+
 
 	FT_Done_FreeType(this->library);
 	this->library = nullptr;
 	
-	for (auto & c : this->fi.glyphs)
+	for (auto & f : this->fis)
 	{
-		SAFE_DELETE_ARRAY(c.rawData);		
+		for (auto & c : f.glyphs)
+		{
+			SAFE_DELETE_ARRAY(c.rawData);
+		}
 	}
-
-	this->inited = false;
 }
 
 //================================================================
@@ -65,66 +83,69 @@ void FontBuilder::Release()
 
 bool FontBuilder::IsInited() const
 {
-	return this->inited;
+	return this->library != nullptr;
 }
 
 
-void FontBuilder::Initialize(const std::string & fontFacePath)
+int FontBuilder::InitializeFont(const std::string & fontFacePath)
 {
-	this->Release();
+	FontInfo fi;
+	FT_Face ff;
 
-	if (FT_Init_FreeType(&this->library))
-	{
-		printf("Failed to initialize FreeType library.");
-		return;
-	}
-
-	this->fi.fontFaceName = fontFacePath.substr(fontFacePath.find_last_of("/\\") + 1);
-	std::string::size_type const p(this->fi.fontFaceName.find_last_of('.'));
-	this->fi.fontFaceName = this->fi.fontFaceName.substr(0, p);
+	fi.fontFaceName = fontFacePath.substr(fontFacePath.find_last_of("/\\") + 1);
+	std::string::size_type const p(fi.fontFaceName.find_last_of('.'));
+	fi.fontFaceName = fi.fontFaceName.substr(0, p);
 
 
 	//FT_Error error = FT_New_Memory_Face(this->library, this->fontData, bufSize, 0, &this->fontFace);
-	FT_Error error = FT_New_Face(this->library, fontFacePath.c_str(), 0, &this->fontFace);
+	FT_Error error = FT_New_Face(this->library, fontFacePath.c_str(), 0, &ff);
 	if (error == FT_Err_Unknown_File_Format)
 	{
 		printf("Failed to initialize Font Face %s. File not supported", fi.fontFaceName.c_str());
-		return;
+		return -1;
 	}
 	else if (error)
 	{
 		printf("Failed to initialize Font Face %s.", fi.fontFaceName.c_str());
-		return;
+		return -1;
 	}
 
-	FT_Select_Charmap(this->fontFace, FT_ENCODING_UNICODE);	
-	this->inited = true;
+	FT_Select_Charmap(ff, FT_ENCODING_UNICODE);
+
+	fi.fontFace = ff;
+	fi.index = this->fis.size();
+
+
+	this->fis.push_back(fi);
+
+	return fi.index;
+
 }
 
 
-void FontBuilder::SetFontSizePts(int size, int dpi)
+void FontBuilder::SetFontSizePts(FontInfo & f, int size, int dpi)
 {
 	//https://www.freetype.org/freetype2/docs/glyphs/glyphs-2.html
 	
-	if (FT_Set_Char_Size(this->fontFace, 0, size * 64, dpi, dpi))
+	if (FT_Set_Char_Size(f.fontFace, 0, size * 64, dpi, dpi))
 	{
 		printf("Failed to set font size in points\n");
 		return;
 	}
 
-	this->fi.fontSizePixels = (size * dpi / 72); // this->fontFace->size->metrics.y_ppem;
+	f.fontSizePixels = (size * dpi / 72); // this->fontFace->size->metrics.y_ppem;
 
-	this->fi.newLineOffset = this->fontFace->size->metrics.height / 64;
+	f.newLineOffset = static_cast<int>(f.fontFace->size->metrics.height / 64);
 }
 
-void FontBuilder::SetFontSizePixels(int size)
+void FontBuilder::SetFontSizePixels(FontInfo & f, int size)
 {
 	
 	//https://www.freetype.org/freetype2/docs/tutorial/step1.html
 
 	
 
-	if (FT_Set_Pixel_Sizes(this->fontFace, 0, size))
+	if (FT_Set_Pixel_Sizes(f.fontFace, 0, size))
 	{
 		printf("Failed to set font size in pixels\n");
 		return;
@@ -132,29 +153,77 @@ void FontBuilder::SetFontSizePixels(int size)
 
 	//http://stackoverflow.com/questions/28009564/new-line-pixel-distance-in-freetype
 
-	this->fi.fontSizePixels = size;
+	f.fontSizePixels = size;
 
 	// get the scaled line spacing (for 48pt), also measured in 64ths of a pixel
-	this->fi.newLineOffset = this->fontFace->size->metrics.height / 64;
+	f.newLineOffset = static_cast<int>(f.fontFace->size->metrics.height / 64);
 
 }
 
 
 //================================================================
 
-const std::string & FontBuilder::GetFontFaceName() const
+
+
+const std::vector<FontInfo> & FontBuilder::GetFontInfos() const
 {
-	return this->fi.fontFaceName;
+	return this->fis;
 }
 
-int FontBuilder::GetFontSizePixels()
+int FontBuilder::GetMaxFontPixelSize() const
 {
-	return this->fi.fontSizePixels;
+	int fontSizePixels = std::numeric_limits<int>::min();
+	for (auto & fi : this->fis)
+	{
+		fontSizePixels = std::max(fontSizePixels, fi.fontSizePixels);
+	}
+
+	return fontSizePixels;
 }
 
-const FontInfo & FontBuilder::GetFontInfo() const
+int FontBuilder::GetMaxNewLineOffset() const
 {
-	return this->fi;
+	int lineOffset = std::numeric_limits<int>::min();
+	for (auto & fi : this->fis)
+	{
+		lineOffset = std::max(lineOffset, fi.newLineOffset);
+	}
+
+	return lineOffset;
+}
+
+int FontBuilder::GetNewLineOffsetBasedOnFirstGlyph(CHAR_CODE c) const
+{
+	for (auto & fi : this->fis)
+	{
+		auto it = fi.usedGlyphs.find(c);
+		if (it != fi.usedGlyphs.end())
+		{
+			return fi.newLineOffset;
+		}		
+	}
+
+	return this->GetMaxNewLineOffset();
+}
+
+FontInfo::UsedGlyphIterator FontBuilder::GetGlyph(CHAR_CODE c, bool & exist)
+{
+	for (auto & fi : this->fis)
+	{
+
+		auto it = fi.usedGlyphs.find(c);
+		if (it == fi.usedGlyphs.end())
+		{
+			exist = false;
+		}
+		else
+		{
+			exist = true;
+			return it;
+		}		
+	}
+
+	return this->fis[0].usedGlyphs.end();
 }
 
 int FontBuilder::GetTextureWidth() const
@@ -224,19 +293,23 @@ void FontBuilder::AddCharacter(CHAR_CODE c)
 		return;
 	}
 
-	if (this->fi.usedGlyphs.find(c) != this->fi.usedGlyphs.end())
+	for (auto & fi : this->fis)
 	{
-		//character already exist
-		this->reused.insert(c);
-	}
-	else
-	{
-		//new character
-		if (this->newCodes.find(c) == this->newCodes.end())
+		if (fi.usedGlyphs.find(c) != fi.usedGlyphs.end())
 		{
-			this->newCodes.insert(c);
+			//character already exist
+			this->reused.insert(c);
+		}
+		else
+		{
+			//new character
+			if (this->newCodes.find(c) == this->newCodes.end())
+			{
+				this->newCodes.insert(c);
+			}
 		}
 	}
+
 }
 
 
@@ -264,24 +337,41 @@ bool FontBuilder::CreateFontAtlas()
 	
 	//find unused glyphs, that can possibly be deleted
 	std::list<FontInfo::UsedGlyphIterator> unused;
-	for (FontInfo::UsedGlyphIterator it = this->fi.usedGlyphs.begin();
-		it != this->fi.usedGlyphs.end();
-		it++)
+	std::vector<int> unusedFontId;
+
+
+
+	int index = 0;
+	for (auto & fi : this->fis)
 	{
-		if (this->reused.find(it->first) == this->reused.end())
+		for (FontInfo::UsedGlyphIterator it = fi.usedGlyphs.begin();
+			it != fi.usedGlyphs.end();
+			it++)
 		{
-			unused.push_back(it);
+			if (this->reused.find(it->first) == this->reused.end())
+			{
+				unused.push_back(it);
+				unusedFontId.push_back(index);
+			}
 		}
+		
+		index++;
 	}
 
 
+	
+
 	//try to add new codes to texture
-	this->texPacker->SetAllGlyphs(&this->fi.glyphs);
+	this->texPacker->SetAllGlyphs(&this->fis);
 	this->texPacker->SetUnusedGlyphs(unused);
 
 
 	if (this->texPacker->Pack() == false)
 	{
+
+#ifdef _WIN32
+		this->texPacker->SaveToFile("D://outofspace.png");
+#endif
 		printf("Problem - no space, but we need all characters\n");
 		
 		//here do something if packing failed
@@ -295,13 +385,20 @@ bool FontBuilder::CreateFontAtlas()
 	unused = this->texPacker->GetErasedGlyphs();
 
 	//remove unused, that were removed from texture
+	index = 0;
 	for (auto r : unused)
 	{
 		SAFE_DELETE_ARRAY(r->second->rawData);
 
-		this->fi.glyphs.erase(r->second);
-		this->fi.usedGlyphs.erase(r);
+		auto & fi = this->fis[unusedFontId[index]];
+
+		fi.glyphs.erase(r->second);
+		fi.usedGlyphs.erase(r);
+
+
+		index++;
 	}
+
 
 
 	//packing successfully finished
@@ -320,27 +417,38 @@ bool FontBuilder::CreateFontAtlas()
 /// <param name="c"></param>
 void FontBuilder::LoadGlyphInfo(CHAR_CODE c)
 {
-	if (this->fi.usedGlyphs.find(c) != this->fi.usedGlyphs.end())
+	for (auto & fi : this->fis)
+	{
+		if (this->LoadGlyphInfo(c, fi))
+		{
+			return;
+		}
+	}
+
+	printf("Character %lu not found\n", c);
+}
+
+bool FontBuilder::LoadGlyphInfo(CHAR_CODE c, FontInfo & fi)
+{
+	if (fi.usedGlyphs.find(c) != fi.usedGlyphs.end())
 	{
 		//glyph already exist
-		return;
+		return true;
 	}
 
-	FT_UInt ci = FT_Get_Char_Index(this->fontFace, c);
+	FT_UInt ci = FT_Get_Char_Index(fi.fontFace, c);
 
 	if (ci == 0)
-	{
-		printf("Character %lu not found\n", c);
-		return;
+	{		
+		return false;
 	}
 
-	if (FT_Load_Glyph(this->fontFace, ci, FT_LOAD_RENDER))
-	{
-		printf("Character %lu not found\n", c);
-		return;
+	if (FT_Load_Glyph(fi.fontFace, ci, FT_LOAD_RENDER))
+	{		
+		return false;
 	}
 
-	FT_GlyphSlot glyph = this->fontFace->glyph;
+	FT_GlyphSlot glyph = fi.fontFace->glyph;
 
 
 	//bitmap_left is the horizontal distance from the current pen position 
@@ -357,7 +465,7 @@ void FontBuilder::LoadGlyphInfo(CHAR_CODE c)
 	gInfo.bmpH = glyph->bitmap.rows;
 	gInfo.adv = glyph->advance.x;
 	gInfo.rawData = nullptr;
-		
+
 	if (c > 32)
 	{
 		//add texture for only "non whitespace chars"
@@ -374,14 +482,15 @@ void FontBuilder::LoadGlyphInfo(CHAR_CODE c)
 
 		gInfo.rawData = textureData;
 	}
-	
 
-	this->fi.glyphs.push_back(gInfo);
 
-	FontInfo::GlyphIterator lastIter = std::prev(this->fi.glyphs.end());
-	
-	this->fi.usedGlyphs[gInfo.code] = lastIter;
-		
+	fi.glyphs.push_back(gInfo);
+
+	FontInfo::GlyphIterator lastIter = std::prev(fi.glyphs.end());
+
+	fi.usedGlyphs[gInfo.code] = lastIter;
+
+	return true;
 
 }
 

@@ -5,8 +5,8 @@
 #include "./FontBuilder.h"
 
 
-StringRenderer::StringRenderer(int deviceW, int deviceH, Font f)
-	: AbstractRenderer(deviceW, deviceH, f)
+StringRenderer::StringRenderer(const std::vector<Font> & fs, RenderSettings r)
+	: AbstractRenderer(fs, r)
 {
 	
 }
@@ -183,37 +183,39 @@ AbstractRenderer::AABB StringRenderer::EstimateStringAABB(const utf8_string & st
 	aabb.maxX = std::numeric_limits<int>::min();
 	aabb.maxY = std::numeric_limits<int>::min();
 
-
-	const FontInfo & fi = this->fb->GetFontInfo();
-	int w = fi.fontSizePixels;
-	int h = fi.fontSizePixels;
-	int adv = fi.fontSizePixels;
+	
+	int w = this->fb->GetMaxFontPixelSize();
+	int h = this->fb->GetMaxFontPixelSize();
+	int adv = this->fb->GetMaxFontPixelSize();
 
 	int startX = x;
+
+	int newLineOffset = this->fb->GetNewLineOffsetBasedOnFirstGlyph(strUTF8.at(0));
 
 	for (auto c : strUTF8)
 	{
 		if (c == '\n')
 		{
 			x = startX;
-			y += fi.newLineOffset;
+			y += newLineOffset;
 
 			continue;
 		}
 
-		auto it = fi.usedGlyphs.find(c);
-		if (it != fi.usedGlyphs.end())
-		{
+		bool exist;
+		auto it = this->fb->GetGlyph(c, exist);
+		if (exist)
+		{					
 			GlyphInfo & gi = *it->second;
 			w = gi.bmpW;
 			h = gi.bmpH;
-			adv = gi.adv >> 6;
+			adv = static_cast<int>(gi.adv >> 6);
 		}
 		else
 		{
-			w = fi.fontSizePixels;
-			h = fi.fontSizePixels;
-			adv = fi.fontSizePixels;
+			w = this->fb->GetMaxFontPixelSize();
+			h = this->fb->GetMaxFontPixelSize();
+			adv = this->fb->GetMaxFontPixelSize();
 		}
 
 
@@ -257,8 +259,8 @@ std::vector<AbstractRenderer::AABB> StringRenderer::CalcStringAABB(const utf8_st
 
 	AbstractRenderer::AABB lineAabb = aabb;
 	std::vector<AABB> aabbs;
-
-	const FontInfo & fi = this->fb->GetFontInfo();
+	
+	int newLineOffset = this->fb->GetNewLineOffsetBasedOnFirstGlyph(strUTF8.at(0));
 
 	int startX = x;
 
@@ -267,7 +269,7 @@ std::vector<AbstractRenderer::AABB> StringRenderer::CalcStringAABB(const utf8_st
 		if (c == '\n')
 		{
 			x = startX;
-			y += fi.newLineOffset;
+			y += newLineOffset;
 
 			aabbs.push_back(lineAabb);
 			lineAabb = aabb;
@@ -275,9 +277,9 @@ std::vector<AbstractRenderer::AABB> StringRenderer::CalcStringAABB(const utf8_st
 			continue;
 		}
 
-
-		auto it = fi.usedGlyphs.find(c);
-		if (it == fi.usedGlyphs.end())
+		bool exist;
+		auto it = this->fb->GetGlyph(c, exist);
+		if (!exist)
 		{
 			continue;
 		}
@@ -324,7 +326,7 @@ std::vector<AbstractRenderer::AABB> StringRenderer::CalcStringAABB(const utf8_st
 void StringRenderer::CalcAnchoredPosition()
 {
 	//Calculate anchored position of text
-	const FontInfo & fi = this->fb->GetFontInfo();
+	int newLineOffset = this->fb->GetMaxNewLineOffset();
 
 	for (auto & si : this->strs)
 	{
@@ -337,7 +339,7 @@ void StringRenderer::CalcAnchoredPosition()
 		{
 			si.anchorX = si.x;
 			si.anchorY = si.y;
-			si.anchorY += fi.newLineOffset; //y position is "line letter start" - move it to letter height
+			si.anchorY += newLineOffset; //y position is "line letter start" - move it to letter height
 		}
 		else if (si.anchor == TextAnchor::CENTER)
 		{
@@ -349,27 +351,28 @@ void StringRenderer::CalcAnchoredPosition()
 			si.anchorX = si.x - (si.aabb.maxX - si.aabb.minX) / 2;
 
 			si.anchorY = si.y;
-			si.anchorY += fi.newLineOffset; //move top position to TOP_LEFT
-			si.anchorY -= (si.linesCount * fi.newLineOffset) / 2; //calc center from all lines and move TOP_LEFT down
+			si.anchorY += newLineOffset; //move top position to TOP_LEFT
+			si.anchorY -= (si.linesCount * newLineOffset) / 2; //calc center from all lines and move TOP_LEFT down
 
 		}
 		else if (si.anchor == TextAnchor::LEFT_DOWN)
 		{
 			si.anchorX = si.x;
 			si.anchorY = si.y;
-			si.anchorY -= (si.linesCount - 1) * fi.newLineOffset; //move down - default Y is at (TOP_LEFT - newLineOffset)
+			si.anchorY -= (si.linesCount - 1) * newLineOffset; //move down - default Y is at (TOP_LEFT - newLineOffset)
 		}
 
 		if (si.type == TextType::CAPTION)
 		{
 			if (si.strUTF8 == ci.mark)
 			{
-				auto it = fi.usedGlyphs.find(ci.mark[0]);
-				if (it != fi.usedGlyphs.end())
+				bool exist;
+				auto it = this->fb->GetGlyph(ci.mark[0], exist);
+				if (exist)
 				{
 					//si.anchorX -= (it->second->bmpW);
 					si.anchorY -= (it->second->bmpH);
-				}
+				}				
 
 			}
 			else
@@ -442,8 +445,7 @@ bool StringRenderer::GenerateGeometry()
 
 
 	//Build geometry
-	const FontInfo & fi = this->fb->GetFontInfo();
-
+	
 	float psW = 1.0f / static_cast<float>(deviceW);	//pixel size in width
 	float psH = 1.0f / static_cast<float>(deviceH); //pixel size in height
 
@@ -451,6 +453,8 @@ bool StringRenderer::GenerateGeometry()
 	float tH = 1.0f / static_cast<float>(this->fb->GetTextureHeight()); //pixel size in height
 
 	this->geom.clear();
+
+	int newLineOffset = this->fb->GetMaxNewLineOffset();
 
 
 	for (const StringRenderer::StringInfo & si : this->strs)
@@ -470,7 +474,7 @@ bool StringRenderer::GenerateGeometry()
 			if (cc == '\n')
 			{
 				x = startX;
-				y += fi.newLineOffset;
+				y += newLineOffset;
 				lineId++;
 
 				this->CalcLineAlign(si, lineId, x, y);
@@ -478,8 +482,9 @@ bool StringRenderer::GenerateGeometry()
 				continue;
 			}
 
-			auto it = fi.usedGlyphs.find(cc);
-			if (it == fi.usedGlyphs.end())
+			bool exist;
+			auto it = this->fb->GetGlyph(cc, exist);
+			if (!exist)
 			{
 				continue;
 			}
