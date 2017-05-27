@@ -109,6 +109,8 @@ AbstractRenderer::AbstractRenderer(const std::vector<Font> & fs, RenderSettings 
 	ci.offset = this->fb->GetNewLineOffsetBasedOnFirstGlyph(ci.mark[0]) / 2;
 	ci.offset = static_cast<int>(ci.offset * 1.2); //add extra 20%
 	
+	this->SetAxisYOrigin(AxisYOrigin::TOP);
+
 	this->InitGL();
 }
 
@@ -312,6 +314,10 @@ void AbstractRenderer::SetCanvasSize(int w, int h)
 	this->strChanged = true;
 }
 
+void AbstractRenderer::SetAxisYOrigin(AxisYOrigin axisY)
+{
+	this->axisYOrigin = axisY;
+}
 
 void AbstractRenderer::SetEnabled(bool val)
 {

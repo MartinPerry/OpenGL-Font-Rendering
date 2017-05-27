@@ -113,7 +113,7 @@ int FontBuilder::InitializeFont(const std::string & fontFacePath)
 	FT_Select_Charmap(ff, FT_ENCODING_UNICODE);
 
 	fi.fontFace = ff;
-	fi.index = this->fis.size();
+	fi.index = static_cast<int>(this->fis.size());
 
 
 	this->fis.push_back(fi);

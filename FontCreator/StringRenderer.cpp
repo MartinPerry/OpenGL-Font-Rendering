@@ -89,6 +89,11 @@ void StringRenderer::AddStringInternal(const utf8_string & strUTF8,
 	int x, int y, Color color,
 	TextAnchor anchor, TextAlign align, TextType type)
 {
+	if (this->axisYOrigin == AbstractRenderer::DOWN)
+	{
+		y = this->deviceH - y;
+	}
+
 	for (auto & s : this->strs)
 	{
 		if ((s.x == x) && (s.y == y) &&

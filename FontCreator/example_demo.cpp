@@ -103,7 +103,7 @@ void display() {
 	fr->Render();
 
 	//fn->AddNumber(-45.27, 100, 100);
-	fn->AddNumberCaption(-45.27, 100, 100);
+	fn->AddNumberCaption(450.013, 100, 100);
 	fn->Render();
 
 	glutSwapBuffers();

@@ -5,7 +5,8 @@ typedef struct FT_FaceRec_*  FT_Face;
 
 #include <stdint.h>
 #include <unordered_map>
-
+#include <list>
+#include <string>
 
 typedef unsigned long CHAR_CODE;
 

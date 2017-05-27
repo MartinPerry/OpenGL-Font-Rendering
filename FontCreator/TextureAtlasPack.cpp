@@ -315,7 +315,7 @@ void TextureAtlasPack::CopyDataToTexture()
 	{
 		for (GlyphInfo & g : fi.glyphs)
 		{
-			auto & it = this->packedInfo.find(g.code);
+			auto it = this->packedInfo.find(g.code);
 			if (it == this->packedInfo.end())
 			{
 				continue;

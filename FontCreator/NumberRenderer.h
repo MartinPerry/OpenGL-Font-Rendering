@@ -43,7 +43,7 @@ protected:
 		double val;
 		bool negative;
 		unsigned long intPart;
-		unsigned long fractPart;
+		unsigned long fractPartReverse;
 			
 
 		int x;
@@ -67,6 +67,7 @@ protected:
 	GlyphInfo gi[65];
 	GlyphInfo captionMark;
 
+	char digits[20];
 
 	void AddNumberInternal(double value,
 		int x, int y, Color color = { 1,1,1,1 },
@@ -82,6 +83,8 @@ protected:
 	
 	void AddQuad(const GlyphInfo & gi, int x, int y, const NumberInfo & ni);
 
+	unsigned long GetFractPartReversed(double val, unsigned long intPart);
+	unsigned long ReversDigits(unsigned long num);
 };
 
 #endif

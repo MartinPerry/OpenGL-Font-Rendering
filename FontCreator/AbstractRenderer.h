@@ -17,6 +17,7 @@ public:
 	typedef enum TextAlign {ALIGN_LEFT, ALIGN_CENTER} TextAlign;
 	typedef enum TextAnchor { LEFT_TOP, CENTER, LEFT_DOWN } TextAnchor;
 	typedef enum TextType { TEXT, CAPTION } TextType;
+	typedef enum AxisYOrigin { TOP, DOWN } AxisYOrigin;
 
 	typedef struct Color 
 	{ 
@@ -35,6 +36,7 @@ public:
 
 	FontBuilder * GetFontBuilder();
 	void SetCanvasSize(int w, int h);
+	void SetAxisYOrigin(AxisYOrigin axisY);
 
 	void SetEnabled(bool val);
 	bool IsEnabled() const;
@@ -124,6 +126,8 @@ protected:
 	FontBuilder * fb;
 	
 	CaptionInfo ci;
+
+	AxisYOrigin axisYOrigin;
 
 	std::vector<LetterGeom> geom;
 	

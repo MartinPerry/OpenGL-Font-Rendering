@@ -1,6 +1,8 @@
 #include "./NumberRenderer.h"
 
 #include <limits>
+#include <algorithm>
+
 
 #include "./FontBuilder.h"
 
@@ -158,6 +160,11 @@ void NumberRenderer::AddNumberInternal(double val,
 	int x, int y, Color color,
 	TextAnchor anchor, TextType type)
 {
+	if (this->axisYOrigin == AbstractRenderer::DOWN)
+	{
+		y = this->deviceH - y;
+	}
+
 	if (this->checkIfExist)
 	{
 		for (auto & s : this->nmbrs)
@@ -205,9 +212,11 @@ void NumberRenderer::AddNumberInternal(double val,
 	i.val = val;
 	i.negative = val < 0;
 
+
 	if (i.negative) val *= -1;
 	i.intPart = (unsigned long)(val);
-	i.fractPart = (unsigned long)((val - i.intPart) * decimalMult);
+	i.fractPartReverse = this->GetFractPartReversed(val, i.intPart);
+	
 
 	i.x = x;
 	i.y = y;
@@ -224,6 +233,50 @@ void NumberRenderer::AddNumberInternal(double val,
 	
 }
 
+unsigned long NumberRenderer::GetFractPartReversed(double val, unsigned long intPart)
+{
+	unsigned long fractPartReverse = this->ReversDigits((unsigned long)((val - intPart) * decimalMult));
+	if (fractPartReverse == 0)
+	{
+		return fractPartReverse;
+	}
+
+	int fractLeadingZeros = 0;
+	float tmp = val - intPart;
+	while (tmp < 1)
+	{
+		fractLeadingZeros++;
+		tmp *= 10;
+	}
+	fractLeadingZeros--;
+
+	
+	while (fractLeadingZeros > 0)
+	{
+		fractPartReverse *= 10;
+		fractLeadingZeros--;
+	}
+
+	return fractPartReverse;
+}
+
+/// <summary>
+/// Reverse digits in input number
+/// Input: 123
+/// Output: 321
+/// </summary>
+/// <param name="num"></param>
+/// <returns></returns>
+unsigned long NumberRenderer::ReversDigits(unsigned long num)
+{
+	unsigned long rev_num = 0;
+	while (num > 0)
+	{
+		rev_num = rev_num * 10 + num % 10;
+		num = num / 10;
+	}
+	return rev_num;
+}
 
 /// <summary>
 /// Calculate AABB of number
@@ -248,7 +301,7 @@ AbstractRenderer::AABB NumberRenderer::CalcNumberAABB(double val, int x, int y)
 
 	if (negative) val *= -1;
 	unsigned long intPart = (unsigned long)(val);
-	unsigned long fractPart = (unsigned long)((val - intPart) * decimalMult);
+	unsigned long fractPartReverse = this->GetFractPartReversed(val, intPart);
 	
 	if (negative)
 	{
@@ -268,13 +321,21 @@ AbstractRenderer::AABB NumberRenderer::CalcNumberAABB(double val, int x, int y)
 		x += (gi.adv >> 6);
 	}
 
-	while (intPart)
+
+	int lastDigit = 0;
+
+	do
 	{
-		int c = (intPart % 10) + '0';
+		digits[lastDigit] = (intPart % 10);
+		lastDigit++;
 		intPart /= 10;
-	
-		GlyphInfo & gi = this->gi[c];
-		
+	} while (intPart);
+
+	while (lastDigit > 0)
+	{
+		lastDigit--;
+		const GlyphInfo & gi = this->gi[digits[lastDigit] + '0'];
+				
 		int fx = x + gi.bmpX;
 		int fy = y - gi.bmpY;
 
@@ -289,7 +350,10 @@ AbstractRenderer::AABB NumberRenderer::CalcNumberAABB(double val, int x, int y)
 		x += (gi.adv >> 6);
 	}
 
-	if (fractPart)
+
+
+
+	if (fractPartReverse)
 	{
 		GlyphInfo & gi = this->gi['.'];
 
@@ -305,12 +369,12 @@ AbstractRenderer::AABB NumberRenderer::CalcNumberAABB(double val, int x, int y)
 
 		x += (gi.adv >> 6);
 
-		while (fractPart)
-		{
-			int c = (fractPart % 10) + '0';
-			fractPart /= 10;
-
-			GlyphInfo & gi = this->gi[c];
+		
+		while (fractPartReverse)
+		{			
+			int cc = (fractPartReverse % 10);
+			fractPartReverse /= 10;
+			const GlyphInfo & gi = this->gi[cc + '0'];
 
 			int fx = x + gi.bmpX;
 			int fy = y - gi.bmpY;
@@ -387,7 +451,7 @@ bool NumberRenderer::GenerateGeometry()
 		return false;
 	}
 
-	
+		
 	//calculate anchored position
 	this->CalcAnchoredPosition();
 
@@ -406,7 +470,7 @@ bool NumberRenderer::GenerateGeometry()
 
 
 		unsigned long intPart = si.intPart;
-		unsigned long fractPart = si.fractPart;
+		unsigned long fractPartReverse = si.fractPartReverse;
 
 		if (si.type == TextType::CAPTION)
 		{			
@@ -427,29 +491,38 @@ bool NumberRenderer::GenerateGeometry()
 			x += (this->gi['-'].adv >> 6);
 		}
 
-		while (intPart)
-		{
-			int cc = (intPart % 10) + '0';
+		
+		int lastDigit = 0;
+
+		do
+		{			
+			digits[lastDigit] = (intPart % 10);
+			lastDigit++;
 			intPart /= 10;
-			
-			const GlyphInfo & gi = this->gi[cc];
+		} while (intPart);
+
+		while (lastDigit > 0)
+		{
+			lastDigit--;
+			const GlyphInfo & gi = this->gi[digits[lastDigit] + '0'];
 
 			this->AddQuad(gi, x, y, si);
 
 			x += (gi.adv >> 6);
+			
 		}
 
-		if (fractPart)
+		if (fractPartReverse)
 		{
 			this->AddQuad(this->gi['.'], x, y, si);
 			x += (this->gi['.'].adv >> 6);
 
-			while (fractPart)
+			
+			while (fractPartReverse)
 			{
-				int cc = (fractPart % 10) + '0';
-				fractPart /= 10;
-
-				const GlyphInfo & gi = this->gi[cc];
+				int cc = (fractPartReverse % 10);
+				fractPartReverse /= 10;
+				const GlyphInfo & gi = this->gi[cc + '0'];
 
 				this->AddQuad(gi, x, y, si);
 
