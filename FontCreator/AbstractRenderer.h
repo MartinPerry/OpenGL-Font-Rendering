@@ -38,6 +38,8 @@ public:
 	void SetCanvasSize(int w, int h);
 	void SetAxisYOrigin(AxisYOrigin axisY);
 
+	void SwapCanvasWidthHeight();
+
 	void SetEnabled(bool val);
 	bool IsEnabled() const;
 

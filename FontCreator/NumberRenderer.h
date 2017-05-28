@@ -76,7 +76,8 @@ protected:
 
 	bool GenerateGeometry() override;
 
-	AbstractRenderer::AABB CalcNumberAABB(double val, int x, int y);
+	AbstractRenderer::AABB CalcNumberAABB(double val, int x, int y, 
+		bool negative, unsigned long intPart, unsigned long fractPartReversed);
 
 	
 	void CalcAnchoredPosition();

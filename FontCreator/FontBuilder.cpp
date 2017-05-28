@@ -35,13 +35,13 @@ FontBuilder::FontBuilder(const std::vector<Font> & fonts, RenderSettings r)
 			continue;
 		}
 
-		if (r.screenDpi == 0)
+		if (f.size.sizeType == FontSize::SizeType::px)
 		{
-			this->SetFontSizePixels(this->fis[index], f.size);
+			this->SetFontSizePixels(this->fis[index], static_cast<int>(f.size));
 		}
 		else
 		{
-			this->SetFontSizePts(this->fis[index], f.size, r.screenDpi);
+			this->SetFontSizePts(this->fis[index], static_cast<int>(f.size), r.screenDpi);
 		}
 	}
 

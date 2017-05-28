@@ -182,7 +182,17 @@ void NumberRenderer::AddNumberInternal(double val,
 		}
 	}
 
-	AbstractRenderer::AABB aabb = this->CalcNumberAABB(val, x, y);
+	NumberInfo i;
+	i.val = val;
+	i.negative = val < 0;
+
+	if (i.negative) val *= -1;
+	i.intPart = (unsigned long)(val);
+	i.fractPartReverse = this->GetFractPartReversed(val, i.intPart);
+
+
+
+	AbstractRenderer::AABB aabb = this->CalcNumberAABB(val, x, y, i.negative, i.intPart, i.fractPartReverse);
 
 	//test if entire string is outside visible area
 	
@@ -208,16 +218,7 @@ void NumberRenderer::AddNumberInternal(double val,
 	this->strChanged = true;
 
 	//fill basic structure info
-	NumberInfo i;
-	i.val = val;
-	i.negative = val < 0;
-
-
-	if (i.negative) val *= -1;
-	i.intPart = (unsigned long)(val);
-	i.fractPartReverse = this->GetFractPartReversed(val, i.intPart);
 	
-
 	i.x = x;
 	i.y = y;
 	i.color = color;
@@ -242,7 +243,7 @@ unsigned long NumberRenderer::GetFractPartReversed(double val, unsigned long int
 	}
 
 	int fractLeadingZeros = 0;
-	float tmp = val - intPart;
+	double tmp = val - intPart;
 	while (tmp < 1)
 	{
 		fractLeadingZeros++;
@@ -286,7 +287,8 @@ unsigned long NumberRenderer::ReversDigits(unsigned long num)
 /// <param name="y"></param>
 /// <param name="globalAABB"></param>
 /// <returns></returns>
-AbstractRenderer::AABB NumberRenderer::CalcNumberAABB(double val, int x, int y)
+AbstractRenderer::AABB NumberRenderer::CalcNumberAABB(double val, int x, int y,
+	bool negative, unsigned long intPart, unsigned long fractPartReversed)
 {
 
 	AbstractRenderer::AABB aabb;
@@ -296,12 +298,6 @@ AbstractRenderer::AABB NumberRenderer::CalcNumberAABB(double val, int x, int y)
 	aabb.maxX = std::numeric_limits<int>::min();
 	aabb.maxY = std::numeric_limits<int>::min();
 
-
-	bool negative = val < 0;
-
-	if (negative) val *= -1;
-	unsigned long intPart = (unsigned long)(val);
-	unsigned long fractPartReverse = this->GetFractPartReversed(val, intPart);
 	
 	if (negative)
 	{
@@ -353,7 +349,7 @@ AbstractRenderer::AABB NumberRenderer::CalcNumberAABB(double val, int x, int y)
 
 
 
-	if (fractPartReverse)
+	if (fractPartReversed)
 	{
 		GlyphInfo & gi = this->gi['.'];
 
@@ -370,10 +366,10 @@ AbstractRenderer::AABB NumberRenderer::CalcNumberAABB(double val, int x, int y)
 		x += (gi.adv >> 6);
 
 		
-		while (fractPartReverse)
+		while (fractPartReversed)
 		{			
-			int cc = (fractPartReverse % 10);
-			fractPartReverse /= 10;
+			int cc = (fractPartReversed % 10);
+			fractPartReversed /= 10;
 			const GlyphInfo & gi = this->gi[cc + '0'];
 
 			int fx = x + gi.bmpX;
@@ -433,7 +429,8 @@ void NumberRenderer::CalcAnchoredPosition()
 			si.anchorY -= (h / 2 + ci.offset);						
 		}
 		
-		si.aabb = this->CalcNumberAABB(si.val, si.anchorX, si.anchorY);
+		si.aabb = this->CalcNumberAABB(si.val, si.anchorX, si.anchorY, 
+			si.negative, si.intPart, si.fractPartReverse);
 
 	}
 }

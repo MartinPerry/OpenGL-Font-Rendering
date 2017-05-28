@@ -131,18 +131,18 @@ void initGL() {
 	//f.name = "test.ttf";	
 	f.name = "f1.ttf";
 	//f.name = "NotoSansCJKtc-Regular.otf";	
-	f.size = 16;
+	f.size = 16_pt;
 
 	Font f2;
 	//f.name = "test.ttf";	
 	f2.name = "f2.otf";
 	//f.name = "NotoSansCJKtc-Regular.otf";	
-	f2.size = 16;
+	f2.size = 16_pt;
 
 
 	Font f3;	
 	f3.name = "arial.ttf";	
-	f3.size = 16;
+	f3.size = 16_pt;
 	
 	
 	RenderSettings r;

@@ -1,6 +1,7 @@
 #include "./AbstractRenderer.h"
 
 #include <limits>
+#include <algorithm>
 
 #include "./FontBuilder.h"
 
@@ -55,7 +56,44 @@ void CheckOpenGLError(const char* stmt, const char* fname, int line)
 //=============================================================================
 
 
+#ifdef __APPLE__
+const char* AbstractRenderer::Shader::vSource = {
+	"\n\
+	precision highp float;\n\
+    attribute vec2 POSITION;\n\
+    attribute vec2 TEXCOORD0;\n\
+	attribute vec4 COLOR;\n\
+    varying vec2 texCoord;\n\
+	varying vec4 color;\n\
+	\n\
+    void main()\n\
+    {\n\
+        gl_Position = vec4(POSITION.x, POSITION.y, 0.0, 1.0); \n\
+		gl_Position.xy = 2.0 * gl_Position.xy - 1.0; \n\
+		gl_Position.y *= -1.0;\n\
+        texCoord = TEXCOORD0; \n\
+		color = COLOR; \n\
+    }\n\
+" };
 
+const char* AbstractRenderer::Shader::pSource = {
+	"\n\
+	precision highp float;\n\
+    uniform sampler2D fontTex;\n\
+    varying vec2 texCoord;\n\
+	varying vec4 color;\n\
+    //out vec4 fragColor;\n\
+	\n\
+    void main()\n\
+    {\n\
+        float distance = texture2D( fontTex, texCoord.xy ).x; \n\
+        gl_FragColor.rgb = color.xyz; \n\
+		//gl_FragColor.rgb = vec3(distance); \n\
+        gl_FragColor.a = color.w * distance;\n\
+		//gl_FragColor.a = 1;\n\
+    }\n\
+" };
+#else
 const char* AbstractRenderer::Shader::vSource = {
     "\n\
 	\n\
@@ -92,6 +130,7 @@ const char* AbstractRenderer::Shader::pSource = {
 		//gl_FragColor.a = 1;\n\
     }\n\
 " };
+#endif
 //=============================================================================
 
 const AbstractRenderer::Color AbstractRenderer::DEFAULT_COLOR = { 1,1,1,1 };
@@ -310,6 +349,13 @@ void AbstractRenderer::SetCanvasSize(int w, int h)
 {
 	this->deviceW = w;
 	this->deviceH = h;
+
+	this->strChanged = true;
+}
+
+void AbstractRenderer::SwapCanvasWidthHeight()
+{
+	std::swap(this->deviceW, this->deviceH);
 
 	this->strChanged = true;
 }
