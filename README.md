@@ -31,11 +31,16 @@ Simple example
 
 Font f;
 f.name = "some_font.ttf";	
-f.size = 40;
+f.size = 40_pt;
 
 Font f2;
 f2.name = "traditional_chinese.ttf";	
-f2.size = 40;
+f2.size = 40_px;
+
+Font f3;
+f3.name = "some_ther_font.ttf";	
+f3.size = 1.0_em; //em size of font -> pixel size = size_em * defaultFontSizeInPx
+f3.defaultFontSizeInPx = 16; //default font size for OS, can usually be obtained via OS API
 
 RenderSettings r;
 r.screenDpi = 0; //if 0 => will use size directly in pixels, otherwise use dpi and size is in pt

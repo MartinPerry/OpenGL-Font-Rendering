@@ -88,6 +88,7 @@ typedef struct RenderSettings
 	int textureH;
 
 	int screenDpi = 0;
+	
 
 } RenderSettings;
 
@@ -159,6 +160,7 @@ typedef struct Font
 {
 	std::string name;
 	FontSize size;
+	int defaultFontSizeInPx = 0;
 
 } Font;
 
