@@ -25,13 +25,16 @@ void StringRenderer::SetCaptionInfo(const utf8_string & mark, int offset)
 /// <summary>
 /// Remove all added strings
 /// </summary>
-void StringRenderer::ClearStrings()
+void StringRenderer::Clear()
 {
-	this->strChanged = true;
+	AbstractRenderer::Clear();
 	this->strs.clear();
 }
 
-
+size_t StringRenderer::GetStringsCount() const
+{
+	return strs.size();
+}
 
 
 void StringRenderer::AddStringCaption(const utf8_string & strUTF8,
@@ -250,9 +253,10 @@ AbstractRenderer::AABB StringRenderer::EstimateStringAABB(const utf8_string & st
 /// <param name="x"></param>
 /// <param name="y"></param>
 /// <param name="globalAABB"></param>
+/// <param name="gc"></param>
 /// <returns></returns>
 std::vector<AbstractRenderer::AABB> StringRenderer::CalcStringAABB(const utf8_string & strUTF8,
-	int x, int y, AbstractRenderer::AABB & globalAABB)
+	int x, int y, AbstractRenderer::AABB & globalAABB, const UsedGlyphCache * gc)
 {
 
 	AbstractRenderer::AABB aabb;
@@ -265,9 +269,12 @@ std::vector<AbstractRenderer::AABB> StringRenderer::CalcStringAABB(const utf8_st
 	AbstractRenderer::AABB lineAabb = aabb;
 	std::vector<AABB> aabbs;
 	
+	aabbs.reserve(10); //reserve space for 10 lines
+
 	int newLineOffset = this->fb->GetNewLineOffsetBasedOnFirstGlyph(strUTF8.at(0));
 
 	int startX = x;
+	int index = -1;
 
 	for (auto c : strUTF8)
 	{
@@ -282,11 +289,26 @@ std::vector<AbstractRenderer::AABB> StringRenderer::CalcStringAABB(const utf8_st
 			continue;
 		}
 
-		bool exist;
-		auto it = this->fb->GetGlyph(c, exist);
-		if (!exist)
+		index++;
+
+		FontInfo::UsedGlyphIterator it;
+		if (gc != nullptr)
 		{
-			continue;
+			auto r = (*gc)[index];
+			if (!std::get<1>(r))
+			{				
+				continue;
+			}
+			it = std::get<0>(r);
+		}
+		else
+		{
+			bool exist;
+			it = this->fb->GetGlyph(c, exist);
+			if (!exist)
+			{
+				continue;
+			}
 		}
 
 		GlyphInfo & gi = *it->second;
@@ -305,7 +327,7 @@ std::vector<AbstractRenderer::AABB> StringRenderer::CalcStringAABB(const utf8_st
 
 		
 
-		x += (gi.adv >> 6);
+		x += (gi.adv >> 6);		
 	}
 
 
@@ -325,6 +347,7 @@ std::vector<AbstractRenderer::AABB> StringRenderer::CalcStringAABB(const utf8_st
 	return aabbs;
 }
 
+
 /// <summary>
 /// Calculate start position of text using anchors
 /// </summary>
@@ -340,6 +363,8 @@ void StringRenderer::CalcAnchoredPosition()
 			continue;
 		}
 
+		StringRenderer::UsedGlyphCache gc = this->ExtractGlyphs(si.strUTF8);
+
 		if (si.anchor == TextAnchor::LEFT_TOP)
 		{
 			si.anchorX = si.x;
@@ -350,7 +375,7 @@ void StringRenderer::CalcAnchoredPosition()
 		{
 			if (si.linesAABB.size() == 0)
 			{
-				si.linesAABB = this->CalcStringAABB(si.strUTF8, si.x, si.y, si.aabb);
+				si.linesAABB = this->CalcStringAABB(si.strUTF8, si.x, si.y, si.aabb, &gc);
 			}
 
 			si.anchorX = si.x - (si.aabb.maxX - si.aabb.minX) / 2;
@@ -382,14 +407,14 @@ void StringRenderer::CalcAnchoredPosition()
 			}
 			else
 			{
-				si.linesAABB = this->CalcStringAABB(si.strUTF8, si.anchorX, si.anchorY, si.aabb);
+				si.linesAABB = this->CalcStringAABB(si.strUTF8, si.anchorX, si.anchorY, si.aabb, &gc);
 
 				int h = (si.aabb.maxY - si.aabb.minY);
 				si.anchorY -= (h / 2 + ci.offset);
 			}
 		}
 
-		si.linesAABB = this->CalcStringAABB(si.strUTF8, si.anchorX, si.anchorY, si.aabb);
+		si.linesAABB = this->CalcStringAABB(si.strUTF8, si.anchorX, si.anchorY, si.aabb, &gc);
 
 	}
 }
@@ -402,12 +427,7 @@ void StringRenderer::CalcAnchoredPosition()
 /// <param name="x"></param>
 /// <param name="y"></param>
 void StringRenderer::CalcLineAlign(const StringInfo & si, int lineId, int & x, int & y) const
-{
-	if (si.align == TextAlign::ALIGN_LEFT)
-	{
-		return;
-	}
-
+{	
 	if (si.align == TextAlign::ALIGN_CENTER)
 	{
 		int blockCenterX = (si.aabb.maxX - si.aabb.minX) / 2;
@@ -417,8 +437,28 @@ void StringRenderer::CalcLineAlign(const StringInfo & si, int lineId, int & x, i
 		//int lineCenterY = (si.linesAABB[lineId].maxY - si.linesAABB[lineId].minY) / 2;
 
 		x = x + (blockCenterX - lineCenterX);
-
 	}
+}
+
+StringRenderer::UsedGlyphCache StringRenderer::ExtractGlyphs(const utf8_string & strUTF8)
+{
+	UsedGlyphCache g;
+	g.reserve(strUTF8.length());
+
+
+	for (auto c : strUTF8)
+	{
+		if (c == '\n')
+		{			
+			continue;
+		}
+
+		bool exist;
+		auto it = this->fb->GetGlyph(c, exist);		
+		g.push_back({ it, exist });
+	}
+
+	return g;
 }
 
 /// <summary>
@@ -461,6 +501,7 @@ bool StringRenderer::GenerateGeometry()
 
 	int newLineOffset = this->fb->GetMaxNewLineOffset();
 
+	this->geom.reserve(this->strs.size() * 10);
 
 	for (const StringRenderer::StringInfo & si : this->strs)
 	{

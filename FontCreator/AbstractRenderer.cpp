@@ -380,6 +380,14 @@ FontBuilder * AbstractRenderer::GetFontBuilder()
 	return this->fb;
 }
 
+/// <summary>
+/// Remove all added strings
+/// </summary>
+void AbstractRenderer::Clear()
+{
+	this->strChanged = true;	
+	this->geom.clear();
+}
 
 /// <summary>
 /// Render all fonts

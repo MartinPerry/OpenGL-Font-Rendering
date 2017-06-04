@@ -94,7 +94,7 @@ size_t NumberRenderer::GetNumbersCount() const
 /// </summary>
 void NumberRenderer::Clear()
 {
-	this->strChanged = true;
+	AbstractRenderer::Clear();
 	this->nmbrs.clear();
 }
 

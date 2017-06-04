@@ -40,6 +40,8 @@ public:
 
 	void SwapCanvasWidthHeight();
 
+	void Clear();
+
 	void SetEnabled(bool val);
 	bool IsEnabled() const;
 

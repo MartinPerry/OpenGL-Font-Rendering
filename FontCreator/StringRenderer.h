@@ -14,8 +14,8 @@ public:
 
 	void SetCaptionInfo(const utf8_string & mark, int offset);
 
-	void ClearStrings();
-
+	void Clear();
+	size_t GetStringsCount() const;
 	
 	void AddStringCaption(const utf8_string & strUTF8,
 		double x, double y, Color color = DEFAULT_COLOR);
@@ -35,6 +35,7 @@ public:
 
 protected:
 
+	typedef std::vector<std::tuple<FontInfo::UsedGlyphIterator, bool>> UsedGlyphCache;
 	
 	typedef struct StringInfo
 	{
@@ -68,14 +69,14 @@ protected:
 
 	bool GenerateGeometry() override;
 
-	AABB EstimateStringAABB(const utf8_string & strUTF8,
-		int x, int y);
-	std::vector<AABB> CalcStringAABB(const utf8_string & strUTF8,
-		int x, int y, AABB & globalAABB);
+	AABB EstimateStringAABB(const utf8_string & strUTF8, int x, int y);
+	std::vector<AABB> CalcStringAABB(const utf8_string & strUTF8, 
+		int x, int y, AABB & globalAABB, const UsedGlyphCache * gc = nullptr);
 	int CalcStringLines(const utf8_string & strUTF8) const;
 	void CalcAnchoredPosition();
 	void CalcLineAlign(const StringInfo & si, int lineId, int & x, int & y) const;
 
+	UsedGlyphCache ExtractGlyphs(const utf8_string & strUTF8);
 };
 
 #endif

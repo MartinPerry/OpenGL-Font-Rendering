@@ -96,6 +96,16 @@ void display() {
 		FontRenderer::ALIGN_CENTER);
 	*/
 
+	/*
+	fr->Clear();
+	for (float x = 0; x <= 1.0; x += 0.05)
+	{
+		for (float y = 0; y <= 1.0; y += 0.05)
+		{
+			fr->AddStringCaption(u8"Pøíliš\nžluouèký\nkùò", x, y, { 1,1,0,1 });
+		}
+	}
+	*/
 	
 	fr->AddStringCaption(u8"Pøíliš\nžluouèký\nkùò", 0.5f, 0.5f, { 1,1,0,1 });
 
@@ -106,8 +116,8 @@ void display() {
 	fn->AddNumberCaption(450.013, 100, 100);
 	fn->Render();
 
-	glutSwapBuffers();
-	glutPostRedisplay();
+	glutSwapBuffers();	
+	//glutPostRedisplay();
 	
 }
 
@@ -155,7 +165,9 @@ void initGL() {
 	fr = new StringRenderer({ f, f2, f3 }, r);
 	fn = new NumberRenderer(f3, r);
 
-
+	
+	
+	
 	fr->AddStringCaption(u8"Pøíliš\nžluouèký\nkùò", 0.5f, 0.5f, { 1,1,0,1 });
 	//fr->AddStringCaption(u8"AbBd", 0.5f, 0.5f, { 1,1,0,1 });
 	fr->Render();
