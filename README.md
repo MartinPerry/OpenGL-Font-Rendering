@@ -1,4 +1,4 @@
-# OpenGL-Font-Rendering
+﻿# OpenGL-Font-Rendering
 Rendering UNICODE fonts with OpenGL 
 
 This library is still work-in-progress. This is a working beta version.
@@ -23,7 +23,7 @@ Based on this, final rendering is done with only one draw-call.
 This library supports multiple fonts to be loaded at once. If multiple fonts are used, the order at which they are added is used as their priority. 
 If letter is look for, fon ts are iterated by prioroty. First occurence is returned even if the same letter can be in multiple fonts.
 
-There is a demo program `example_demo.cpp`. It is using [FreeGlut](http://freeglut.sourceforge.net/) library. This library is needed only for this demo.
+There is a demo program `example_demo.cpp`. It uses [FreeGlut](http://freeglut.sourceforge.net/) library. This library is needed only for this demo.
 
 Simple example
 ------------------------------------------
