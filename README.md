@@ -78,7 +78,7 @@ There is a class `CharacterExtractor` in directory `Utils`.
 This class will generate `.sh` script that can extract and merge fonts with use of `pyftsubset` and `pyftmerge` from https://github.com/fonttools/fonttools.
 
 ````c++
-CharacterExtractor cr("./google_noto_ttf/", "merged_out.ttf"); //specify font directory and output font filename
+CharacterExtractor cr({ "./noto/", "./noto-otf/"  }, "merged_out"); //specify font directory and output font base name
 cr.SetOutputDir("./output/"); //set output directory (must exist)
 cr.AddText(u8"žluťoučký"); //add text
 cr.AddDirectory("./data/"); //add all files from directory (load all files as UTF8 texts)
