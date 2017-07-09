@@ -204,13 +204,17 @@ int main(int argc, char ** argv)
 	
 	//CharacterExtractor cr({ "arial.ttf" }, "arial_out.ttf");
 	//CharacterExtractor cr(std::vector<std::string>({ "arial.ttf" }), "arial_out.ttf");
-	CharacterExtractor cr("../ii/noto-otf/", "merged_out.ttf");
+	CharacterExtractor cr({ "../ii/noto/", "../ii/noto-otf/"  }, "merged_out");
+	
 	cr.SetOutputDir("../ii/");
-	cr.AddText(u8"ûluùouËk˝");
+	//cr.AddText(u8"ûluùouËk˝");
 	//cr.AddText(u8"Ahoj");
-	//cr.AddDirectory("D:\\Martin\\Programming\\test\\Ventusky\\VentuskyWin\\VentuskyWin\\DATA\\cities\\");
+	cr.AddText(u8"\u2022"); //mark in number renderer
+	cr.AddText(u8"0123456789");
+	cr.AddText(u8"/*-+,.=");
+	cr.AddDirectory("D:\\Martin\\Programming\\test\\Ventusky\\VentuskyWin\\_bundle_dir_\\DATA\\cities\\");
 	cr.GenerateScript("run.sh");
-
+	
 	glutInit(&argc, argv);
 	glutSetOption(GLUT_ACTION_ON_WINDOW_CLOSE, GLUT_ACTION_CONTINUE_EXECUTION);
 	glutInitDisplayMode(GLUT_RGBA | GLUT_SINGLE | GLUT_DEPTH);

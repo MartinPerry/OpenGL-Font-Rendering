@@ -32,8 +32,8 @@
 class CharacterExtractor
 {
 public:
-	CharacterExtractor(const std::vector<std::string> & inputTTF, const std::string & outputTTF);
-	CharacterExtractor(const std::string & fontWorkingDir, const std::string & outputTTF);
+	//CharacterExtractor(const std::vector<std::string> & inputTTF, const std::string & outputTTF);
+	CharacterExtractor(const std::vector<std::string> & fontWorkingDir, const std::string & outputTTF);
 	~CharacterExtractor();
 
 	void SetOutputDir(const std::string & outputDir);
@@ -51,7 +51,7 @@ protected:
 	std::set<uint32_t> characters;
 
 	std::unordered_map<std::string, FT_Face> faces;
-
+	
 	FT_Library library;
 	
 
@@ -60,66 +60,65 @@ protected:
 	bool HasEnding(std::string const &fullString, std::string const &ending);
 };
 
-/// <summary>
-/// ctor
-/// </summary>
-/// <param name="inputTTF"></param>
-/// <param name="outputTTF"></param>
+/*
 CharacterExtractor::CharacterExtractor(const std::vector<std::string> & inputTTF, const std::string & outputTTF)
 	: outputDir(""), inputTTF(inputTTF), outputTTF(outputTTF), library(nullptr)
 {
 	this->InitFreeType();
 };
+*/
 
-CharacterExtractor::CharacterExtractor(const std::string & fontDir, const std::string & outputTTF)
-	: outputTTF(outputTTF), library(nullptr)
+CharacterExtractor::CharacterExtractor(const std::vector<std::string> & fontDir, const std::string & outputTTF)
+	: outputDir(""), outputTTF(outputTTF), library(nullptr)
 {
 	
-	DIR * dir = opendir(fontDir.c_str());
-
-	if (dir == nullptr)
+	for (auto d : fontDir)
 	{
-		printf("Failed to open dir %s\n", fontDir.c_str());
-		throw std::invalid_argument("Unknown dir");;
-	}
+		DIR * dir = opendir(d.c_str());
 
-	struct dirent * ent;	
-	std::string fullPath;
-
-	/* print all the files and directories within directory */
-	while ((ent = readdir(dir)) != nullptr)
-	{
-		if ((strcmp(ent->d_name, ".") == 0) || (strcmp(ent->d_name, "..") == 0))
+		if (dir == nullptr)
 		{
-			continue;
+			printf("Failed to open dir %s\n", d.c_str());
+			throw std::invalid_argument("Unknown dir");;
 		}
-		if (ent->d_type == DT_REG)
-		{
 
-			//printf ("%s (file)\n", ent->d_name);
-			fullPath = fontDir;
+		struct dirent * ent;
+		std::string fullPath;
+
+		/* print all the files and directories within directory */
+		while ((ent = readdir(dir)) != nullptr)
+		{
+			if ((strcmp(ent->d_name, ".") == 0) || (strcmp(ent->d_name, "..") == 0))
+			{
+				continue;
+			}
+			if (ent->d_type == DT_REG)
+			{
+
+				//printf ("%s (file)\n", ent->d_name);
+				fullPath = d;
 #ifdef _WIN32
-			fullPath = dir->patt; //full path using Windows dirent
-			fullPath = fullPath.substr(0, fullPath.length() - 1);
+				fullPath = dir->patt; //full path using Windows dirent
+				fullPath = fullPath.substr(0, fullPath.length() - 1);
 #else
-			if (fullPath[fullPath.length() - 1] != '/')
-			{
-				fullPath += "/";
-			}
+				if (fullPath[fullPath.length() - 1] != '/')
+				{
+					fullPath += "/";
+				}
 #endif				
-			fullPath += ent->d_name;
+				fullPath += ent->d_name;
 
 
-			if ((this->HasEnding(ent->d_name, ".ttf")) || (this->HasEnding(ent->d_name, ".otf")))
-			{
-				this->inputTTF.push_back(fullPath);
+				if ((this->HasEnding(ent->d_name, ".ttf")) || (this->HasEnding(ent->d_name, ".otf")))
+				{
+					this->inputTTF.push_back(fullPath);
+				}
 			}
 		}
+
+
+		closedir(dir);
 	}
-
-
-	closedir(dir);
-
 
 	this->InitFreeType();
 };
@@ -176,6 +175,8 @@ void CharacterExtractor::InitFreeType()
 		}
 
 		FT_Select_Charmap(fontFace, FT_ENCODING_UNICODE);
+		
+		
 
 		this->faces[s] = fontFace;
 
@@ -190,7 +191,7 @@ void CharacterExtractor::AddText(const utf8_string & strUTF8)
 {
 	for (auto c : strUTF8)
 	{
-		this->characters.insert(c);
+		this->characters.insert(c);		
 	}
 };
 
@@ -404,28 +405,100 @@ void CharacterExtractor::GenerateScript(const std::string & scriptFileName)
 
 	if (usedFontsCount > 1)
 	{
-		e += "pyftmerge ";
+		std::set<int> emSizes;
 		for (auto & s : glyphs)
 		{
-			if (s.second.length() <= 1)
-			{
-				continue;
-			}
-
-
-			std::string subsetFileName = "subset_";
-			subsetFileName += this->BaseName(s.first);
-
-			e += subsetFileName;
-			e += " ";
+			emSizes.insert(this->faces[s.first]->units_per_EM);
 		}
-		e += " ";
-		e += '\n';
+		std::set<std::string> types;
+		for (auto & s : glyphs)
+		{
+			if (HasEnding(s.first, "ttf"))
+			{
+				types.insert("ttf");
+			}
+			else if (HasEnding(s.first, "otf"))
+			{
+				types.insert("otf");
+			}
+		}
 
-		e += "mv ";
-		e += "merged.ttf";
-		e += " ";
-		e += this->outputTTF;
+		for (auto type : types)
+		{
+			printf("%s\n", type.c_str());
+			for (auto emSize : emSizes)
+			{
+				int count = 0;
+				printf("%i\n", emSize);
+				std::string merge = "pyftmerge ";
+				std::string lastFileName = "";
+				for (auto & s : glyphs)
+				{
+					if (s.second.length() <= 1)
+					{
+						continue;
+					}
+					if (this->faces[s.first]->units_per_EM != emSize)
+					{
+						continue;
+					}
+					if (HasEnding(s.first, type) == false)
+					{
+						continue;
+					}
+
+					std::string subsetFileName = "subset_";
+					subsetFileName += this->BaseName(s.first);
+
+					lastFileName = subsetFileName;
+
+					merge += subsetFileName;
+					merge += " ";
+					count++;
+				}
+
+				printf("%i\n", count);
+
+				if (count == 0)
+				{
+					continue;
+				}
+				if (count == 1)
+				{										
+					e += "mv ";
+					e += lastFileName;
+					e += " ";					
+				}
+				else
+				{
+					merge += " ";
+					merge += '\n';
+
+					e += merge;
+					e += "mv ";
+					e += "merged.";
+					e += type;
+					e += " ";
+				}
+				if (emSizes.size() > 1)
+				{
+					e += this->outputTTF;
+					e += "_";
+					e += std::to_string(emSize);
+					e += ".";
+					e += type;
+				}
+				else
+				{
+					e += this->outputTTF;
+					e += ".";
+					e += type;
+				}
+
+				e += '\n';
+			}
+		}
+
 	}
 	else 
 	{
@@ -436,7 +509,7 @@ void CharacterExtractor::GenerateScript(const std::string & scriptFileName)
 	}
 	e += '\n';
 
-	e += remove;
+	//e += remove;
 
 	std::ofstream file = std::ofstream(outputDir + scriptFileName, std::ios_base::binary | std::ios_base::out);
 	
