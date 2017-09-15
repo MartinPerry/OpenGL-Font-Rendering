@@ -276,8 +276,8 @@ bool TextureAtlasPack::PackTight()
 			{
 				if (this->FreeSpace(g.bmpW + b, g.bmpH + b, &c) == false)
 				{
-					printf("Empty space in atlas not found and cannot be freed for glyph %lu\n", g.code);
-					printf("Requested size: %d %d\n", g.bmpW + b, g.bmpH + b);
+					MY_LOG_ERROR("Empty space in atlas not found and cannot be freed for glyph %lu", g.code);
+					MY_LOG_ERROR("Requested size: %d %d", g.bmpW + b, g.bmpH + b);
 					//return false;
 					continue;
 				}

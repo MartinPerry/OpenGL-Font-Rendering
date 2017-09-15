@@ -204,7 +204,7 @@ int main(int argc, char ** argv)
 	
 	//CharacterExtractor cr({ "arial.ttf" }, "arial_out.ttf");
 	//CharacterExtractor cr(std::vector<std::string>({ "arial.ttf" }), "arial_out.ttf");
-	CharacterExtractor cr({ "../ii/noto/", "../ii/noto-otf/"  }, "merged_out");
+	CharacterExtractor cr({ "../ii/noto_max_priority/", "../ii/noto/", "../ii/noto-otf/"  }, "merged_out");
 	
 	cr.SetOutputDir("../ii/");
 	//cr.AddText(u8"ûluùouËk˝");

@@ -21,7 +21,7 @@ FontBuilder::FontBuilder(const std::vector<Font> & fonts, RenderSettings r)
 
 	if (FT_Init_FreeType(&this->library))
 	{
-		printf("Failed to initialize FreeType library.");
+		MY_LOG_ERROR("Failed to initialize FreeType library.");
 		//return;
 	}
 
@@ -107,12 +107,12 @@ int FontBuilder::InitializeFont(const std::string & fontFacePath)
 	FT_Error error = FT_New_Face(this->library, fontFacePath.c_str(), 0, &ff);
 	if (error == FT_Err_Unknown_File_Format)
 	{
-		printf("Failed to initialize Font Face %s. File not supported", fi.fontFaceName.c_str());
+		MY_LOG_ERROR("Failed to initialize Font Face %s. File not supported", fi.fontFaceName.c_str());
 		return -1;
 	}
 	else if (error)
 	{
-		printf("Failed to initialize Font Face %s.", fi.fontFaceName.c_str());
+		MY_LOG_ERROR("Failed to initialize Font Face %s.", fi.fontFaceName.c_str());
 		return -1;
 	}
 
@@ -135,7 +135,7 @@ void FontBuilder::SetFontSizePts(FontInfo & f, int size, int dpi)
 	
 	if (FT_Set_Char_Size(f.fontFace, 0, size * 64, dpi, dpi))
 	{
-		printf("Failed to set font size in points\n");
+		MY_LOG_ERROR("Failed to set font size in points");
 		return;
 	}
 
@@ -153,7 +153,7 @@ void FontBuilder::SetFontSizePixels(FontInfo & f, int size)
 
 	if (FT_Set_Pixel_Sizes(f.fontFace, 0, size))
 	{
-		printf("Failed to set font size in pixels\n");
+		MY_LOG_ERROR("Failed to set font size in pixels\n");
 		return;
 	}
 
@@ -378,7 +378,7 @@ bool FontBuilder::CreateFontAtlas()
 #ifdef _WIN32
 		this->texPacker->SaveToFile("D://outofspace.png");
 #endif
-		printf("Problem - no space, but we need all characters\n");
+		MY_LOG_ERROR("Problem - no space, but we need all characters\n");
 		
 		//here do something if packing failed
 
@@ -431,7 +431,7 @@ void FontBuilder::LoadGlyphInfo(CHAR_CODE c)
 		}
 	}
 
-	printf("Character %lu not found\n", c);
+	MY_LOG_ERROR("Character %lu not found", c);
 }
 
 bool FontBuilder::LoadGlyphInfo(CHAR_CODE c, FontInfo & fi)

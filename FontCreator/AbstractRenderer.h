@@ -38,6 +38,9 @@ public:
 	void SetCanvasSize(int w, int h);
 	void SetAxisYOrigin(AxisYOrigin axisY);
 
+	int GetCanvasWidth() const;
+	int GetCanvasHeight() const;
+
 	void SwapCanvasWidthHeight();
 
 	void Clear();

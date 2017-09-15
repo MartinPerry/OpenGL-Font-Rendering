@@ -6,6 +6,7 @@
 #include "./FontBuilder.h"
 
 
+
 //=============================================================================
 // GL helpers
 //=============================================================================
@@ -31,7 +32,7 @@ void CheckOpenGLError(const char* stmt, const char* fname, int line)
 		error += std::to_string(err);
 		error += ") ";
 
-		printf("OpenGL error %s, at %s:%i - for %s\n", error.c_str(), fname, line, stmt);
+		MY_LOG_ERROR("OpenGL error %s, at %s:%i - for %s", error.c_str(), fname, line, stmt);
 		//abort();
 	}
 }
@@ -296,7 +297,7 @@ GLuint AbstractRenderer::CompileGLSLShader(GLenum target, const char* shader)
 #ifdef NV_REPORT_COMPILE_ERRORS
 		char temp[256] = "";
 		GL_CHECK(glGetShaderInfoLog(object, 256, NULL, temp));
-		fprintf(stderr, "Compile failed:\n%s\n", temp);
+		MY_LOG_ERROR("Font renderer - Shader compile failed:\n%s", temp);
 #endif
 		GL_CHECK(glDeleteShader(object));
 		return 0;
@@ -327,7 +328,9 @@ GLuint AbstractRenderer::LinkGLSLProgram(GLuint vertexShader, GLuint fragmentSha
 	char * infoLog = new char[infoLogLength];
 	GL_CHECK(glGetProgramInfoLog(program, infoLogLength, &charsWritten, infoLog));
 	if ((infoLogLength > 0) && (infoLog[0] != '\0'))
-		fprintf(stderr, "Link failed:\n%s\n", infoLog);
+	{
+		MY_LOG_ERROR("Link failed:\n%s", infoLog);
+	}
 	delete[] infoLog;
 #endif
 
@@ -378,6 +381,16 @@ bool AbstractRenderer::IsEnabled() const
 FontBuilder * AbstractRenderer::GetFontBuilder()
 {
 	return this->fb;
+}
+
+int AbstractRenderer::GetCanvasWidth() const
+{
+	return this->deviceW;
+}
+
+int AbstractRenderer::GetCanvasHeight() const
+{
+	return this->deviceH;
 }
 
 /// <summary>
