@@ -57,7 +57,7 @@ void CheckOpenGLError(const char* stmt, const char* fname, int line)
 //=============================================================================
 
 
-#ifdef __APPLE__
+#if defined(__APPLE__) || defined(__ANDROID_API__)
 const char* AbstractRenderer::Shader::vSource = {
 	"\n\
 	precision highp float;\n\
