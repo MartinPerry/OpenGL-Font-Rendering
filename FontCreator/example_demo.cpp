@@ -113,8 +113,8 @@ void display() {
 	fr->Render();
 
 	//fn->AddNumber(-45.27, 100, 100);
-	fn->AddNumberCaption(450.013, 100, 100);
-	fn->Render();
+	//fn->AddNumberCaption(450.013, 100, 100, { 1, 0.5f, 0.1f, 1 });
+	//fn->Render();
 
 	glutSwapBuffers();	
 	//glutPostRedisplay();
@@ -137,6 +137,7 @@ void initGL() {
 		
 	//http://dpi.lv
 
+	/*
 	Font f;
 	//f.name = "test.ttf";	
 	f.name = "f1.ttf";
@@ -148,13 +149,46 @@ void initGL() {
 	f2.name = "f2.otf";
 	//f.name = "NotoSansCJKtc-Regular.otf";	
 	f2.size = 16_pt;
+	*/
+
+	auto fontFiles = AbstractRenderer::GetFontsInDirectory("../fonts2/");
+
+	std::vector<Font> fonts;
+	for (auto d : fontFiles)
+	{
+		Font f;
+		f.name = d;
+		f.size = 12_pt;
+
+		fonts.push_back(f);
+	}
+
+	/*
+	Font f4;	
+	f4.name = "arial.ttf";	
+	f4.size = 16_pt;
+	
+
+	
+	Font f;	
+	f.name = "merged_out_1000.otf";	
+	f.size = 16_pt;
+
+	Font f2;	
+	f2.name = "merged_out_1000.ttf";	
+	f2.size = 16_pt;
 
 
-	Font f3;	
-	f3.name = "arial.ttf";	
+	Font f3;
+	f3.name = "merged_out_2048.ttf";
 	f3.size = 16_pt;
-	
-	
+	*/
+
+	Font fNum;
+	//fNum.name = "../fonts/arial.ttf";
+	fNum.name = "../fonts/NotoSans-Regular.ttf";
+	fNum.size = 12_pt;
+
 	RenderSettings r;
 	r.screenDpi = 260;
 	r.textureW = 512;
@@ -162,16 +196,19 @@ void initGL() {
 	r.deviceW = g_width;
 	r.deviceH = g_height;
 
-	fr = new StringRenderer({ f, f2, f3 }, r);
-	fn = new NumberRenderer(f3, r);
+	//fr = new StringRenderer({ f, f2, f3 }, r);
+	fr = new StringRenderer(fonts, r);
+	//fr = new StringRenderer({ fNum }, r);
+	//fr = new StringRenderer({ f4 }, r);
+	fn = new NumberRenderer(fNum, r);
 
 	
 	
 	
-	fr->AddStringCaption(u8"P¯Ìliö\nûluùouËk˝\nk˘Ú", 0.5f, 0.5f, { 1,1,0,1 });
+	//fr->AddStringCaption(u8"P¯Ìliö\nûluùouËk˝\nk˘Ú", 0.5f, 0.5f, { 1,1,0,1 });
 	//fr->AddStringCaption(u8"AbBd", 0.5f, 0.5f, { 1,1,0,1 });
-	fr->Render();
-	fr->GetFontBuilder()->Save("D://88.png");
+	//fr->Render();
+	//fr->GetFontBuilder()->Save("D://88.png");
 }
 
 
@@ -202,17 +239,21 @@ int main(int argc, char ** argv)
 #endif
 #endif
 	
+	
 	//CharacterExtractor cr({ "arial.ttf" }, "arial_out.ttf");
 	//CharacterExtractor cr(std::vector<std::string>({ "arial.ttf" }), "arial_out.ttf");
 	CharacterExtractor cr({ "../ii/noto_max_priority/", "../ii/noto/", "../ii/noto-otf/"  }, "merged_out");
+	//CharacterExtractor cr({ "../ii/noto_max_priority/", "../ii/noto/" }, "merged_out");
+	//CharacterExtractor cr({ "../ii/noto_max_priority/" }, "merged_out");
 	
 	cr.SetOutputDir("../ii/");
-	//cr.AddText(u8"ûluùouËk˝");
+	cr.AddText(u8"P¯Ìliö\nûluùouËk˝\nk˘Ú");
 	//cr.AddText(u8"Ahoj");
 	cr.AddText(u8"\u2022"); //mark in number renderer
 	cr.AddText(u8"0123456789");
-	cr.AddText(u8"/*-+,.=");
-	cr.AddDirectory("D:\\Martin\\Programming\\test\\Ventusky\\VentuskyWin\\_bundle_dir_\\DATA\\cities\\");
+	cr.AddText(u8"!/*-+,.=");
+	cr.AddDirectory("D:\\Martin\\Programming\\test\\Ventusky\\VentuskyWin\\_bundle_dir_\\DATA\\cities\\");	
+	//cr.RemoveChar(utf8_string(u8"P")[0]);
 	cr.GenerateScript("run.sh");
 	
 	glutInit(&argc, argv);

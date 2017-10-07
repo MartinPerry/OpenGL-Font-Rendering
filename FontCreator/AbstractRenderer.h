@@ -31,6 +31,8 @@ public:
 
 	static const Color DEFAULT_COLOR;
 
+	static std::vector<std::string> GetFontsInDirectory(const std::string & fontDir);
+
 	AbstractRenderer(const std::vector<Font> & fs, RenderSettings r);
 	virtual ~AbstractRenderer();
 
@@ -130,6 +132,8 @@ protected:
 
 	} Shader;
 
+    RenderSettings rs;
+    
 	FontBuilder * fb;
 	
 	CaptionInfo ci;
@@ -137,9 +141,7 @@ protected:
 	AxisYOrigin axisYOrigin;
 
 	std::vector<LetterGeom> geom;
-	
-	int deviceW;
-	int deviceH;
+		
 	bool strChanged;
 
 	GLuint vbo;

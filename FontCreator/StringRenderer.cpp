@@ -40,8 +40,8 @@ size_t StringRenderer::GetStringsCount() const
 void StringRenderer::AddStringCaption(const utf8_string & strUTF8,
 	double x, double y, Color color)
 {
-	int xx = static_cast<int>(x * this->deviceW);
-	int yy = static_cast<int>(y * this->deviceH);
+	int xx = static_cast<int>(x * this->rs.deviceW);
+	int yy = static_cast<int>(y * this->rs.deviceH);
 
 	this->AddStringCaption(strUTF8, xx, yy, color);
 }
@@ -66,8 +66,8 @@ void StringRenderer::AddString(const utf8_string & strUTF8,
 	double x, double y, Color color,
 	TextAnchor anchor, TextAlign align)
 {
-	int xx = static_cast<int>(x * this->deviceW);
-	int yy = static_cast<int>(y * this->deviceH);
+	int xx = static_cast<int>(x * this->rs.deviceW);
+	int yy = static_cast<int>(y * this->rs.deviceH);
 
 	this->AddStringInternal(strUTF8, xx, yy, color, anchor, align, TextType::TEXT);
 }
@@ -94,7 +94,7 @@ void StringRenderer::AddStringInternal(const utf8_string & strUTF8,
 {
 	if (this->axisYOrigin == AbstractRenderer::DOWN)
 	{
-		y = this->deviceH - y;
+		y = this->rs.deviceH - y;
 	}
 
 	for (auto & s : this->strs)
@@ -128,8 +128,8 @@ void StringRenderer::AddStringInternal(const utf8_string & strUTF8,
 
 	if (estimAABB.maxX <= 0) return;
 	if (estimAABB.maxY <= 0) return;
-	if (estimAABB.minX > this->deviceW) return;
-	if (estimAABB.minY > this->deviceH) return;
+	if (estimAABB.minX > this->rs.deviceW) return;
+	if (estimAABB.minY > this->rs.deviceH) return;
 
 
 	//new visible string - add it
@@ -491,8 +491,8 @@ bool StringRenderer::GenerateGeometry()
 
 	//Build geometry
 	
-	float psW = 1.0f / static_cast<float>(deviceW);	//pixel size in width
-	float psH = 1.0f / static_cast<float>(deviceH); //pixel size in height
+	float psW = 1.0f / static_cast<float>(rs.deviceW);	//pixel size in width
+	float psH = 1.0f / static_cast<float>(rs.deviceH); //pixel size in height
 
 	float tW = 1.0f / static_cast<float>(this->fb->GetTextureWidth());	//pixel size in width
 	float tH = 1.0f / static_cast<float>(this->fb->GetTextureHeight()); //pixel size in height

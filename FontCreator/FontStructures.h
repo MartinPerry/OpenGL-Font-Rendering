@@ -88,8 +88,7 @@ typedef struct RenderSettings
 	int textureH;
 
 	int screenDpi = 0;
-	
-
+    
 } RenderSettings;
 
 

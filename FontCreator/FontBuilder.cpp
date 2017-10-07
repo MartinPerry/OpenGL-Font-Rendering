@@ -139,17 +139,13 @@ void FontBuilder::SetFontSizePts(FontInfo & f, int size, int dpi)
 		return;
 	}
 
-	f.fontSizePixels = (size * dpi / 72); // this->fontFace->size->metrics.y_ppem;
-
+	f.fontSizePixels = (size * dpi / 72); // this->fontFace->size->metrics.y_ppem;	
 	f.newLineOffset = static_cast<int>(f.fontFace->size->metrics.height / 64);
 }
 
 void FontBuilder::SetFontSizePixels(FontInfo & f, int size)
-{
-	
+{	
 	//https://www.freetype.org/freetype2/docs/tutorial/step1.html
-
-	
 
 	if (FT_Set_Pixel_Sizes(f.fontFace, 0, size))
 	{

@@ -136,10 +136,56 @@ const char* AbstractRenderer::Shader::pSource = {
 
 const AbstractRenderer::Color AbstractRenderer::DEFAULT_COLOR = { 1,1,1,1 };
 
-AbstractRenderer::AbstractRenderer(const std::vector<Font> & fs, RenderSettings r)
-	: deviceW(r.deviceW), deviceH(r.deviceH), strChanged(false), renderEnabled(true)
+std::vector<std::string> AbstractRenderer::GetFontsInDirectory(const std::string & fontDir)
 {
-	
+	std::vector<std::string> t;
+
+	DIR * dir = opendir(fontDir.c_str());
+
+	if (dir == nullptr)
+	{
+		printf("Failed to open dir %s\n", fontDir.c_str());
+		return t;
+	}
+
+	struct dirent * ent;
+	std::string fullPath;
+
+	/* print all the files and directories within directory */
+	while ((ent = readdir(dir)) != nullptr)
+	{
+		if ((strcmp(ent->d_name, ".") == 0) || (strcmp(ent->d_name, "..") == 0))
+		{
+			continue;
+		}
+		if (ent->d_type == DT_REG)
+		{
+			fullPath = fontDir;
+#ifdef _WIN32
+			fullPath = dir->patt; //full path using Windows dirent
+			fullPath = fullPath.substr(0, fullPath.length() - 1);
+#else
+			if (fullPath[fullPath.length() - 1] != '/')
+			{
+				fullPath += "/";
+			}
+#endif				
+			fullPath += ent->d_name;
+
+
+			t.push_back(fullPath);			
+		}
+	}
+
+
+	closedir(dir);
+
+	return t;
+}
+
+AbstractRenderer::AbstractRenderer(const std::vector<Font> & fs, RenderSettings r)
+	: rs(r), strChanged(false), renderEnabled(true)
+{	
 	this->fb = new FontBuilder(fs, r);
 
 	int ps = this->fb->GetMaxFontPixelSize();
@@ -219,9 +265,17 @@ void AbstractRenderer::InitGL()
 	GL_CHECK(glGenTextures(1, &this->fontTex));
 	GL_CHECK(glBindTexture(GL_TEXTURE_2D, this->fontTex));
 
-	GL_CHECK(glTexImage2D(GL_TEXTURE_2D, 0, GL_R8,
-		this->fb->GetTextureWidth(), this->fb->GetTextureHeight(), 0,
-		GL_RED, GL_UNSIGNED_BYTE, nullptr));
+    GL_CHECK(glTexImage2D(GL_TEXTURE_2D, 0, GL_LUMINANCE,
+                          this->fb->GetTextureWidth(), this->fb->GetTextureHeight(), 0,
+                          GL_LUMINANCE, GL_UNSIGNED_BYTE, nullptr));
+    
+    /*
+     //for higher opengl use this
+    GL_CHECK(glTexImage2D(GL_TEXTURE_2D, 0, GL_R8,
+                          this->fb->GetTextureWidth(), this->fb->GetTextureHeight(), 0,
+                          GL_RED, GL_UNSIGNED_BYTE, nullptr));
+    */
+    
 	GL_CHECK(glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST));
 	GL_CHECK(glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST));
 	GL_CHECK(glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE));
@@ -350,15 +404,15 @@ GLuint AbstractRenderer::LinkGLSLProgram(GLuint vertexShader, GLuint fragmentSha
 
 void AbstractRenderer::SetCanvasSize(int w, int h)
 {
-	this->deviceW = w;
-	this->deviceH = h;
+	this->rs.deviceW = w;
+	this->rs.deviceH = h;
 
 	this->strChanged = true;
 }
 
 void AbstractRenderer::SwapCanvasWidthHeight()
 {
-	std::swap(this->deviceW, this->deviceH);
+	std::swap(this->rs.deviceW, this->rs.deviceH);
 
 	this->strChanged = true;
 }
@@ -385,12 +439,12 @@ FontBuilder * AbstractRenderer::GetFontBuilder()
 
 int AbstractRenderer::GetCanvasWidth() const
 {
-	return this->deviceW;
+	return this->rs.deviceW;
 }
 
 int AbstractRenderer::GetCanvasHeight() const
 {
-	return this->deviceH;
+	return this->rs.deviceH;
 }
 
 /// <summary>
@@ -446,10 +500,20 @@ void AbstractRenderer::Render()
 void AbstractRenderer::FillTexture()
 {
 	GL_CHECK(glBindTexture(GL_TEXTURE_2D, this->fontTex));
-	GL_CHECK(glTexSubImage2D(GL_TEXTURE_2D, 0,
-		0, 0,
-		this->fb->GetTextureWidth(), this->fb->GetTextureHeight(),
-		GL_RED, GL_UNSIGNED_BYTE, this->fb->GetTexture()));
+
+    
+    GL_CHECK(glTexSubImage2D(GL_TEXTURE_2D, 0,
+                             0, 0,
+                             this->fb->GetTextureWidth(), this->fb->GetTextureHeight(),
+                             GL_LUMINANCE, GL_UNSIGNED_BYTE, this->fb->GetTexture()));
+    /*
+    //for higher opengl use this
+    GL_CHECK(glTexSubImage2D(GL_TEXTURE_2D, 0,
+                             0, 0,
+                             this->fb->GetTextureWidth(), this->fb->GetTextureHeight(),
+                             GL_RED, GL_UNSIGNED_BYTE, this->fb->GetTexture()));
+    */
+    
 	GL_CHECK(glBindTexture(GL_TEXTURE_2D, 0));
 }
 

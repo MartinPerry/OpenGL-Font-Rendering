@@ -80,6 +80,10 @@ void NumberRenderer::SetExistenceCheck(bool val)
 
 void NumberRenderer::SetDecimalPrecission(int digits)
 {
+    if (this->decimalPlaces == digits)
+    {
+        return;
+    }
 	this->decimalPlaces = digits;
 	this->decimalMult = std::pow(10, decimalPlaces);
 }
@@ -126,8 +130,8 @@ void NumberRenderer::AddNumber(double val,
 	double x, double y, Color color,
 	TextAnchor anchor)
 {
-	int xx = static_cast<int>(x * this->deviceW);
-	int yy = static_cast<int>(y * this->deviceH);
+	int xx = static_cast<int>(x * this->rs.deviceW);
+	int yy = static_cast<int>(y * this->rs.deviceH);
 
 	this->AddNumberInternal(val, xx, yy, color, anchor, TextType::TEXT);
 }
@@ -162,7 +166,7 @@ void NumberRenderer::AddNumberInternal(double val,
 {
 	if (this->axisYOrigin == AbstractRenderer::DOWN)
 	{
-		y = this->deviceH - y;
+		y = this->rs.deviceH - y;
 	}
 
 	if (this->checkIfExist)
@@ -209,8 +213,8 @@ void NumberRenderer::AddNumberInternal(double val,
 
 	if (aabb.maxX <= 0) return;
 	if (aabb.maxY <= 0) return;
-	if (aabb.minX > this->deviceW) return;
-	if (aabb.minY > this->deviceH) return;
+	if (aabb.minX > this->rs.deviceW) return;
+	if (aabb.minY > this->rs.deviceH) return;
 
 
 	//new visible number - add it
@@ -548,8 +552,8 @@ bool NumberRenderer::GenerateGeometry()
 /// <param name="ni"></param>
 void NumberRenderer::AddQuad(const GlyphInfo & gi, int x, int y, const NumberInfo & ni)
 {
-	float psW = 1.0f / static_cast<float>(deviceW);	//pixel size in width
-	float psH = 1.0f / static_cast<float>(deviceH); //pixel size in height
+	float psW = 1.0f / static_cast<float>(rs.deviceW);	//pixel size in width
+	float psH = 1.0f / static_cast<float>(rs.deviceH); //pixel size in height
 
 	float tW = 1.0f / static_cast<float>(this->fb->GetTextureWidth());	//pixel size in width
 	float tH = 1.0f / static_cast<float>(this->fb->GetTextureHeight()); //pixel size in height

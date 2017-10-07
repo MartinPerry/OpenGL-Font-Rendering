@@ -17,6 +17,12 @@
 #include "./Unicode/tinyutf8.h"
 #include "./Unicode/utf8.h"
 
+#ifdef _WIN32
+#include "./Utils/win_dirent.h"
+#else 
+#include <dirent.h>
+#endif
+
 
 #ifndef SAFE_DELETE
 #define SAFE_DELETE(a) {if (a != nullptr) { delete   a; a = nullptr; }};

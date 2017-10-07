@@ -24,6 +24,8 @@
 
 #include "./Externalncludes.h"
 
+//#define USE_TEXT_FILE
+
 /// <summary>
 /// Helper class for character extraction and merging from different
 /// font files
@@ -41,6 +43,8 @@ public:
 	void AddTextFromFile(const std::string & filePath);
 	void AddDirectory(const std::string & dirPath);
 
+	void RemoveChar(char32_t c);
+
 	void GenerateScript(const std::string & scriptFileName = "run.sh");
 
 protected:
@@ -48,9 +52,10 @@ protected:
 	std::string outputDir;
 	std::vector<std::string> inputTTF;
 	std::string outputTTF;
-	std::set<uint32_t> characters;
+	std::set<char32_t> characters;
 
 	std::unordered_map<std::string, FT_Face> faces;
+	std::unordered_map<std::string, int> facesLineOffset;
 	
 	FT_Library library;
 	
@@ -153,7 +158,7 @@ void CharacterExtractor::InitFreeType()
 	{
 		if (FT_Init_FreeType(&this->library))
 		{
-			printf("Failed to initialize FreeType library.");
+			MY_LOG_ERROR("Failed to initialize FreeType library.");
 			return;
 		}
 	}	
@@ -165,22 +170,35 @@ void CharacterExtractor::InitFreeType()
 		FT_Error error = FT_New_Face(this->library, s.c_str(), 0, &fontFace);
 		if (error == FT_Err_Unknown_File_Format)
 		{
-			printf("Failed to initialize Font Face %s. File not supported\n", s.c_str());
+			MY_LOG_ERROR("Failed to initialize Font Face %s. File not supported\n", s.c_str());
 			return;
 		}
 		else if (error)
 		{
-			printf("Failed to initialize Font Face %s.\n", s.c_str());
+			MY_LOG_ERROR("Failed to initialize Font Face %s.\n", s.c_str());
 			return;
 		}
 
 		FT_Select_Charmap(fontFace, FT_ENCODING_UNICODE);
 		
-		
+		int dpi = 260;
+		int size = 12;
+		if (FT_Set_Char_Size(fontFace, 0, size * 64, dpi, dpi))
+		{
+			MY_LOG_ERROR("Failed to set font size in points");
+			return;
+		}
+
+		int newLineOffset = static_cast<int>(fontFace->size->metrics.height / 64);
 
 		this->faces[s] = fontFace;
-
+		this->facesLineOffset[s] = newLineOffset;
 	}
+};
+
+void CharacterExtractor::RemoveChar(char32_t c)
+{
+	this->characters.erase(c);
 };
 
 /// <summary>
@@ -302,52 +320,83 @@ bool CharacterExtractor::HasEnding(std::string const &fullString, std::string co
 /// </summary>
 void CharacterExtractor::GenerateScript(const std::string & scriptFileName)
 {
-	std::unordered_map<std::string, std::string> glyphs;
+	bool useTextFile = true;
+
+	std::unordered_map<std::string, std::string> glyphsCodes;
+	std::unordered_map<std::string, utf8_string> glyphsUTF8;
 	for (auto & s : this->faces)
 	{
-		glyphs[s.first] = "";
+		glyphsCodes[s.first] = "";
+		glyphsUTF8[s.first] = " ";
 	}
 
 
 	int usedFontsCount = 0;
 
+	
 	for (auto c : this->characters)
 	{
-		std::stringstream s;
-		s << std::hex << c;
-		std::string result(s.str());
-
-		std::string found = "";
-		for (auto & s : this->faces)
+		if (c <= 32)
 		{
+			//non printable
+			//space = 32
+			continue;
+		}
+		
+		std::string faceName = "";
+		bool found = false;
+		int minOffset = std::numeric_limits<int>::max();
+
+		for (auto & s : this->faces)
+		{			
 			FT_UInt ci = FT_Get_Char_Index(s.second, c);
 
 			if (ci == 0)
 			{								
 				continue;
 			}
+			
+			found = true;
+			
+			int offset = this->facesLineOffset[s.first];
+			if (offset < minOffset)
+			{
+				minOffset = offset;				
 
-			found = s.first;
-			break;
+				faceName = s.first;
+			}			
 		}
 
-		if (found == "")
+		if (found == false)
 		{
-			printf("Character %s not found (FT_Get_Char_Index)\n", result.c_str());
+			printf("Character %zu not found (FT_Get_Char_Index)\n", static_cast<uint32_t>(c));
 			continue;
 		}
+		
+		std::stringstream s;
+		s << std::hex << c;
+		std::string result(s.str());
 
 		std::string g = "U+";
 		g += std::string(4 - result.length(), '0') + result;
-		g += "\n";
+		g += "\n";		
+		glyphsCodes[faceName] += g;
 
-		glyphs[found] += g;
 
+		glyphsUTF8[faceName].push_back(c);
 	}
+
+	//==============================================
+	
+#ifdef USE_TEXT_FILE
+	auto & glyphs = glyphsUTF8;
+#else
+	auto & glyphs = glyphsCodes;
+#endif
 
 	for (auto & s : glyphs)
 	{
-		if (s.second.size() > 0)
+		if (s.second.length() > 1)
 		{
 			usedFontsCount++;
 		}
@@ -370,28 +419,46 @@ void CharacterExtractor::GenerateScript(const std::string & scriptFileName)
 		glyphsFileName += this->BaseName(s.first);
 		glyphsFileName += ".txt";
 
+
+#ifdef USE_TEXT_FILE
+		FILE * f = fopen((outputDir + glyphsFileName).c_str(), "wb");
+		uint8_t smarker[3];
+		smarker[0] = 0xEF;
+		smarker[1] = 0xBB;
+		smarker[2] = 0xBF;
+		fwrite(smarker, sizeof(uint8_t), 3, f);
+		fwrite(s.second.c_str() + 1, sizeof(char), s.second.size(), f); //+ 1 skip first " "
+		fclose(f);
+#else
 		std::ofstream file(outputDir + glyphsFileName);
 		file << s.second;
-
-
+#endif
 
 		std::string subsetFileName = "subset_";
 		subsetFileName += this->BaseName(s.first);
 		
 		lastFileName = subsetFileName;
 
+		//https://github.com/fonttools/fonttools/issues/336
 		
 		e += "pyftsubset \"";
 		e += s.first;
 		e += "\"";
 		e += " --output-file=\"";
 		e += subsetFileName;
-		e += "\"";
+		e += "\"";		
+#ifdef USE_TEXT_FILE
+		e += " --text-file=\"";
+		e += glyphsFileName;
+#else
 		e += " --unicodes-file=\"";
 		e += glyphsFileName;
+#endif
 		e += "\"";
 		e += " --layout-features='*' --glyph-names --symbol-cmap --legacy-cmap --notdef-glyph --notdef-outline --recommended-glyphs ";
 		e += " --name-IDs='*' --name-legacy ";
+		e += "  --no-recalc-bounds ";
+		//e += "  --recalc-bounds ";
 		e += '\n';
 
 		remove += "rm ";
@@ -410,6 +477,7 @@ void CharacterExtractor::GenerateScript(const std::string & scriptFileName)
 		{
 			emSizes.insert(this->faces[s.first]->units_per_EM);
 		}
+
 		std::set<std::string> types;
 		for (auto & s : glyphs)
 		{
@@ -423,79 +491,120 @@ void CharacterExtractor::GenerateScript(const std::string & scriptFileName)
 			}
 		}
 
+		const int LINE_OFFSET_THRESSHOLD = 1;
+		std::set<int> tmpLineOffsets;
+		for (auto & s : glyphs)
+		{
+			tmpLineOffsets.insert(this->facesLineOffset[s.first]);
+		}
+
+		std::set<int> lineOffsets;
+
+		std::vector<int> v(tmpLineOffsets.begin(), tmpLineOffsets.end());
+		std::sort(v.begin(), v.end());
+
+		int lastOffset = v[0];
+		lineOffsets.insert(v[0]);
+
+		for (size_t i = 1; i < v.size(); i++)
+		{
+			if (std::abs(lastOffset - v[i]) < LINE_OFFSET_THRESSHOLD)
+			{
+				continue;
+			}
+
+			lastOffset = v[i];
+			lineOffsets.insert(v[i]);
+		}
+		
+
+		std::set<std::string> used;
+
 		for (auto type : types)
 		{
-			printf("%s\n", type.c_str());
+			printf("Type: %s\n", type.c_str());
 			for (auto emSize : emSizes)
 			{
-				int count = 0;
-				printf("%i\n", emSize);
-				std::string merge = "pyftmerge ";
-				std::string lastFileName = "";
-				for (auto & s : glyphs)
+				printf("EmSize: %i\n", emSize);
+				for (auto lineOffset : lineOffsets)
 				{
-					if (s.second.length() <= 1)
+					printf("LineOffset: %i\n", lineOffset);
+
+					int count = 0;					
+					std::string merge = "pyftmerge ";
+					std::string lastFileName = "";
+					for (auto & s : glyphs)
+					{
+						if (s.second.length() <= 1)
+						{
+							continue;
+						}
+
+						if (used.find(s.first) != used.end())
+						{
+							continue;
+						}
+
+						if (this->faces[s.first]->units_per_EM != emSize)
+						{
+							continue;
+						}
+						if (HasEnding(s.first, type) == false)
+						{
+							continue;
+						}
+						if (std::abs(this->facesLineOffset[s.first] - lineOffset) >= LINE_OFFSET_THRESSHOLD)
+						{
+							continue;
+						}
+						
+						used.insert(s.first);
+
+						std::string subsetFileName = "subset_";
+						subsetFileName += this->BaseName(s.first);
+
+						lastFileName = subsetFileName;
+
+						merge += subsetFileName;
+						merge += " ";
+						count++;
+					}
+
+					printf("FilesCount: %i\n", count);
+
+					if (count == 0)
 					{
 						continue;
 					}
-					if (this->faces[s.first]->units_per_EM != emSize)
+					if (count == 1)
 					{
-						continue;
+						e += "mv ";
+						e += lastFileName;
+						e += " ";
 					}
-					if (HasEnding(s.first, type) == false)
+					else
 					{
-						continue;
+						merge += " ";
+						merge += '\n';
+
+						e += merge;
+						e += "mv ";
+						e += "merged.";
+						e += type;
+						e += " ";
 					}
+					
 
-					std::string subsetFileName = "subset_";
-					subsetFileName += this->BaseName(s.first);
-
-					lastFileName = subsetFileName;
-
-					merge += subsetFileName;
-					merge += " ";
-					count++;
-				}
-
-				printf("%i\n", count);
-
-				if (count == 0)
-				{
-					continue;
-				}
-				if (count == 1)
-				{										
-					e += "mv ";
-					e += lastFileName;
-					e += " ";					
-				}
-				else
-				{
-					merge += " ";
-					merge += '\n';
-
-					e += merge;
-					e += "mv ";
-					e += "merged.";
-					e += type;
-					e += " ";
-				}
-				if (emSizes.size() > 1)
-				{
 					e += this->outputTTF;
 					e += "_";
 					e += std::to_string(emSize);
+					e += "_";
+					e += std::to_string(lineOffset);
 					e += ".";
 					e += type;
+					
+					e += '\n';
 				}
-				else
-				{
-					e += this->outputTTF;
-					e += ".";
-					e += type;
-				}
-
-				e += '\n';
 			}
 		}
 
@@ -509,7 +618,7 @@ void CharacterExtractor::GenerateScript(const std::string & scriptFileName)
 	}
 	e += '\n';
 
-	//e += remove;
+	e += remove;
 
 	std::ofstream file = std::ofstream(outputDir + scriptFileName, std::ios_base::binary | std::ios_base::out);
 	
