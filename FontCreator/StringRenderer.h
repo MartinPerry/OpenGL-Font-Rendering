@@ -9,11 +9,9 @@ class StringRenderer : public AbstractRenderer
 {
 public:
 
-	StringRenderer(const std::vector<Font> & fs, RenderSettings r);
+	StringRenderer(const std::vector<Font> & fs, RenderSettings r, int glVersion = 3);
 	~StringRenderer();
-
-	void SetCaptionInfo(const utf8_string & mark, int offset);
-
+		
 	void Clear();
 	size_t GetStringsCount() const;
 	
@@ -35,7 +33,7 @@ public:
 
 protected:
 
-	typedef std::vector<std::tuple<FontInfo::UsedGlyphIterator, bool>> UsedGlyphCache;
+	typedef std::vector<std::tuple<FontInfo::UsedGlyphIterator, bool, FontInfo *>> UsedGlyphCache;
 	
 	typedef struct StringInfo
 	{

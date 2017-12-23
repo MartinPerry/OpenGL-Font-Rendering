@@ -40,8 +40,9 @@ public:
 	const std::vector<FontInfo> & GetFontInfos() const;
 	int GetMaxFontPixelSize() const;
 	int GetMaxNewLineOffset() const;
-	int GetNewLineOffsetBasedOnFirstGlyph(CHAR_CODE c) const;
+	int GetNewLineOffsetBasedOnGlyph(CHAR_CODE c);
 	FontInfo::UsedGlyphIterator GetGlyph(CHAR_CODE c, bool & exist);
+	FontInfo::UsedGlyphIterator GetGlyph(CHAR_CODE c, bool & exist, FontInfo ** usedFi);
 
 	int GetTextureWidth() const;
 	int GetTextureHeight() const;
@@ -62,13 +63,15 @@ protected:
 	
 
 	std::vector<FontInfo> fis;
-	
+	std::vector<uint8_t *> memoryFonts;
+
 	std::unordered_set<CHAR_CODE> reused; //codes that were already added and are also in current string
 	std::unordered_set<CHAR_CODE> newCodes; //newly added codes
 
 	TextureAtlasPack * texPacker;
 		
 	int InitializeFont(const std::string & fontFacePath);
+	uint8_t * LoadFontFromFile(const std::string & fontFacePath, size_t * bufSize);
 	void SetFontSizePixels(FontInfo & f, int size);
 	void SetFontSizePts(FontInfo & f, int size, int dpi);
 

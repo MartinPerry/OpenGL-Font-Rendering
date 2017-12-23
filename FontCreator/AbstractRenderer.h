@@ -33,12 +33,13 @@ public:
 
 	static std::vector<std::string> GetFontsInDirectory(const std::string & fontDir);
 
-	AbstractRenderer(const std::vector<Font> & fs, RenderSettings r);
+	AbstractRenderer(const std::vector<Font> & fs, RenderSettings r, int glVersion);
 	virtual ~AbstractRenderer();
 
 	FontBuilder * GetFontBuilder();
 	void SetCanvasSize(int w, int h);
 	void SetAxisYOrigin(AxisYOrigin axisY);
+	void SetCaption(const utf8_string & mark);
 
 	int GetCanvasWidth() const;
 	int GetCanvasHeight() const;
@@ -148,6 +149,7 @@ protected:
 	GLuint vao;
 	GLuint fontTex;
 	Shader shader;
+	int glVersion;
 	
 	bool renderEnabled;
 
@@ -156,6 +158,7 @@ protected:
 	void InitGL();
 	
 	void CreateVAO();
+	void BindVertexAtribs();
 	GLuint CompileGLSLShader(GLenum target, const char* shader);
 	GLuint LinkGLSLProgram(GLuint vertexShader, GLuint fragmentShader);
 

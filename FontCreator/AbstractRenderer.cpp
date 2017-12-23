@@ -154,7 +154,7 @@ std::vector<std::string> AbstractRenderer::GetFontsInDirectory(const std::string
 	/* print all the files and directories within directory */
 	while ((ent = readdir(dir)) != nullptr)
 	{
-		if ((strcmp(ent->d_name, ".") == 0) || (strcmp(ent->d_name, "..") == 0))
+		if (ent->d_name[0] == '.')
 		{
 			continue;
 		}
@@ -167,7 +167,7 @@ std::vector<std::string> AbstractRenderer::GetFontsInDirectory(const std::string
 #else
 			if (fullPath[fullPath.length() - 1] != '/')
 			{
-				fullPath += "/";
+				fullPath += '/';
 			}
 #endif				
 			fullPath += ent->d_name;
@@ -183,17 +183,16 @@ std::vector<std::string> AbstractRenderer::GetFontsInDirectory(const std::string
 	return t;
 }
 
-AbstractRenderer::AbstractRenderer(const std::vector<Font> & fs, RenderSettings r)
-	: rs(r), strChanged(false), renderEnabled(true)
+AbstractRenderer::AbstractRenderer(const std::vector<Font> & fs, RenderSettings r, int glVersion)
+	: rs(r), strChanged(false), renderEnabled(true), glVersion(glVersion)
 {	
 	this->fb = new FontBuilder(fs, r);
 
 	int ps = this->fb->GetMaxFontPixelSize();
 	this->fb->SetGridPacking(ps, ps);
 
-	ci.mark = u8"\u2022";
-	ci.offset = this->fb->GetNewLineOffsetBasedOnFirstGlyph(ci.mark[0]) / 2;
-	ci.offset = static_cast<int>(ci.offset * 1.2); //add extra 20%
+	
+	this->SetCaption(u8"\u2022");
 	
 	this->SetAxisYOrigin(AxisYOrigin::TOP);
 
@@ -287,11 +286,13 @@ void AbstractRenderer::InitGL()
 /// Create VAO
 /// </summary>
 void AbstractRenderer::CreateVAO()
-{
-	const size_t VERTEX_SIZE = sizeof(Vertex);
-	const size_t POSITION_OFFSET = 0 * sizeof(float);
-	const size_t TEX_COORD_OFFSET = 2 * sizeof(float);
-	const size_t COLOR_OFFSET = 4 * sizeof(float);
+{	
+#ifdef __ANDROID_API__
+	if (glVersion == 2)
+	{
+		return;
+	}
+#endif
 
 	//init
 	GL_CHECK(glGenVertexArrays(1, &this->vao));
@@ -299,6 +300,24 @@ void AbstractRenderer::CreateVAO()
 	//bind data to it
 	GL_CHECK(glBindBuffer(GL_ARRAY_BUFFER, this->vbo));
 	GL_CHECK(glBindVertexArray(this->vao));
+
+	this->BindVertexAtribs();
+
+	GL_CHECK(glBindBuffer(GL_ARRAY_BUFFER, 0));
+
+	GL_CHECK(glBindVertexArray(0));
+	
+
+	
+}
+
+void AbstractRenderer::BindVertexAtribs()
+{
+	const size_t VERTEX_SIZE = sizeof(Vertex);
+	const size_t POSITION_OFFSET = 0 * sizeof(float);
+	const size_t TEX_COORD_OFFSET = 2 * sizeof(float);
+	const size_t COLOR_OFFSET = 4 * sizeof(float);
+		
 
 	GL_CHECK(glEnableVertexAttribArray(this->shader.positionLocation));
 	GL_CHECK(glVertexAttribPointer(this->shader.positionLocation, 2,
@@ -314,14 +333,8 @@ void AbstractRenderer::CreateVAO()
 	GL_CHECK(glVertexAttribPointer(this->shader.colorLocation, 4,
 		GL_FLOAT, GL_FALSE,
 		VERTEX_SIZE, (void*)(COLOR_OFFSET)));
-
-
-	GL_CHECK(glBindVertexArray(0));
-	GL_CHECK(glBindBuffer(GL_ARRAY_BUFFER, 0));
-
 	
 }
-
 
 /// <summary>
 /// Compile input shader
@@ -401,6 +414,13 @@ GLuint AbstractRenderer::LinkGLSLProgram(GLuint vertexShader, GLuint fragmentSha
 	return program;
 }
 
+void AbstractRenderer::SetCaption(const utf8_string & mark)
+{
+	ci.mark = mark;
+
+	ci.offset = this->fb->GetNewLineOffsetBasedOnGlyph(ci.mark[0]) * 0.5;
+	ci.offset = static_cast<int>(ci.offset * 1.2); //add extra 20%
+}
 
 void AbstractRenderer::SetCanvasSize(int w, int h)
 {
@@ -483,11 +503,30 @@ void AbstractRenderer::Render()
 
 	//render
 	GL_CHECK(glBindBuffer(GL_ARRAY_BUFFER, this->vbo));
+	
+#ifdef __ANDROID_API__
+	if (glVersion == 2)
+	{
+		this->BindVertexAtribs();
+	}
+	else 
+	{
+		GL_CHECK(glBindVertexArray(this->vao));
+	}
+#else
 	GL_CHECK(glBindVertexArray(this->vao));
+#endif		
 
 	GL_CHECK(glDrawArrays(GL_TRIANGLES, 0, static_cast<int>(geom.size()) * 6));
-
+	
+#ifdef __ANDROID_API__
+	if (glVersion != 2)
+	{			
+		GL_CHECK(glBindVertexArray(0));
+	}
+#else
 	GL_CHECK(glBindVertexArray(0));
+#endif	
 
 	//deactivate shader
 	GL_CHECK(glUseProgram(0));

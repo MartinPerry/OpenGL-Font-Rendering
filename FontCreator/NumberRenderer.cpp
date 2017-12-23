@@ -9,8 +9,8 @@
 
 const utf8_string NumberRenderer::NUMBERS_STRING = u8"0123456789,.-";
 
-NumberRenderer::NumberRenderer(Font fs, RenderSettings r)
-	: AbstractRenderer({ fs }, r)
+NumberRenderer::NumberRenderer(Font fs, RenderSettings r, int glVersion)
+	: AbstractRenderer({ fs }, r, glVersion)
 {
 	this->checkIfExist = true;
 
@@ -37,14 +37,15 @@ NumberRenderer::NumberRenderer(Font fs, RenderSettings r)
 		auto it = this->fb->GetGlyph(c, exist);
 		if (!exist)
 		{
-			throw std::invalid_argument("Unknown number character");;
+			throw std::invalid_argument("Unknown number character");
+			continue;
 		}
 		
 
 		this->gi[it->first] = *it->second;		
 	}
 	
-
+	
 	bool exist;
 	auto it = this->fb->GetGlyph(this->ci.mark[0], exist);
 	if (!exist)
@@ -52,9 +53,13 @@ NumberRenderer::NumberRenderer(Font fs, RenderSettings r)
 		it = this->fb->GetGlyph('.', exist);
 		if (!exist)
 		{
-			throw std::invalid_argument("Unknown mark character");;
+			throw std::invalid_argument("Unknown mark character");			
 		}
-		this->captionMark = *it->second;
+		else
+		{
+			this->SetCaption(u8".");
+			this->captionMark = *it->second;			
+		}
 	}
 	else
 	{
@@ -102,54 +107,6 @@ void NumberRenderer::Clear()
 	this->nmbrs.clear();
 }
 
-/// <summary>
-/// Add new number as caption
-/// </summary>
-/// <param name="val"></param>
-/// <param name="x"></param>
-/// <param name="y"></param>
-/// <param name="color"></param>
-void NumberRenderer::AddNumberCaption(double val,
-	int x, int y, Color color)
-{
-	//this->AddNumberInternal(ci.mark, x, y, color, TextAnchor::CENTER, TextAlign::ALIGN_CENTER, TextType::CAPTION);
-	this->AddNumberInternal(val, x, y, color, TextAnchor::CENTER, TextType::CAPTION);
-}
-
-/// <summary>
-/// Add new number to be rendered
-/// If number already exist - do not add
-/// Existing => same x, y, align, value
-/// </summary>
-/// <param name="val"></param>
-/// <param name="x"></param>
-/// <param name="y"></param>
-/// <param name="color"></param>
-/// <param name="anchor"></param>
-void NumberRenderer::AddNumber(double val,
-	double x, double y, Color color,
-	TextAnchor anchor)
-{
-	int xx = static_cast<int>(x * this->rs.deviceW);
-	int yy = static_cast<int>(y * this->rs.deviceH);
-
-	this->AddNumberInternal(val, xx, yy, color, anchor, TextType::TEXT);
-}
-
-/// <summary>
-/// Add new number to be rendered
-/// If number already exist - do not add
-/// Existing => same x, y, align, value
-/// </summary>
-/// <param name="strUTF8"></param>
-/// <param name="x"></param>
-/// <param name="y"></param>
-void NumberRenderer::AddNumber(double val,
-	int x, int y, Color color,
-	TextAnchor anchor)
-{
-	this->AddNumberInternal(val, x, y, color, anchor, TextType::TEXT);
-}
 
 /// <summary>
 /// 
@@ -160,7 +117,7 @@ void NumberRenderer::AddNumber(double val,
 /// <param name="color"></param>
 /// <param name="anchor"></param>
 /// <param name="type"></param>
-void NumberRenderer::AddNumberInternal(double val,
+void NumberRenderer::AddIntegralNumberInternal(long val,
 	int x, int y, Color color,
 	TextAnchor anchor, TextType type)
 {
@@ -191,15 +148,58 @@ void NumberRenderer::AddNumberInternal(double val,
 	i.negative = val < 0;
 
 	if (i.negative) val *= -1;
-	i.intPart = (unsigned long)(val);
+	i.intPart = static_cast<unsigned long>(val);
+	i.fractPartReverse = 0;
+
+
+	this->AddNumber(i, x, y, color, anchor, type);	
+}
+
+void NumberRenderer::AddFloatNumberInternal(double val,
+	int x, int y, Color color,
+	TextAnchor anchor, TextType type)
+{
+	if (this->axisYOrigin == AbstractRenderer::DOWN)
+	{
+		y = this->rs.deviceH - y;
+	}
+
+	if (this->checkIfExist)
+	{
+		for (auto & s : this->nmbrs)
+		{
+			if ((s.x == x) && (s.y == y) &&
+				(s.anchor == anchor) && (s.type == type))
+			{
+				if (s.val == val)
+				{
+					//same number on the same position and with same align
+					//already exist - do not add it again
+					return;
+				}
+			}
+		}
+	}
+
+	NumberInfo i;
+	i.val = val;
+	i.negative = val < 0;
+
+	if (i.negative) val *= -1;
+	i.intPart = static_cast<unsigned long>(val);
 	i.fractPartReverse = this->GetFractPartReversed(val, i.intPart);
 
 
+	this->AddNumber(i, x, y, color, anchor, type);
+}
 
-	AbstractRenderer::AABB aabb = this->CalcNumberAABB(val, x, y, i.negative, i.intPart, i.fractPartReverse);
+void NumberRenderer::AddNumber(NumberInfo & n, int x, int y, Color color,
+	TextAnchor anchor, TextType type)
+{
+	AbstractRenderer::AABB aabb = this->CalcNumberAABB(n.val, x, y, n.negative, n.intPart, n.fractPartReverse);
 
 	//test if entire string is outside visible area
-	
+
 	if (anchor == TextAnchor::CENTER)
 	{
 		int w2 = (aabb.maxX - aabb.minX) / 2;
@@ -222,20 +222,18 @@ void NumberRenderer::AddNumberInternal(double val,
 	this->strChanged = true;
 
 	//fill basic structure info
-	
-	i.x = x;
-	i.y = y;
-	i.color = color;
-	i.isDefaultColor = color.IsSame(DEFAULT_COLOR);
-	i.anchor = anchor;
-	i.type = type;
-	i.anchorX = x;
-	i.anchorY = y;
-	i.aabb = aabb;
-	
-	this->nmbrs.push_back(i);
 
-	
+	n.x = x;
+	n.y = y;
+	n.color = color;
+	n.isDefaultColor = color.IsSame(DEFAULT_COLOR);
+	n.anchor = anchor;
+	n.type = type;
+	n.anchorX = x;
+	n.anchorY = y;
+	n.aabb = aabb;
+
+	this->nmbrs.push_back(n);
 }
 
 unsigned long NumberRenderer::GetFractPartReversed(double val, unsigned long intPart)
@@ -460,9 +458,7 @@ bool NumberRenderer::GenerateGeometry()
 	//Build geometry
 	
 	this->geom.clear();
-
-	int newLineOffset = this->fb->GetMaxNewLineOffset();
-
+	
 	for (const NumberRenderer::NumberInfo & si : this->nmbrs)
 	{
 		int lineId = 0;
@@ -475,10 +471,11 @@ bool NumberRenderer::GenerateGeometry()
 
 		if (si.type == TextType::CAPTION)
 		{			
+			
 			int xx = si.x - (this->captionMark.bmpW) / 2;
-
-			int yy = si.y + newLineOffset; //move top position to TOP_LEFT
-			yy -= (newLineOffset) / 2; //calc center from all lines and move TOP_LEFT down
+			
+			int yy = si.y + this->ci.offset; //move top position to TOP_LEFT
+			yy -= (this->ci.offset) / 2; //calc center from all lines and move TOP_LEFT down
 			yy -= (this->captionMark.bmpH);
 
 			this->AddQuad(this->captionMark, xx, yy, si);

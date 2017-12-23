@@ -249,7 +249,7 @@ void CharacterExtractor::AddDirectory(const std::string & dirPath)
 	/* print all the files and directories within directory */
 	while ((ent = readdir(dir)) != nullptr)
 	{
-		if ((strcmp(ent->d_name, ".") == 0) || (strcmp(ent->d_name, "..") == 0))
+		if (ent->d_name[0] == '.')
 		{
 			continue;
 		}
@@ -265,7 +265,7 @@ void CharacterExtractor::AddDirectory(const std::string & dirPath)
 #else
 			if (fullPath[fullPath.length() - 1] != '/')
 			{
-				fullPath += "/";
+				fullPath += '/';
 			}
 #endif				
 			fullPath += ent->d_name;
@@ -280,7 +280,7 @@ void CharacterExtractor::AddDirectory(const std::string & dirPath)
 			newDirName = dirPath;
 			if (newDirName[newDirName.length() - 1] != '/')
 			{
-				newDirName += "/";
+				newDirName += '/';
 			}
 			newDirName += ent->d_name;
 			this->AddDirectory(newDirName);
@@ -336,10 +336,9 @@ void CharacterExtractor::GenerateScript(const std::string & scriptFileName)
 	
 	for (auto c : this->characters)
 	{
-		if (c <= 32)
+		if (c < 32)
 		{
-			//non printable
-			//space = 32
+			//non printable			
 			continue;
 		}
 		

@@ -6,7 +6,9 @@
 
 #include "./Externalncludes.h"
 
-
+#ifdef USE_VFS
+#include "../../Utils/VFS/VFS.h"
+#endif
 
 //http://www.freetype.org/freetype2/documentation.html
 //http://en.wikibooks.org/wiki/OpenGL_Programming/Modern_OpenGL_Tutorial_Text_Rendering_01
@@ -81,6 +83,11 @@ void FontBuilder::Release()
 			SAFE_DELETE_ARRAY(c.rawData);
 		}
 	}
+
+	for (auto & f : this->memoryFonts)
+	{
+		SAFE_DELETE_ARRAY(f);
+	}
 }
 
 //================================================================
@@ -92,19 +99,55 @@ bool FontBuilder::IsInited() const
 	return this->library != nullptr;
 }
 
+uint8_t * FontBuilder::LoadFontFromFile(const std::string & fontFacePath, size_t * bufSize)
+{
+#ifdef USE_VFS
+	return (uint8_t *)VFS::GetInstance()->GetFileContent(fontFacePath.c_str(), bufSize);
+#else
+
+	FILE * f = nullptr;
+	my_fopen(&f, fontFacePath.c_str(), "rb");
+
+	if (f == nullptr)
+	{
+		*bufSize = 0;
+		return nullptr;
+	}
+
+	fseek(f, 0, SEEK_END);
+	*bufSize = static_cast<size_t>(ftell(f));
+	fseek(f, 0, SEEK_SET);
+		
+	uint8_t * buf = new uint8_t[*bufSize];
+	fread(buf, sizeof(uint8_t), *bufSize, f);
+
+	fclose(f);
+	return buf;
+#endif
+}
 
 int FontBuilder::InitializeFont(const std::string & fontFacePath)
 {
 	FontInfo fi;
 	FT_Face ff;
+	FT_Error error;
 
 	fi.fontFaceName = fontFacePath.substr(fontFacePath.find_last_of("/\\") + 1);
 	std::string::size_type const p(fi.fontFaceName.find_last_of('.'));
 	fi.fontFaceName = fi.fontFaceName.substr(0, p);
 
-
-	//FT_Error error = FT_New_Memory_Face(this->library, this->fontData, bufSize, 0, &this->fontFace);
-	FT_Error error = FT_New_Face(this->library, fontFacePath.c_str(), 0, &ff);
+	size_t bufSize = 0;
+	auto data = this->LoadFontFromFile(fontFacePath, &bufSize);
+	
+	if (data != nullptr)
+	{
+		memoryFonts.push_back(data);
+		error = FT_New_Memory_Face(this->library, data, bufSize, 0, &ff);
+	}
+	else
+	{
+		error = FT_New_Face(this->library, fontFacePath.c_str(), 0, &ff);
+	}
 	if (error == FT_Err_Unknown_File_Format)
 	{
 		MY_LOG_ERROR("Failed to initialize Font Face %s. File not supported", fi.fontFaceName.c_str());
@@ -194,37 +237,45 @@ int FontBuilder::GetMaxNewLineOffset() const
 	return lineOffset;
 }
 
-int FontBuilder::GetNewLineOffsetBasedOnFirstGlyph(CHAR_CODE c) const
+int FontBuilder::GetNewLineOffsetBasedOnGlyph(CHAR_CODE c)
 {
+	this->LoadGlyphInfo(c);
+
 	for (auto & fi : this->fis)
-	{
+	{		
 		auto it = fi.usedGlyphs.find(c);
 		if (it != fi.usedGlyphs.end())
 		{
 			return fi.newLineOffset;
 		}		
 	}
-
+	
 	return this->GetMaxNewLineOffset();
 }
 
 FontInfo::UsedGlyphIterator FontBuilder::GetGlyph(CHAR_CODE c, bool & exist)
 {
+	FontInfo * f = nullptr;
+	return this->GetGlyph(c, exist, &f);
+}
+
+FontInfo::UsedGlyphIterator FontBuilder::GetGlyph(CHAR_CODE c, bool & exist, FontInfo ** usedFi)
+{
+	exist = false;
+
 	for (auto & fi : this->fis)
 	{
 
 		auto it = fi.usedGlyphs.find(c);
-		if (it == fi.usedGlyphs.end())
-		{
-			exist = false;
-		}
-		else
-		{
+		if (it != fi.usedGlyphs.end())
+		{	
+			*usedFi = &fi;			
 			exist = true;
 			return it;
 		}		
 	}
 
+	*usedFi = &this->fis[0];	
 	return this->fis[0].usedGlyphs.end();
 }
 

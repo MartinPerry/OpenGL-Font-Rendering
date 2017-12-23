@@ -107,14 +107,15 @@ void display() {
 	}
 	*/
 	
-	fr->AddStringCaption(u8"Pøíliš\nžluouèký\nkùò", 0.5f, 0.5f, { 1,1,0,1 });
+	fr->AddStringCaption(u8"Pøíliš malý\nžluouèký\nkùò", 0.5f, 0.5f, { 1,1,0,1 });
 
 	//fr->AddString(u8"lll", 200, 300);
 	fr->Render();
 
 	//fn->AddNumber(-45.27, 100, 100);
-	//fn->AddNumberCaption(450.013, 100, 100, { 1, 0.5f, 0.1f, 1 });
-	//fn->Render();
+	fn->AddNumberCaption(-450.013, 100, 100, { 1, 1.0f, 1.0f, 1 });
+	fn->AddNumberCaption(-897456, 100, 300, { 1, 1.0f, 1.0f, 1 });
+	fn->Render();
 
 	glutSwapBuffers();	
 	//glutPostRedisplay();
@@ -162,6 +163,13 @@ void initGL() {
 
 		fonts.push_back(f);
 	}
+	
+
+	fonts.clear();
+	Font fArial;
+	fArial.name = "../fonts/arial_unicode.ttf";	
+	fArial.size = 12_pt;
+	fonts.push_back(fArial);
 
 	/*
 	Font f4;	
@@ -186,7 +194,8 @@ void initGL() {
 
 	Font fNum;
 	//fNum.name = "../fonts/arial.ttf";
-	fNum.name = "../fonts/NotoSans-Regular.ttf";
+	//fNum.name = "../fonts/NotoSans-Regular.ttf";
+	fNum.name = "../fonts2/merged_out_2048_53.ttf";
 	fNum.size = 12_pt;
 
 	RenderSettings r;
@@ -200,7 +209,7 @@ void initGL() {
 	fr = new StringRenderer(fonts, r);
 	//fr = new StringRenderer({ fNum }, r);
 	//fr = new StringRenderer({ f4 }, r);
-	fn = new NumberRenderer(fNum, r);
+	fn = new NumberRenderer(fArial, r);
 
 	
 	
@@ -239,7 +248,7 @@ int main(int argc, char ** argv)
 #endif
 #endif
 	
-	
+	/*
 	//CharacterExtractor cr({ "arial.ttf" }, "arial_out.ttf");
 	//CharacterExtractor cr(std::vector<std::string>({ "arial.ttf" }), "arial_out.ttf");
 	CharacterExtractor cr({ "../ii/noto_max_priority/", "../ii/noto/", "../ii/noto-otf/"  }, "merged_out");
@@ -251,11 +260,11 @@ int main(int argc, char ** argv)
 	//cr.AddText(u8"Ahoj");
 	cr.AddText(u8"\u2022"); //mark in number renderer
 	cr.AddText(u8"0123456789");
-	cr.AddText(u8"!/*-+,.=");
+	cr.AddText(u8" !/*-+,.=");
 	cr.AddDirectory("D:\\Martin\\Programming\\test\\Ventusky\\VentuskyWin\\_bundle_dir_\\DATA\\cities\\");	
 	//cr.RemoveChar(utf8_string(u8"P")[0]);
 	cr.GenerateScript("run.sh");
-	
+	*/
 	glutInit(&argc, argv);
 	glutSetOption(GLUT_ACTION_ON_WINDOW_CLOSE, GLUT_ACTION_CONTINUE_EXECUTION);
 	glutInitDisplayMode(GLUT_RGBA | GLUT_SINGLE | GLUT_DEPTH);
