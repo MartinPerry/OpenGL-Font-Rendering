@@ -76,6 +76,13 @@ typedef struct FontInfo
 } FontInfo;
 
 
+typedef struct UnusedGlyphInfo
+{
+	FontInfo::UsedGlyphIterator gi;
+	int fontIndex;
+
+} UnusedGlyphInfo;
+
 /// <summary>
 /// Render settings for font renderer
 /// </summary>

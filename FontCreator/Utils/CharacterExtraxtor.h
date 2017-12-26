@@ -38,6 +38,8 @@ public:
 	CharacterExtractor(const std::vector<std::string> & fontWorkingDir, const std::string & outputTTF);
 	~CharacterExtractor();
 
+	std::vector<char32_t> GetAllCharacters() const;
+
 	void SetOutputDir(const std::string & outputDir);
 	void AddText(const utf8_string & strUTF8);
 	void AddTextFromFile(const std::string & filePath);
@@ -49,13 +51,15 @@ public:
 
 protected:
 	
+	typedef std::string FaceName;
+
 	std::string outputDir;
 	std::vector<std::string> inputTTF;
 	std::string outputTTF;
 	std::set<char32_t> characters;
 
-	std::unordered_map<std::string, FT_Face> faces;
-	std::unordered_map<std::string, int> facesLineOffset;
+	std::unordered_map<FaceName, FT_Face> faces;
+	std::unordered_map<FaceName, int> facesLineOffset;
 	
 	FT_Library library;
 	
@@ -79,50 +83,44 @@ CharacterExtractor::CharacterExtractor(const std::vector<std::string> & fontDir,
 	
 	for (auto d : fontDir)
 	{
-		DIR * dir = opendir(d.c_str());
-
-		if (dir == nullptr)
-		{
-			printf("Failed to open dir %s\n", d.c_str());
-			throw std::invalid_argument("Unknown dir");;
-		}
-
-		struct dirent * ent;
-		std::string fullPath;
-
-		/* print all the files and directories within directory */
-		while ((ent = readdir(dir)) != nullptr)
-		{
-			if ((strcmp(ent->d_name, ".") == 0) || (strcmp(ent->d_name, "..") == 0))
+		if (DIR * dir = opendir(d.c_str()))
+		{			
+			struct dirent * ent;
+			
+			/* print all the files and directories within directory */
+			while ((ent = readdir(dir)) != nullptr)
 			{
-				continue;
-			}
-			if (ent->d_type == DT_REG)
-			{
+				if (ent->d_name[0] == '.')
+				{
+					continue;
+				}
 
-				//printf ("%s (file)\n", ent->d_name);
-				fullPath = d;
+				if (ent->d_type == DT_REG)
+				{
+
+					//printf ("%s (file)\n", ent->d_name);
+					std::string fullPath = d;
 #ifdef _WIN32
-				fullPath = dir->patt; //full path using Windows dirent
-				fullPath = fullPath.substr(0, fullPath.length() - 1);
+					fullPath = dir->patt; //full path using Windows dirent
+					fullPath = fullPath.substr(0, fullPath.length() - 1);
 #else
-				if (fullPath[fullPath.length() - 1] != '/')
-				{
-					fullPath += "/";
-				}
+					if (fullPath[fullPath.length() - 1] != '/')
+					{
+						fullPath += '/';
+					}
 #endif				
-				fullPath += ent->d_name;
+					fullPath += ent->d_name;
 
 
-				if ((this->HasEnding(ent->d_name, ".ttf")) || (this->HasEnding(ent->d_name, ".otf")))
-				{
-					this->inputTTF.push_back(fullPath);
+					if ((this->HasEnding(ent->d_name, ".ttf")) || (this->HasEnding(ent->d_name, ".otf")))
+					{
+						this->inputTTF.push_back(fullPath);
+					}
 				}
 			}
+
+			closedir(dir);
 		}
-
-
-		closedir(dir);
 	}
 
 	this->InitFreeType();
@@ -143,6 +141,11 @@ CharacterExtractor::~CharacterExtractor()
 	this->library = nullptr;
 	
 };
+
+std::vector<char32_t> CharacterExtractor::GetAllCharacters() const
+{
+	return std::vector<char32_t>(characters.begin(), characters.end());	
+}
 
 void CharacterExtractor::SetOutputDir(const std::string & outputDir)
 {
@@ -322,8 +325,8 @@ void CharacterExtractor::GenerateScript(const std::string & scriptFileName)
 {
 	bool useTextFile = true;
 
-	std::unordered_map<std::string, std::string> glyphsCodes;
-	std::unordered_map<std::string, utf8_string> glyphsUTF8;
+	std::unordered_map<FaceName, std::string> glyphsCodes;
+	std::unordered_map<FaceName, utf8_string> glyphsUTF8;
 	for (auto & s : this->faces)
 	{
 		glyphsCodes[s.first] = "";
@@ -342,7 +345,7 @@ void CharacterExtractor::GenerateScript(const std::string & scriptFileName)
 			continue;
 		}
 		
-		std::string faceName = "";
+		FaceName faceName = "";
 		bool found = false;
 		int minOffset = std::numeric_limits<int>::max();
 

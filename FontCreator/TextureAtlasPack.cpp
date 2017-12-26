@@ -24,6 +24,8 @@ TextureAtlasPack::TextureAtlasPack(int w, int h, int border)
 
 	this->freeSpace.push_back(emptyNode);
 	
+
+	this->averageGlyphSize = 50 * 50;
 }
 
 
@@ -59,6 +61,9 @@ void TextureAtlasPack::SetTightPacking()
 
 void TextureAtlasPack::SetGridPacking(int binW, int binH)
 {
+	this->gridBinW = binW;
+	this->gridBinH = binH;
+
 	this->method = PACKING_METHOD::GRID;
 	this->Clear();
 
@@ -94,12 +99,12 @@ void TextureAtlasPack::SetAllGlyphs(std::vector<FontInfo> * fontInfos)
 	this->fontInfos = fontInfos;
 }
 
-void TextureAtlasPack::SetUnusedGlyphs(const std::list<FontInfo::UsedGlyphIterator> & unused)
+void TextureAtlasPack::SetUnusedGlyphs(const std::list<UnusedGlyphInfo> & unused)
 {
 	this->unused = unused;
 }
 
-std::list<FontInfo::UsedGlyphIterator> TextureAtlasPack::GetErasedGlyphs()
+const std::unordered_map<CHAR_CODE, TextureAtlasPack::ErasedInfo> & TextureAtlasPack::GetErasedGlyphs()
 {
 	return this->erased;
 }
@@ -138,6 +143,7 @@ void TextureAtlasPack::Clear()
 
 	this->freeSpace.push_back(emptyNode);
 	
+	this->packedInfo.clear();
 }
 
 /// <summary>
@@ -169,7 +175,19 @@ bool TextureAtlasPack::Pack()
 /// </summary>
 /// <returns></returns>
 bool TextureAtlasPack::PackGrid()
-{	
+{				
+	if (this->unused.size() * this->averageGlyphSize >= (this->w * this->h) * 0.4)
+	{
+		//total unused space is over 40% of entire texture
+		//erase all
+		printf("Erasing all packed data...\n");
+		this->EraseAllUnused();
+		this->Clear();
+		this->SetGridPacking(this->gridBinW, this->gridBinH);
+	}
+
+	int count = 0;
+
 	PackedInfo info;
 
 	for (auto & fi : *this->fontInfos)
@@ -190,8 +208,10 @@ bool TextureAtlasPack::PackGrid()
 
 			if (this->freeSpace.size() == 0)
 			{
-				if (this->unused.size() == 0)
+				if (this->unused.size() == this->erased.size())
 				{
+					//all unused characters are erased
+					//no more empty space
 					return false;
 				}
 
@@ -227,9 +247,14 @@ bool TextureAtlasPack::PackGrid()
 			g.tx = info.x + this->border;
 			g.ty = info.y + this->border;
 
+			count++;
+			this->averageGlyphSize += g.bmpW * g.bmpH;
+
 			this->packedInfo[g.code] = info;
 		}
 	}
+
+	this->averageGlyphSize /= count;
 
 	return true;
 }
@@ -628,41 +653,48 @@ bool TextureAtlasPack::FreeSpace(int spaceWidth, int spaceHeight, CHAR_CODE * c)
 
 	int b = (2 * this->border);
 
-	FontInfo::UsedGlyphIterator r;
+	ErasedInfo ei;
 	bool found = false;
-
+	
 	for (auto & it : this->unused)	
 	{
+		if (it.gi->second->bmpW + b < spaceWidth) continue;
+		if (it.gi->second->bmpH + b < spaceHeight) continue;
 				
-		if (it->second->bmpW + b < spaceWidth) continue;
-		if (it->second->bmpH + b < spaceHeight) continue;
-		
+		if (this->erased.find(it.gi->first) != this->erased.end())
+		{
+			//already erased - space is not free anymore
+			continue;
+		}
+
 		//space find
 		
-		*c = it->first;
+		*c = it.gi->first;
 
-		//add glyph to erased
-		this->erased.push_back(it);
+		//add glyph to erased		
+		ei.gi = it.gi;
+		ei.fontIndex = it.fontIndex;
 
-		
-		r = it;
-
-		found = true;
-		break;
+		this->erased[*c] = ei;
+								
+		return true;
 	}
 
-
-	if (found)
-	{
-		//found space - remove unused glyph
-		//=> its space is no longer available for future 
-		//free space finding
-		this->unused.remove(r);
-	}
-	
-	return found;
+	return false;
 }
 
+void TextureAtlasPack::EraseAllUnused()
+{
+	ErasedInfo ei;
+	for (auto & it : this->unused)
+	{				
+		//add glyph to erased		
+		ei.gi = it.gi;
+		ei.fontIndex = it.fontIndex;
+
+		this->erased[it.gi->first] = ei;
+	}
+}
 
 /*
 bool TextureAtlasPack::PerPixelFit(int spaceWidth, int spaceHeight, int * px, int * py)

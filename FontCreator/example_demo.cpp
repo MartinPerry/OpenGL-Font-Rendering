@@ -41,6 +41,10 @@ int g_height = 600;
 StringRenderer * fr;
 NumberRenderer * fn;
 
+std::default_random_engine rng;
+std::uniform_int_distribution<> dist;
+std::vector<char32_t> allChars;
+
 //------------------------------------------------------------------------------
 void reshape(int width, int height) {
 
@@ -48,10 +52,32 @@ void reshape(int width, int height) {
 	g_height = height;
 	
 }
+
+char32_t UniqueChar() { return allChars[dist(rng)]; }
+
+utf8_string generateRandomString()
+{
+	//char32_t c = allChars[dist(rng)];
+
+	size_t length = 10;
+	const char32_t c = UniqueChar();
+	utf8_string str = utf8_string(1, c);// ";// utf8_string(length, ' ');
+	
+	for (int i = 0; i < length - 1; i++)
+	{		
+		str.push_back(UniqueChar());
+	}
+
+	//std::generate_n(str.begin(), length - 1, UniqueChar);
+
+	return str;
+
+}
+
 //------------------------------------------------------------------------------
 void display() {
 
-	glClearColor(1, 0, 0, 1);
+	glClearColor(0.2, 0, 0, 1);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 	glViewport(0, 0, g_width, g_height);
@@ -107,7 +133,10 @@ void display() {
 	}
 	*/
 	
-	fr->AddStringCaption(u8"P¯Ìliö mal˝\nûluùouËk˝\nk˘Ú", 0.5f, 0.5f, { 1,1,0,1 });
+	fr->Clear();
+	fr->AddStringCaption(u8"P¯Ìliö mal˝\nûluùouËk˝\nk˘Ú", 0.5f, 0.3f, { 1,1,0,1 });
+
+	fr->AddStringCaption(generateRandomString(), 0.5, 0.8);
 
 	//fr->AddString(u8"lll", 200, 300);
 	fr->Render();
@@ -130,7 +159,7 @@ void quit() {
 
 //------------------------------------------------------------------------------
 void idle() {
-	//glutPostRedisplay();
+	glutPostRedisplay();
 }
 
 //------------------------------------------------------------------------------
@@ -165,11 +194,12 @@ void initGL() {
 	}
 	
 
-	fonts.clear();
+	
 	Font fArial;
 	fArial.name = "../fonts/arial_unicode.ttf";	
 	fArial.size = 12_pt;
-	fonts.push_back(fArial);
+	//fonts.clear();
+	//fonts.push_back(fArial);
 
 	/*
 	Font f4;	
@@ -247,8 +277,8 @@ int main(int argc, char ** argv)
 	//VLDSetReportOptions(VLD_OPT_REPORT_TO_DEBUGGER | VLD_OPT_REPORT_TO_FILE, L"leaks.txt");
 #endif
 #endif
+		
 	
-	/*
 	//CharacterExtractor cr({ "arial.ttf" }, "arial_out.ttf");
 	//CharacterExtractor cr(std::vector<std::string>({ "arial.ttf" }), "arial_out.ttf");
 	CharacterExtractor cr({ "../ii/noto_max_priority/", "../ii/noto/", "../ii/noto-otf/"  }, "merged_out");
@@ -257,14 +287,29 @@ int main(int argc, char ** argv)
 	
 	cr.SetOutputDir("../ii/");
 	cr.AddText(u8"P¯Ìliö\nûluùouËk˝\nk˘Ú");
-	//cr.AddText(u8"Ahoj");
+	cr.AddText(u8"Ahoj");
 	cr.AddText(u8"\u2022"); //mark in number renderer
 	cr.AddText(u8"0123456789");
 	cr.AddText(u8" !/*-+,.=");
 	cr.AddDirectory("D:\\Martin\\Programming\\test\\Ventusky\\VentuskyWin\\_bundle_dir_\\DATA\\cities\\");	
 	//cr.RemoveChar(utf8_string(u8"P")[0]);
-	cr.GenerateScript("run.sh");
-	*/
+	allChars = cr.GetAllCharacters();
+	
+	//cr.GenerateScript("run.sh");
+	
+
+
+	//1) create a non-deterministic random number generator      
+	rng = std::default_random_engine(std::random_device{}());
+
+	//2) create a random number "shaper" that will give
+	//   us uniformly distributed indices into the character set
+	dist = std::uniform_int_distribution<>(0, allChars.size() - 1);
+	
+
+	//auto dd = generateRandomString();
+	//auto dd2 = generateRandomString();
+
 	glutInit(&argc, argv);
 	glutSetOption(GLUT_ACTION_ON_WINDOW_CLOSE, GLUT_ACTION_CONTINUE_EXECUTION);
 	glutInitDisplayMode(GLUT_RGBA | GLUT_SINGLE | GLUT_DEPTH);

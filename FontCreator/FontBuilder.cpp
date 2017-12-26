@@ -389,9 +389,8 @@ bool FontBuilder::CreateFontAtlas()
 
 	
 	//find unused glyphs, that can possibly be deleted
-	std::list<FontInfo::UsedGlyphIterator> unused;
-	std::vector<int> unusedFontId;
-
+	std::list<UnusedGlyphInfo> unused;
+	
 
 
 	int index = 0;
@@ -403,8 +402,11 @@ bool FontBuilder::CreateFontAtlas()
 		{
 			if (this->reused.find(it->first) == this->reused.end())
 			{
-				unused.push_back(it);
-				unusedFontId.push_back(index);
+				UnusedGlyphInfo ugi;
+				ugi.gi = it;
+				ugi.fontIndex = index;
+
+				unused.push_back(ugi);				
 			}
 		}
 		
@@ -435,21 +437,17 @@ bool FontBuilder::CreateFontAtlas()
 	}
 	
 	
-	unused = this->texPacker->GetErasedGlyphs();
+	auto erased = this->texPacker->GetErasedGlyphs();
 
-	//remove unused, that were removed from texture
-	index = 0;
-	for (auto r : unused)
+	//remove unused, that were removed from texture	
+	for (auto r : erased)
 	{
-		SAFE_DELETE_ARRAY(r->second->rawData);
+		SAFE_DELETE_ARRAY(r.second.gi->second->rawData);
 
-		auto & fi = this->fis[unusedFontId[index]];
+		auto & fi = this->fis[r.second.fontIndex];
 
-		fi.glyphs.erase(r->second);
-		fi.usedGlyphs.erase(r);
-
-
-		index++;
+		fi.glyphs.erase(r.second.gi->second);
+		fi.usedGlyphs.erase(r.second.gi);		
 	}
 
 

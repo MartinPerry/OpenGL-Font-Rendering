@@ -418,8 +418,9 @@ void AbstractRenderer::SetCaption(const utf8_string & mark)
 {
 	ci.mark = mark;
 
-	ci.offset = this->fb->GetNewLineOffsetBasedOnGlyph(ci.mark[0]) * 0.5;
-	ci.offset = static_cast<int>(ci.offset * 1.2); //add extra 20%
+	//take half of new line offset and add extra 20%
+	ci.offset = static_cast<int>(this->fb->GetNewLineOffsetBasedOnGlyph(ci.mark[0]) * 0.5 * 1.2);
+	
 }
 
 void AbstractRenderer::SetCanvasSize(int w, int h)
