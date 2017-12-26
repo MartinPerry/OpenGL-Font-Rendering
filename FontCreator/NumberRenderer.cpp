@@ -57,7 +57,7 @@ NumberRenderer::NumberRenderer(Font fs, RenderSettings r, int glVersion)
 		}
 		else
 		{
-			this->SetCaption(u8".");
+			this->SetCaption(u8".", 10);
 			this->captionMark = *it->second;			
 		}
 	}
@@ -428,7 +428,9 @@ void NumberRenderer::CalcAnchoredPosition()
 		if (si.type == TextType::CAPTION)
 		{						
 			int h = (si.aabb.maxY - si.aabb.minY);
-			si.anchorY -= (h / 2 + ci.offset);						
+			si.anchorY -= (h / 2 + ci.offset);	
+
+			si.anchorY -= 2 * (this->captionMark.bmpH);
 		}
 		
 		si.aabb = this->CalcNumberAABB(si.val, si.anchorX, si.anchorY, 
@@ -473,10 +475,8 @@ bool NumberRenderer::GenerateGeometry()
 		{			
 			
 			int xx = si.x - (this->captionMark.bmpW) / 2;
+			int yy = si.y + (this->captionMark.bmpH);
 			
-			int yy = si.y + this->ci.offset; //move top position to TOP_LEFT
-			yy -= (this->ci.offset) / 2; //calc center from all lines and move TOP_LEFT down
-			yy -= (this->captionMark.bmpH);
 
 			this->AddQuad(this->captionMark, xx, yy, si);
 		}

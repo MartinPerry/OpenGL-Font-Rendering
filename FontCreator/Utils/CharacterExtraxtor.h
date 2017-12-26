@@ -38,6 +38,8 @@ public:
 	CharacterExtractor(const std::vector<std::string> & fontWorkingDir, const std::string & outputTTF);
 	~CharacterExtractor();
 
+	void Release();
+
 	std::vector<char32_t> GetAllCharacters() const;
 
 	void SetOutputDir(const std::string & outputDir);
@@ -131,16 +133,33 @@ CharacterExtractor::CharacterExtractor(const std::vector<std::string> & fontDir,
 /// </summary>
 CharacterExtractor::~CharacterExtractor()
 {
+	this->Release();	
+};
+
+void CharacterExtractor::Release()
+{
 	for (auto & c : faces)
 	{
-		
+
 		FT_Done_Face(c.second);
 		c.second = nullptr;
 	}
-	FT_Done_FreeType(this->library);
-	this->library = nullptr;
-	
-};
+	this->faces.clear();
+
+	if (this->library != nullptr)
+	{
+		FT_Done_FreeType(this->library);
+		this->library = nullptr;
+	}
+
+	this->outputDir.clear();
+	this->inputTTF.clear();
+	this->outputTTF.clear();
+	this->characters.clear();
+
+	this->faces.clear();
+	this->facesLineOffset.clear();
+}
 
 std::vector<char32_t> CharacterExtractor::GetAllCharacters() const
 {
@@ -236,68 +255,66 @@ void CharacterExtractor::AddTextFromFile(const std::string & filePath)
 /// <param name="dirPath"></param>
 void CharacterExtractor::AddDirectory(const std::string & dirPath)
 {
-	DIR * dir = opendir(dirPath.c_str());
-
-	if (dir == nullptr)
+	if (DIR * dir = opendir(dirPath.c_str()))
 	{
-		printf("Failed to open dir %s\n", dirPath.c_str());
-		return;
-	}
+		struct dirent * ent;
+		std::string newDirName;
+		std::string fullPath;
 
-	struct dirent * ent;
-	std::string newDirName;
-	std::string fullPath;
-
-
-	/* print all the files and directories within directory */
-	while ((ent = readdir(dir)) != nullptr)
-	{
-		if (ent->d_name[0] == '.')
+		/* print all the files and directories within directory */
+		while ((ent = readdir(dir)) != nullptr)
 		{
-			continue;
-		}
-		switch (ent->d_type)
-		{
-		case DT_REG:
+			if (ent->d_name[0] == '.')
+			{
+				continue;
+			}
+			switch (ent->d_type)
+			{
+			case DT_REG:
 
-			//printf ("%s (file)\n", ent->d_name);
-			fullPath = dirPath;
+				//printf ("%s (file)\n", ent->d_name);
+				fullPath = dirPath;
 #ifdef _WIN32
-			fullPath = dir->patt; //full path using Windows dirent
-			fullPath = fullPath.substr(0, fullPath.length() - 1);
+				fullPath = dir->patt; //full path using Windows dirent
+				fullPath = fullPath.substr(0, fullPath.length() - 1);
 #else
-			if (fullPath[fullPath.length() - 1] != '/')
-			{
-				fullPath += '/';
-			}
+				if (fullPath[fullPath.length() - 1] != '/')
+				{
+					fullPath += '/';
+				}
 #endif				
-			fullPath += ent->d_name;
+				fullPath += ent->d_name;
 
-			
-			//printf("Full file path: %s\n", fullPath.c_str());
-			
-			this->AddTextFromFile(fullPath);
-			break;
 
-		case DT_DIR:			
-			newDirName = dirPath;
-			if (newDirName[newDirName.length() - 1] != '/')
-			{
-				newDirName += '/';
+				//printf("Full file path: %s\n", fullPath.c_str());
+
+				this->AddTextFromFile(fullPath);
+				break;
+
+			case DT_DIR:
+				newDirName = dirPath;
+				if (newDirName[newDirName.length() - 1] != '/')
+				{
+					newDirName += '/';
+				}
+				newDirName += ent->d_name;
+				this->AddDirectory(newDirName);
+
+				break;
+
+			default:
+				//printf ("%s:\n", ent->d_name);
+				break;
 			}
-			newDirName += ent->d_name;
-			this->AddDirectory(newDirName);
-
-			break;
-
-		default:
-			//printf ("%s:\n", ent->d_name);
-			break;
 		}
+
+
+		closedir(dir);
 	}
-
-
-	closedir(dir);
+	else
+	{
+		printf("Failed to open dir %s\n", dirPath.c_str());		
+	}
 };
 
 std::string CharacterExtractor::BaseName(std::string const & path)

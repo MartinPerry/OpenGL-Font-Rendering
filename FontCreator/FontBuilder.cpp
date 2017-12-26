@@ -424,7 +424,7 @@ bool FontBuilder::CreateFontAtlas()
 	if (this->texPacker->Pack() == false)
 	{
 
-#ifdef _WIN32
+#if defined(_WIN32) && defined(_DEBUG)
 		this->texPacker->SaveToFile("D://outofspace.png");
 #endif
 		MY_LOG_ERROR("Problem - no space, but we need all characters\n");

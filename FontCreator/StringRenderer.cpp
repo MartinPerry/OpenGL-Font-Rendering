@@ -272,13 +272,15 @@ std::vector<AbstractRenderer::AABB> StringRenderer::CalcStringAABB(const utf8_st
 	aabb.maxX = std::numeric_limits<int>::min();
 	aabb.maxY = std::numeric_limits<int>::min();
 
+	aabb.newLineOffset = 0;
+
+	int maxNewLineOffset = this->fb->GetMaxNewLineOffset();
+
 	AbstractRenderer::AABB lineAabb = aabb;
 	std::vector<AABB> aabbs;
 	
 	aabbs.reserve(10); //reserve space for 10 lines
-
-	int lastNewLineOffset = this->fb->GetMaxNewLineOffset();
-	int newLineOffset = 0; // this->fb->GetNewLineOffsetBasedOnFirstGlyph(strUTF8.at(0));
+	
 
 	int startX = x;
 	int index = -1;
@@ -286,21 +288,18 @@ std::vector<AbstractRenderer::AABB> StringRenderer::CalcStringAABB(const utf8_st
 	for (auto c : strUTF8)
 	{
 		if (c == '\n')
-		{
-			if (newLineOffset == 0)
+		{			
+			if (lineAabb.newLineOffset == 0)
 			{
-				newLineOffset = lastNewLineOffset;
+				lineAabb.newLineOffset = maxNewLineOffset;
 			}
 
 			x = startX;
-			y += newLineOffset;
-
+			y += lineAabb.newLineOffset;
+						
 			aabbs.push_back(lineAabb);
 			lineAabb = aabb;
-
-			lastNewLineOffset = newLineOffset;
-			newLineOffset = 0;
-
+			
 			continue;
 		}
 
@@ -315,7 +314,7 @@ std::vector<AbstractRenderer::AABB> StringRenderer::CalcStringAABB(const utf8_st
 				continue;
 			}
 			it = std::get<0>(r);
-			newLineOffset = std::max(newLineOffset, std::get<2>(r)->newLineOffset);
+			lineAabb.newLineOffset = std::max(lineAabb.newLineOffset, std::get<2>(r)->newLineOffset);
 		}
 		else
 		{
@@ -327,7 +326,7 @@ std::vector<AbstractRenderer::AABB> StringRenderer::CalcStringAABB(const utf8_st
 				continue;
 			}
 
-			newLineOffset = std::max(newLineOffset, fi->newLineOffset);
+			lineAabb.newLineOffset = std::max(lineAabb.newLineOffset, fi->newLineOffset);
 		}
 
 		GlyphInfo & gi = *it->second;
@@ -375,6 +374,8 @@ void StringRenderer::CalcAnchoredPosition()
 	//Calculate anchored position of text
 	int newLineOffset = this->fb->GetMaxNewLineOffset();
 
+	int captionMarkAnchorY = 0;
+
 	for (auto & si : this->strs)
 	{		
 		if (si.linesAABB.size() != 0)
@@ -387,6 +388,7 @@ void StringRenderer::CalcAnchoredPosition()
 
 		if (si.anchor == TextAnchor::LEFT_TOP)
 		{
+			//to do newLines
 			si.anchorX = si.x;
 			si.anchorY = si.y;
 			si.anchorY += newLineOffset; //y position is "line letter start" - move it to letter height
@@ -398,48 +400,54 @@ void StringRenderer::CalcAnchoredPosition()
 				si.linesAABB = this->CalcStringAABB(si.strUTF8, si.x, si.y, si.aabb, &gc);
 			}
 
+			int totalLineOffset = 0;
+			int lastLineOffset = 0;
+			for (auto & aabb : si.linesAABB)
+			{
+				lastLineOffset = aabb.newLineOffset;
+				totalLineOffset += lastLineOffset;
+			}
+
 			si.anchorX = si.x - (si.aabb.maxX - si.aabb.minX) / 2;
 
 			si.anchorY = si.y;
-			si.anchorY += newLineOffset; //move top position to TOP_LEFT
-			si.anchorY -= (si.linesCount * newLineOffset) / 2; //calc center from all lines and move TOP_LEFT down
+			si.anchorY -= (totalLineOffset - lastLineOffset) / 2; //calc center from all lines and move TOP_LEFT down
 
 		}
 		else if (si.anchor == TextAnchor::LEFT_DOWN)
 		{
+			//to do newLines
 			si.anchorX = si.x;
 			si.anchorY = si.y;
 			si.anchorY -= (si.linesCount - 1) * newLineOffset; //move down - default Y is at (TOP_LEFT - newLineOffset)
 		}
 
 		if (si.type == TextType::CAPTION)
-		{
+		{						
 			if (si.strUTF8 == ci.mark)
-			{
+			{				
 				bool exist;
 				auto it = this->fb->GetGlyph(ci.mark[0], exist);
 				if (exist)
+				{										
+					si.anchorY += (it->second->bmpH);
+					//si.anchorY += ci.offset;
+					
+					captionMarkAnchorY = si.anchorY + (it->second->bmpH);
+				}			
+				else
 				{
-					//si.anchorX -= (it->second->bmpW);
-					//si.anchorY -= (it->second->bmpH);
-					//si.anchorY -= this->ci.offset;
-
-					int yy = si.y + this->ci.offset; //move top position to TOP_LEFT
-					yy -= (this->ci.offset) / 2; //calc center from all lines and move TOP_LEFT down
-					yy -= (it->second->bmpH);
-					si.anchorY = yy;
-				}				
-
+					captionMarkAnchorY = si.anchorY;
+				}
+				captionMarkAnchorY += ci.offset;
 			}
 			else
-			{
-				si.linesAABB = this->CalcStringAABB(si.strUTF8, si.anchorX, si.anchorY, si.aabb, &gc);
-
-				int h = (si.aabb.maxY - si.aabb.minY);
-				si.anchorY -= (h / 2 + ci.offset);
+			{								
+				si.anchorY -= (captionMarkAnchorY - si.anchorY);
 			}
+			
 		}
-
+		
 		si.linesAABB = this->CalcStringAABB(si.strUTF8, si.anchorX, si.anchorY, si.aabb, &gc);
 
 	}

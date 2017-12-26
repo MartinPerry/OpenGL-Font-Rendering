@@ -39,7 +39,7 @@ public:
 	FontBuilder * GetFontBuilder();
 	void SetCanvasSize(int w, int h);
 	void SetAxisYOrigin(AxisYOrigin axisY);
-	void SetCaption(const utf8_string & mark);
+	void SetCaption(const utf8_string & mark, int offsetInPixels);
 
 	int GetCanvasWidth() const;
 	int GetCanvasHeight() const;
@@ -72,6 +72,8 @@ protected:
 
 		int minY;
 		int maxY;
+
+		int newLineOffset;
 	} AABB;
 
 	

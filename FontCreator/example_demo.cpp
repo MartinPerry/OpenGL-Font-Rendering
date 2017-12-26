@@ -17,7 +17,7 @@
 #ifdef _WIN32
 #include <windows.h>
 #ifdef _DEBUG
-//#include <vld.h>
+#include <vld.h>
 #endif
 #endif
 
@@ -73,6 +73,8 @@ utf8_string generateRandomString()
 	return str;
 
 }
+
+utf8_string rrr = "";
 
 //------------------------------------------------------------------------------
 void display() {
@@ -134,9 +136,11 @@ void display() {
 	*/
 	
 	fr->Clear();
-	fr->AddStringCaption(u8"Pøíliš malý\nžluouèký\nkùò", 0.5f, 0.3f, { 1,1,0,1 });
+	fr->AddStringCaption(u8"Pøíliš malý\nžluouèký\nkùyòy", 0.5f, 0.5f, { 1,1,0,1 });
 
+	
 	fr->AddStringCaption(generateRandomString(), 0.5, 0.8);
+	fr->AddStringCaption(rrr, 0.5, 0.8);
 
 	//fr->AddString(u8"lll", 200, 300);
 	fr->Render();
@@ -153,7 +157,11 @@ void display() {
 
 //------------------------------------------------------------------------------
 void quit() {
-	exit(0);
+
+	delete fr;
+	delete fn;
+
+	//exit(0);
 }
 
 
@@ -274,7 +282,7 @@ int main(int argc, char ** argv)
 {
 #ifdef _WIN32 
 #ifdef _DEBUG
-	//VLDSetReportOptions(VLD_OPT_REPORT_TO_DEBUGGER | VLD_OPT_REPORT_TO_FILE, L"leaks.txt");
+	VLDSetReportOptions(VLD_OPT_REPORT_TO_DEBUGGER | VLD_OPT_REPORT_TO_FILE, L"leaks.txt");
 #endif
 #endif
 		
@@ -296,7 +304,7 @@ int main(int argc, char ** argv)
 	allChars = cr.GetAllCharacters();
 	
 	//cr.GenerateScript("run.sh");
-	
+	cr.Release();
 
 
 	//1) create a non-deterministic random number generator      
@@ -306,6 +314,9 @@ int main(int argc, char ** argv)
 	//   us uniformly distributed indices into the character set
 	dist = std::uniform_int_distribution<>(0, allChars.size() - 1);
 	
+	rrr = generateRandomString();
+	rrr += "\n";
+	rrr += generateRandomString();
 
 	//auto dd = generateRandomString();
 	//auto dd2 = generateRandomString();
@@ -324,8 +335,7 @@ int main(int argc, char ** argv)
 	glutIdleFunc(idle);
 	glutMainLoop();
 	
-	delete fr;
-	
+		
 	quit();
 
 

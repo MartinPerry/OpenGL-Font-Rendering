@@ -128,7 +128,7 @@ const char* AbstractRenderer::Shader::pSource = {
         gl_FragColor.rgb = color.xyz; \n\
 		//gl_FragColor.rgb = vec3(distance); \n\
         gl_FragColor.a = color.w * distance;\n\
-		//gl_FragColor.a = 1;\n\
+		gl_FragColor.a += 0.5;\n\
     }\n\
 " };
 #endif
@@ -192,7 +192,7 @@ AbstractRenderer::AbstractRenderer(const std::vector<Font> & fs, RenderSettings 
 	this->fb->SetGridPacking(ps, ps);
 
 	
-	this->SetCaption(u8"\u2022");
+	this->SetCaption(u8"\u2022", 10);
 	
 	this->SetAxisYOrigin(AxisYOrigin::TOP);
 
@@ -414,12 +414,12 @@ GLuint AbstractRenderer::LinkGLSLProgram(GLuint vertexShader, GLuint fragmentSha
 	return program;
 }
 
-void AbstractRenderer::SetCaption(const utf8_string & mark)
+void AbstractRenderer::SetCaption(const utf8_string & mark, int offsetInPixels)
 {
 	ci.mark = mark;
 
 	//take half of new line offset and add extra 20%
-	ci.offset = static_cast<int>(this->fb->GetNewLineOffsetBasedOnGlyph(ci.mark[0]) * 0.5 * 1.2);
+	ci.offset = offsetInPixels;// static_cast<int>(this->fb->GetNewLineOffsetBasedOnGlyph(ci.mark[0]) * 0.5 * 1.2);
 	
 }
 

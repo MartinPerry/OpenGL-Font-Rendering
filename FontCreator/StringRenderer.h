@@ -69,7 +69,8 @@ protected:
 
 	AABB EstimateStringAABB(const utf8_string & strUTF8, int x, int y);
 	std::vector<AABB> CalcStringAABB(const utf8_string & strUTF8, 
-		int x, int y, AABB & globalAABB, const UsedGlyphCache * gc = nullptr);
+		int x, int y, AABB & globalAABB, const UsedGlyphCache * gc);
+
 	int CalcStringLines(const utf8_string & strUTF8) const;
 	void CalcAnchoredPosition();
 	void CalcLineAlign(const StringInfo & si, int lineId, int & x, int & y) const;

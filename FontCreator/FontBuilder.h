@@ -40,7 +40,7 @@ public:
 	const std::vector<FontInfo> & GetFontInfos() const;
 	int GetMaxFontPixelSize() const;
 	int GetMaxNewLineOffset() const;
-	int GetNewLineOffsetBasedOnGlyph(CHAR_CODE c);
+	int GetNewLineOffsetBasedOnGlyph(CHAR_CODE c);	
 	FontInfo::UsedGlyphIterator GetGlyph(CHAR_CODE c, bool & exist);
 	FontInfo::UsedGlyphIterator GetGlyph(CHAR_CODE c, bool & exist, FontInfo ** usedFi);
 
