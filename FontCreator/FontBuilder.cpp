@@ -43,7 +43,7 @@ FontBuilder::FontBuilder(const std::vector<Font> & fonts, RenderSettings r)
 		}
 		else if (f.size.sizeType == FontSize::SizeType::em)
 		{
-			int size = static_cast<int>(f.defaultFontSizeInPx * f.size.size);
+			int size = static_cast<int>(f.defaultFontSizeInPx * f.size.size * r.screenScale);
 
 			this->SetFontSizePixels(this->fis[index], size);
 		}

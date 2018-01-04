@@ -94,7 +94,12 @@ typedef struct RenderSettings
 	int textureW;
 	int textureH;
 
+
 	int screenDpi = 0;
+
+	//how many times is resolution bigger than displey pts units
+	//used on iPhones
+	float screenScale = 1.0;
     
 } RenderSettings;
 
