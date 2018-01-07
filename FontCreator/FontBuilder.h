@@ -28,7 +28,7 @@ public:
 	void Release();
 	bool IsInited() const;
 
-	void AddString(const utf8_string & strUTF8);
+	void AddString(const UnicodeString & str);	
 	void AddCharacter(CHAR_CODE c);
 	void AddAllAsciiLetters();
 	void AddAllAsciiNumbers();

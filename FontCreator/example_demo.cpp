@@ -41,9 +41,8 @@ int g_height = 600;
 StringRenderer * fr;
 NumberRenderer * fn;
 
-std::default_random_engine rng;
-std::uniform_int_distribution<> dist;
-std::vector<char32_t> allChars;
+
+std::vector<int32_t> allChars;
 
 //------------------------------------------------------------------------------
 void reshape(int width, int height) {
@@ -52,29 +51,6 @@ void reshape(int width, int height) {
 	g_height = height;
 	
 }
-
-char32_t UniqueChar() { return allChars[dist(rng)]; }
-
-utf8_string generateRandomString()
-{
-	//char32_t c = allChars[dist(rng)];
-
-	size_t length = 10;
-	const char32_t c = UniqueChar();
-	utf8_string str = utf8_string(1, c);// ";// utf8_string(length, ' ');
-	
-	for (int i = 0; i < length - 1; i++)
-	{		
-		str.push_back(UniqueChar());
-	}
-
-	//std::generate_n(str.begin(), length - 1, UniqueChar);
-
-	return str;
-
-}
-
-utf8_string rrr = "";
 
 //------------------------------------------------------------------------------
 void display() {
@@ -136,11 +112,12 @@ void display() {
 	*/
 	
 	fr->Clear();
-	fr->AddStringCaption(u8"Pøíliš malı\nluouèkı\nkùyòy", 0.5f, 0.5f, { 1,1,0,1 });
-
+	fr->AddStringCaption(UTF8_TEXT(u8"Pøíliš malı\nluouèkı\nkùyòy"), 0.5f, 0.5f, { 1,1,0,1 });
+	fr->AddStringCaption(UTF8_TEXT(u8"\u0633\u0644\u0627\u0645"), 0.8f, 0.5f, { 1,1,0,1 });
 	
-	fr->AddStringCaption(generateRandomString(), 0.5, 0.8);
-	fr->AddStringCaption(rrr, 0.5, 0.8);
+	
+	//fr->AddStringCaption(generateRandomString(), 0.5, 0.8);
+	//fr->AddStringCaption(rrr, 0.5, 0.8);
 
 	//fr->AddString(u8"lll", 200, 300);
 	fr->Render();
@@ -206,8 +183,8 @@ void initGL() {
 	Font fArial;
 	fArial.name = "../fonts/arial_unicode.ttf";	
 	fArial.size = 12_pt;
-	//fonts.clear();
-	//fonts.push_back(fArial);
+	fonts.clear();
+	fonts.push_back(fArial);
 
 	/*
 	Font f4;	
@@ -242,6 +219,7 @@ void initGL() {
 	r.textureH = 512;
 	r.deviceW = g_width;
 	r.deviceH = g_height;
+	r.screenScale = 1.0;
 
 	//fr = new StringRenderer({ f, f2, f3 }, r);
 	fr = new StringRenderer(fonts, r);
@@ -262,9 +240,9 @@ void initGL() {
 void Normalize()
 {
 	
-	utf8_string u8str = u8"\u4e0a\u6d77 Pøíliš luouèkı kùò úpìl ïábelské ódy";
-
-	for (auto c : u8str)
+	UnicodeString u8str = UTF8_TEXT(u8"\u4e0a\u6d77 Pøíliš luouèkı kùò úpìl ïábelské ódy");
+	
+	FOREACH_32_CHAR_ITERATION(c, u8str)
 	{
 		std::u32string uu;
 		uu.push_back(c);
@@ -294,30 +272,23 @@ int main(int argc, char ** argv)
 	//CharacterExtractor cr({ "../ii/noto_max_priority/" }, "merged_out");
 	
 	cr.SetOutputDir("../ii/");
-	cr.AddText(u8"Pøíliš\nluouèkı\nkùò");
-	cr.AddText(u8"Ahoj");
-	cr.AddText(u8"\u2022"); //mark in number renderer
-	cr.AddText(u8"0123456789");
-	cr.AddText(u8" !/*-+,.=");
+	cr.AddText(UTF8_TEXT(u8"Pøíliš\nluouèkı\nkùò"));
+	cr.AddText(UTF8_TEXT(u8"Ahoj"));
+	cr.AddText(UTF8_TEXT(u8"\u2022")); //mark in number renderer
+	cr.AddText(UTF8_TEXT(u8"0123456789"));
+	cr.AddText(UTF8_TEXT(u8" !/*-+,.="));
 	cr.AddDirectory("D:\\Martin\\Programming\\test\\Ventusky\\VentuskyWin\\_bundle_dir_\\DATA\\cities\\");	
 	//cr.RemoveChar(utf8_string(u8"P")[0]);
 	allChars = cr.GetAllCharacters();
 	
 	//cr.GenerateScript("run.sh");
 	cr.Release();
-
-
-	//1) create a non-deterministic random number generator      
-	rng = std::default_random_engine(std::random_device{}());
-
-	//2) create a random number "shaper" that will give
-	//   us uniformly distributed indices into the character set
-	dist = std::uniform_int_distribution<>(0, allChars.size() - 1);
 	
+	/*		
 	rrr = generateRandomString();
 	rrr += "\n";
 	rrr += generateRandomString();
-
+	*/
 	//auto dd = generateRandomString();
 	//auto dd2 = generateRandomString();
 

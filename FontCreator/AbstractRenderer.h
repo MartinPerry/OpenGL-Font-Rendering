@@ -39,7 +39,7 @@ public:
 	FontBuilder * GetFontBuilder();
 	void SetCanvasSize(int w, int h);
 	void SetAxisYOrigin(AxisYOrigin axisY);
-	void SetCaption(const utf8_string & mark, int offsetInPixels);
+	void SetCaption(const UnicodeString & mark, int offsetInPixels);
 
 	int GetCanvasWidth() const;
 	int GetCanvasHeight() const;
@@ -60,7 +60,7 @@ protected:
 	
 	typedef struct CaptionInfo
 	{
-		utf8_string mark;
+		UnicodeString mark;
 		int offset;
 
 	} CaptionInfo;

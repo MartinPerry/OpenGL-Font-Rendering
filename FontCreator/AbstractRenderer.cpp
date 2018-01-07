@@ -192,7 +192,7 @@ AbstractRenderer::AbstractRenderer(const std::vector<Font> & fs, RenderSettings 
 	this->fb->SetGridPacking(ps, ps);
 
 	
-	this->SetCaption(u8"\u2022", 10);
+	this->SetCaption(UTF8_TEXT(u8"\u2022"), 10);
 	
 	this->SetAxisYOrigin(AxisYOrigin::TOP);
 
@@ -414,7 +414,7 @@ GLuint AbstractRenderer::LinkGLSLProgram(GLuint vertexShader, GLuint fragmentSha
 	return program;
 }
 
-void AbstractRenderer::SetCaption(const utf8_string & mark, int offsetInPixels)
+void AbstractRenderer::SetCaption(const UnicodeString & mark, int offsetInPixels)
 {
 	ci.mark = mark;
 

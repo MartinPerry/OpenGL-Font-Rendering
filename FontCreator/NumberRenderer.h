@@ -16,7 +16,7 @@ class NumberRenderer : public AbstractRenderer
 {
 public:
 
-	static const utf8_string NUMBERS_STRING;
+	static const std::string NUMBERS_STRING;
 
 	NumberRenderer(Font fs, RenderSettings r, int glVersion = 3);
 	~NumberRenderer();

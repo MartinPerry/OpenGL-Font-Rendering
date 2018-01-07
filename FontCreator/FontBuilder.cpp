@@ -310,9 +310,9 @@ void FontBuilder::SetGridPacking(int binW, int binH)
 }
 
 
-void FontBuilder::AddString(const utf8_string & strUTF8)
+void FontBuilder::AddString(const UnicodeString & str)
 {
-	for (auto c : strUTF8)
+	FOREACH_32_CHAR_ITERATION(c, str)
 	{
 		this->AddCharacter(c);
 	}

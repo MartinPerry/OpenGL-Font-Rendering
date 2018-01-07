@@ -15,18 +15,18 @@ public:
 	void Clear();
 	size_t GetStringsCount() const;
 	
-	void AddStringCaption(const utf8_string & strUTF8,
+	void AddStringCaption(const UnicodeString & str,
 		double x, double y, Color color = DEFAULT_COLOR);
 
-	void AddStringCaption(const utf8_string & strUTF8,
+	void AddStringCaption(const UnicodeString & str,
 		int x, int y, Color color = DEFAULT_COLOR);
 
-	void AddString(const utf8_string & strUTF8,
+	void AddString(const UnicodeString & str,
 		double x, double y, Color color = DEFAULT_COLOR,
 		TextAnchor anchor = TextAnchor::LEFT_TOP,
 		TextAlign align = TextAlign::ALIGN_LEFT);
 
-	void AddString(const utf8_string & strUTF8,
+	void AddString(const UnicodeString & str,
 		int x, int y, Color color = DEFAULT_COLOR,
 		TextAnchor anchor = TextAnchor::LEFT_TOP,
 		TextAlign align = TextAlign::ALIGN_LEFT);
@@ -37,7 +37,7 @@ protected:
 	
 	typedef struct StringInfo
 	{
-		utf8_string strUTF8;
+		UnicodeString str;
 		int x;
 		int y;
 		Color color;
@@ -59,7 +59,7 @@ protected:
 	
 
 
-	void AddStringInternal(const utf8_string & strUTF8,
+	void AddStringInternal(const UnicodeString & str,
 		int x, int y, Color color = { 1,1,1,1 },
 		TextAnchor anchor = TextAnchor::LEFT_TOP,
 		TextAlign align = TextAlign::ALIGN_LEFT,
@@ -67,15 +67,15 @@ protected:
 
 	bool GenerateGeometry() override;
 
-	AABB EstimateStringAABB(const utf8_string & strUTF8, int x, int y);
-	std::vector<AABB> CalcStringAABB(const utf8_string & strUTF8, 
+	AABB EstimateStringAABB(const UnicodeString & str, int x, int y);
+	std::vector<AABB> CalcStringAABB(const UnicodeString & str,
 		int x, int y, AABB & globalAABB, const UsedGlyphCache * gc);
 
-	int CalcStringLines(const utf8_string & strUTF8) const;
+	int CalcStringLines(const UnicodeString & str) const;
 	void CalcAnchoredPosition();
 	void CalcLineAlign(const StringInfo & si, int lineId, int & x, int & y) const;
 
-	UsedGlyphCache ExtractGlyphs(const utf8_string & strUTF8);
+	UsedGlyphCache ExtractGlyphs(const UnicodeString & str);
 };
 
 #endif

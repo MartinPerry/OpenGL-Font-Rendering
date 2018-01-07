@@ -22,6 +22,7 @@
 #include <ft2build.h>
 #include FT_FREETYPE_H
 
+#include "./ICUUtils.h"
 #include "./Externalncludes.h"
 
 //#define USE_TEXT_FILE
@@ -40,14 +41,14 @@ public:
 
 	void Release();
 
-	std::vector<char32_t> GetAllCharacters() const;
+	std::vector<int32_t> GetAllCharacters() const;
 
 	void SetOutputDir(const std::string & outputDir);
-	void AddText(const utf8_string & strUTF8);
+	void AddText(const UnicodeString & strU);
 	void AddTextFromFile(const std::string & filePath);
 	void AddDirectory(const std::string & dirPath);
 
-	void RemoveChar(char32_t c);
+	void RemoveChar(int32_t c);
 
 	void GenerateScript(const std::string & scriptFileName = "run.sh");
 
@@ -58,7 +59,7 @@ protected:
 	std::string outputDir;
 	std::vector<std::string> inputTTF;
 	std::string outputTTF;
-	std::set<char32_t> characters;
+	std::set<int32_t> characters;
 
 	std::unordered_map<FaceName, FT_Face> faces;
 	std::unordered_map<FaceName, int> facesLineOffset;
@@ -161,9 +162,9 @@ void CharacterExtractor::Release()
 	this->facesLineOffset.clear();
 }
 
-std::vector<char32_t> CharacterExtractor::GetAllCharacters() const
+std::vector<int32_t> CharacterExtractor::GetAllCharacters() const
 {
-	return std::vector<char32_t>(characters.begin(), characters.end());	
+	return std::vector<int32_t>(characters.begin(), characters.end());
 }
 
 void CharacterExtractor::SetOutputDir(const std::string & outputDir)
@@ -218,7 +219,7 @@ void CharacterExtractor::InitFreeType()
 	}
 };
 
-void CharacterExtractor::RemoveChar(char32_t c)
+void CharacterExtractor::RemoveChar(int32_t c)
 {
 	this->characters.erase(c);
 };
@@ -227,9 +228,11 @@ void CharacterExtractor::RemoveChar(char32_t c)
 /// Add text - extract all UNICODE letters from it
 /// </summary>
 /// <param name="strUTF8"></param>
-void CharacterExtractor::AddText(const utf8_string & strUTF8)
+void CharacterExtractor::AddText(const UnicodeString & str)
 {
-	for (auto c : strUTF8)
+	UnicodeString bidiStr = BIDI(str);
+
+	FOREACH_32_CHAR_ITERATION(c, bidiStr)
 	{
 		this->characters.insert(c);		
 	}
@@ -243,10 +246,8 @@ void CharacterExtractor::AddTextFromFile(const std::string & filePath)
 {
 	std::ifstream t(filePath);
 	std::string str((std::istreambuf_iterator<char>(t)), std::istreambuf_iterator<char>());
-
 	
-
-	this->AddText(utf8_string::build_from_escaped(str.c_str()));
+	this->AddText(UTF8_UNESCAPE(str));
 };
 
 /// <summary>
@@ -343,11 +344,11 @@ void CharacterExtractor::GenerateScript(const std::string & scriptFileName)
 	bool useTextFile = true;
 
 	std::unordered_map<FaceName, std::string> glyphsCodes;
-	std::unordered_map<FaceName, utf8_string> glyphsUTF8;
+	std::unordered_map<FaceName, UnicodeString> glyphsUnicode;
 	for (auto & s : this->faces)
 	{
 		glyphsCodes[s.first] = "";
-		glyphsUTF8[s.first] = " ";
+		glyphsUnicode[s.first] = UnicodeString(u8" ");
 	}
 
 
@@ -402,7 +403,7 @@ void CharacterExtractor::GenerateScript(const std::string & scriptFileName)
 		glyphsCodes[faceName] += g;
 
 
-		glyphsUTF8[faceName].push_back(c);
+		glyphsUnicode[faceName] += c;
 	}
 
 	//==============================================

@@ -7,8 +7,14 @@
 #include "./FontBuilder.h"
 
 
-const utf8_string NumberRenderer::NUMBERS_STRING = u8"0123456789,.-";
+const std::string NumberRenderer::NUMBERS_STRING = "0123456789,.-";
 
+/// <summary>
+/// ctor
+/// </summary>
+/// <param name="fs"></param>
+/// <param name="r"></param>
+/// <param name="glVersion"></param>
 NumberRenderer::NumberRenderer(Font fs, RenderSettings r, int glVersion)
 	: AbstractRenderer({ fs }, r, glVersion)
 {
@@ -16,7 +22,10 @@ NumberRenderer::NumberRenderer(Font fs, RenderSettings r, int glVersion)
 
 	//prepare numbers
 	
-	this->fb->AddString(NUMBERS_STRING);
+	for (auto c : NUMBERS_STRING)
+	{
+		this->fb->AddString(c);
+	}
 	this->fb->AddString(this->ci.mark);
 
 	if (this->fb->CreateFontAtlas())
@@ -57,7 +66,7 @@ NumberRenderer::NumberRenderer(Font fs, RenderSettings r, int glVersion)
 		}
 		else
 		{
-			this->SetCaption(u8".", 10);
+			this->SetCaption(UTF8_TEXT(u8"."), 10);
 			this->captionMark = *it->second;			
 		}
 	}
@@ -70,6 +79,9 @@ NumberRenderer::NumberRenderer(Font fs, RenderSettings r, int glVersion)
 
 }
 
+/// <summary>
+/// dtor
+/// </summary>
 NumberRenderer::~NumberRenderer()
 {
 }
@@ -83,6 +95,10 @@ void NumberRenderer::SetExistenceCheck(bool val)
 	this->checkIfExist = val;
 }
 
+/// <summary>
+/// Set precision for decimal part in digits count
+/// </summary>
+/// <param name="digits"></param>
 void NumberRenderer::SetDecimalPrecission(int digits)
 {
     if (this->decimalPlaces == digits)
@@ -93,6 +109,10 @@ void NumberRenderer::SetDecimalPrecission(int digits)
 	this->decimalMult = std::pow(10, decimalPlaces);
 }
 
+/// <summary>
+/// Get number of numbers
+/// </summary>
+/// <returns></returns>
 size_t NumberRenderer::GetNumbersCount() const
 {
 	return this->nmbrs.size();
@@ -109,7 +129,8 @@ void NumberRenderer::Clear()
 
 
 /// <summary>
-/// 
+/// Add integer number - internal method
+/// This is called from template method based on type
 /// </summary>
 /// <param name="val"></param>
 /// <param name="x"></param>
@@ -155,6 +176,16 @@ void NumberRenderer::AddIntegralNumberInternal(long val,
 	this->AddNumber(i, x, y, color, anchor, type);	
 }
 
+/// <summary>
+/// Add float number - internal method
+/// This is called from template method based on type
+/// </summary>
+/// <param name="val"></param>
+/// <param name="x"></param>
+/// <param name="y"></param>
+/// <param name="color"></param>
+/// <param name="anchor"></param>
+/// <param name="type"></param>
 void NumberRenderer::AddFloatNumberInternal(double val,
 	int x, int y, Color color,
 	TextAnchor anchor, TextType type)
@@ -193,6 +224,15 @@ void NumberRenderer::AddFloatNumberInternal(double val,
 	this->AddNumber(i, x, y, color, anchor, type);
 }
 
+/// <summary>
+/// Add new number 
+/// </summary>
+/// <param name="n"></param>
+/// <param name="x"></param>
+/// <param name="y"></param>
+/// <param name="color"></param>
+/// <param name="anchor"></param>
+/// <param name="type"></param>
 void NumberRenderer::AddNumber(NumberInfo & n, int x, int y, Color color,
 	TextAnchor anchor, TextType type)
 {
@@ -236,6 +276,12 @@ void NumberRenderer::AddNumber(NumberInfo & n, int x, int y, Color color,
 	this->nmbrs.push_back(n);
 }
 
+/// <summary>
+/// Reverse fraction part
+/// </summary>
+/// <param name="val"></param>
+/// <param name="intPart"></param>
+/// <returns></returns>
 unsigned long NumberRenderer::GetFractPartReversed(double val, unsigned long intPart)
 {
 	unsigned long fractPartReverse = this->ReversDigits((unsigned long)((val - intPart) * decimalMult));
@@ -284,10 +330,12 @@ unsigned long NumberRenderer::ReversDigits(unsigned long num)
 /// <summary>
 /// Calculate AABB of number
 /// </summary>
-/// <param name="strUTF8"></param>
+/// <param name="val"></param>
 /// <param name="x"></param>
 /// <param name="y"></param>
-/// <param name="globalAABB"></param>
+/// <param name="negative"></param>
+/// <param name="intPart"></param>
+/// <param name="fractPartReversed"></param>
 /// <returns></returns>
 AbstractRenderer::AABB NumberRenderer::CalcNumberAABB(double val, int x, int y,
 	bool negative, unsigned long intPart, unsigned long fractPartReversed)

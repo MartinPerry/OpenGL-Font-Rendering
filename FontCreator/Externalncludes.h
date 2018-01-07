@@ -14,8 +14,11 @@
 #include "./freeglut/include/GL/wgl/wglew.h"
 #include "./freeglut/include/GL/glut.h"
 
-#include "./Unicode/tinyutf8.h"
-#include "./Unicode/utf8.h"
+#include <unicode/unistr.h>
+#include <unicode/schriter.h>
+
+//#include "./Unicode/tinyutf8.h"
+//#include "./Unicode/utf8.h"
 
 #ifdef _WIN32
 #include "./Utils/win_dirent.h"
@@ -34,6 +37,33 @@
 
 #ifndef MY_LOG_ERROR
 #define MY_LOG_ERROR(...) printf(__VA_ARGS__)
+#endif
+
+#define USE_ICU_LIBRARY
+
+/*
+typedef utf8_string UnicodeString;
+
+#define FOREACH_32_CHAR_ITERATION(c, str) for (auto c : str)
+#define BIDI(x) x
+#define UTF8_TEXT(x) x
+#define UTF8_UNESCAPE(x) utf8_string::build_from_escaped(x.c_str())
+*/
+
+
+#ifdef USE_ICU_LIBRARY
+
+typedef icu::UnicodeString UnicodeString;
+
+#define FOREACH_32_CHAR_ITERATION(c, str) icu::StringCharacterIterator iter = icu::StringCharacterIterator(str); \
+										  for (UChar32 c = iter.first32(); iter.hasNext(); c = iter.next32())
+
+#define BIDI(x) BidiHelper::ConvertOneLine(x)
+
+#define UTF8_TEXT(x) icu::UnicodeString::fromUTF8(x)
+
+#define UTF8_UNESCAPE(x) icu::UnicodeString::fromUTF8(x).unescape()
+
 #endif
 
 #endif

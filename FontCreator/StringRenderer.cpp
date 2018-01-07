@@ -4,6 +4,7 @@
 
 #include "./FontBuilder.h"
 
+#include "./Utils/ICUUtils.h"
 
 StringRenderer::StringRenderer(const std::vector<Font> & fs, RenderSettings r, int glVersion)
 	: AbstractRenderer(fs, r, glVersion)
@@ -32,20 +33,20 @@ size_t StringRenderer::GetStringsCount() const
 }
 
 
-void StringRenderer::AddStringCaption(const utf8_string & strUTF8,
+void StringRenderer::AddStringCaption(const UnicodeString & str,
 	double x, double y, Color color)
 {
 	int xx = static_cast<int>(x * this->rs.deviceW);
 	int yy = static_cast<int>(y * this->rs.deviceH);
 
-	this->AddStringCaption(strUTF8, xx, yy, color);
+	this->AddStringCaption(str, xx, yy, color);
 }
 
-void StringRenderer::AddStringCaption(const utf8_string & strUTF8,
+void StringRenderer::AddStringCaption(const UnicodeString & str,
 	int x, int y, Color color)
 {
 	this->AddStringInternal(ci.mark, x, y, color, TextAnchor::CENTER, TextAlign::ALIGN_CENTER, TextType::CAPTION);
-	this->AddStringInternal(strUTF8, x, y, color, TextAnchor::CENTER, TextAlign::ALIGN_CENTER, TextType::CAPTION);
+	this->AddStringInternal(str, x, y, color, TextAnchor::CENTER, TextAlign::ALIGN_CENTER, TextType::CAPTION);
 }
 
 /// <summary>
@@ -57,14 +58,14 @@ void StringRenderer::AddStringCaption(const utf8_string & strUTF8,
 /// <param name="strUTF8"></param>
 /// <param name="x"></param>
 /// <param name="y"></param>
-void StringRenderer::AddString(const utf8_string & strUTF8,
+void StringRenderer::AddString(const UnicodeString & str,
 	double x, double y, Color color,
 	TextAnchor anchor, TextAlign align)
 {
 	int xx = static_cast<int>(x * this->rs.deviceW);
 	int yy = static_cast<int>(y * this->rs.deviceH);
 
-	this->AddStringInternal(strUTF8, xx, yy, color, anchor, align, TextType::TEXT);
+	this->AddStringInternal(str, xx, yy, color, anchor, align, TextType::TEXT);
 }
 
 /// <summary>
@@ -75,15 +76,15 @@ void StringRenderer::AddString(const utf8_string & strUTF8,
 /// <param name="strUTF8"></param>
 /// <param name="x"></param>
 /// <param name="y"></param>
-void StringRenderer::AddString(const utf8_string & strUTF8,
+void StringRenderer::AddString(const UnicodeString & str,
 	int x, int y, Color color,
 	TextAnchor anchor, TextAlign align)
 {
-	this->AddStringInternal(strUTF8, x, y, color, anchor, align, TextType::TEXT);
+	this->AddStringInternal(str, x, y, color, anchor, align, TextType::TEXT);
 }
 
 
-void StringRenderer::AddStringInternal(const utf8_string & strUTF8,
+void StringRenderer::AddStringInternal(const UnicodeString & str,
 	int x, int y, Color color,
 	TextAnchor anchor, TextAlign align, TextType type)
 {
@@ -92,12 +93,22 @@ void StringRenderer::AddStringInternal(const utf8_string & strUTF8,
 		y = this->rs.deviceH - y;
 	}
 
+	UnicodeString bidiStr = "";
+	bool isBidiEmpty = true;
+
 	for (auto & s : this->strs)
 	{
 		if ((s.x == x) && (s.y == y) &&
 			(s.align == align) && (s.anchor == anchor) && (s.type == type))
 		{
-			if (s.strUTF8 == strUTF8)
+			if (isBidiEmpty)
+			{
+				//we need to compare string... create bidi only for first comparison
+				bidiStr = BIDI(str);
+				isBidiEmpty = false;
+			}
+
+			if (s.str == bidiStr)
 			{
 				//same string on the same position and with same align
 				//already exist - do not add it again
@@ -106,7 +117,21 @@ void StringRenderer::AddStringInternal(const utf8_string & strUTF8,
 		}
 	}
 
-	AbstractRenderer::AABB estimAABB = this->EstimateStringAABB(strUTF8, x, y);
+	//fill basic structure info
+	StringInfo i;
+
+	if (isBidiEmpty)
+	{		
+		//no bidi yet - create it
+		i.str = BIDI(str);
+	}
+	else
+	{
+		//bidi was already constructed
+		i.str = bidiStr;
+	}
+
+	AbstractRenderer::AABB estimAABB = this->EstimateStringAABB(i.str, x, y);
 
 	//test if entire string is outside visible area
 
@@ -130,10 +155,7 @@ void StringRenderer::AddStringInternal(const utf8_string & strUTF8,
 	//new visible string - add it
 
 	this->strChanged = true;
-
-	//fill basic structure info
-	StringInfo i;
-	i.strUTF8 = strUTF8;
+	
 	i.x = x;
 	i.y = y;
 	i.color = color;
@@ -143,13 +165,13 @@ void StringRenderer::AddStringInternal(const utf8_string & strUTF8,
 	i.type = type;
 	i.anchorX = x;
 	i.anchorY = y;
-	i.linesCount = this->CalcStringLines(strUTF8);
+	i.linesCount = this->CalcStringLines(i.str);
 	
 
 
 	this->strs.push_back(i);
 
-	this->fb->AddString(strUTF8);
+	this->fb->AddString(i.str);
 }
 
 /// <summary>
@@ -157,10 +179,10 @@ void StringRenderer::AddStringInternal(const utf8_string & strUTF8,
 /// </summary>
 /// <param name="strUTF8"></param>
 /// <returns></returns>
-int StringRenderer::CalcStringLines(const utf8_string & strUTF8) const
+int StringRenderer::CalcStringLines(const UnicodeString & str) const
 {
 	int count = 1;
-	for (auto c : strUTF8)
+	FOREACH_32_CHAR_ITERATION(c, str)
 	{
 		if (c == '\n')
 		{
@@ -177,7 +199,7 @@ int StringRenderer::CalcStringLines(const utf8_string & strUTF8) const
 /// <param name="x"></param>
 /// <param name="y"></param>
 /// <returns></returns>
-AbstractRenderer::AABB StringRenderer::EstimateStringAABB(const utf8_string & strUTF8, int x, int y)
+AbstractRenderer::AABB StringRenderer::EstimateStringAABB(const UnicodeString & str, int x, int y)
 {
 	AbstractRenderer::AABB aabb;
 	aabb.minX = std::numeric_limits<int>::max();
@@ -196,7 +218,7 @@ AbstractRenderer::AABB StringRenderer::EstimateStringAABB(const utf8_string & st
 	int lastNewLineOffset = this->fb->GetMaxNewLineOffset();
 	int newLineOffset = 0;// this->fb->GetNewLineOffsetBasedOnFirstGlyph(strUTF8.at(0));
 
-	for (auto c : strUTF8)
+	FOREACH_32_CHAR_ITERATION(c, str)
 	{
 		if (c == '\n')
 		{
@@ -261,7 +283,7 @@ AbstractRenderer::AABB StringRenderer::EstimateStringAABB(const utf8_string & st
 /// <param name="globalAABB"></param>
 /// <param name="gc"></param>
 /// <returns></returns>
-std::vector<AbstractRenderer::AABB> StringRenderer::CalcStringAABB(const utf8_string & strUTF8,
+std::vector<AbstractRenderer::AABB> StringRenderer::CalcStringAABB(const UnicodeString & str,
 	int x, int y, AbstractRenderer::AABB & globalAABB, const UsedGlyphCache * gc)
 {
 
@@ -285,7 +307,7 @@ std::vector<AbstractRenderer::AABB> StringRenderer::CalcStringAABB(const utf8_st
 	int startX = x;
 	int index = -1;
 
-	for (auto c : strUTF8)
+	FOREACH_32_CHAR_ITERATION(c, str)
 	{
 		if (c == '\n')
 		{			
@@ -384,7 +406,7 @@ void StringRenderer::CalcAnchoredPosition()
 			continue;
 		}
 
-		StringRenderer::UsedGlyphCache gc = this->ExtractGlyphs(si.strUTF8);
+		StringRenderer::UsedGlyphCache gc = this->ExtractGlyphs(si.str);
 
 		if (si.anchor == TextAnchor::LEFT_TOP)
 		{
@@ -397,7 +419,7 @@ void StringRenderer::CalcAnchoredPosition()
 		{
 			if (si.linesAABB.size() == 0)
 			{
-				si.linesAABB = this->CalcStringAABB(si.strUTF8, si.x, si.y, si.aabb, &gc);
+				si.linesAABB = this->CalcStringAABB(si.str, si.x, si.y, si.aabb, &gc);
 			}
 
 			int totalLineOffset = 0;
@@ -424,7 +446,7 @@ void StringRenderer::CalcAnchoredPosition()
 
 		if (si.type == TextType::CAPTION)
 		{						
-			if (si.strUTF8 == ci.mark)
+			if (si.str == ci.mark)
 			{				
 				bool exist;
 				auto it = this->fb->GetGlyph(ci.mark[0], exist);
@@ -448,7 +470,7 @@ void StringRenderer::CalcAnchoredPosition()
 			
 		}
 		
-		si.linesAABB = this->CalcStringAABB(si.strUTF8, si.anchorX, si.anchorY, si.aabb, &gc);
+		si.linesAABB = this->CalcStringAABB(si.str, si.anchorX, si.anchorY, si.aabb, &gc);
 
 	}
 }
@@ -480,13 +502,13 @@ void StringRenderer::CalcLineAlign(const StringInfo & si, int lineId, int & x, i
 /// </summary>
 /// <param name="strUTF8"></param>
 /// <returns></returns>
-StringRenderer::UsedGlyphCache StringRenderer::ExtractGlyphs(const utf8_string & strUTF8)
+StringRenderer::UsedGlyphCache StringRenderer::ExtractGlyphs(const UnicodeString & str)
 {
 	UsedGlyphCache g;
-	g.reserve(strUTF8.length());
+	g.reserve(str.length());
 
 
-	for (auto c : strUTF8)
+	FOREACH_32_CHAR_ITERATION(c, str)
 	{
 		if (c == '\n')
 		{			
@@ -583,7 +605,7 @@ bool StringRenderer::GenerateGeometry()
 		this->CalcLineAlign(si, lineId, x, y);
 		
 
-		for (auto cc : si.strUTF8)
+		FOREACH_32_CHAR_ITERATION(cc, si.str)
 		{
 			if (cc == '\n')
 			{
