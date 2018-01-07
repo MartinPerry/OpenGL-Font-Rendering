@@ -227,9 +227,21 @@ void CharacterExtractor::RemoveChar(int32_t c)
 /// <summary>
 /// Add text - extract all UNICODE letters from it
 /// </summary>
-/// <param name="strUTF8"></param>
+/// <param name="str"></param>
 void CharacterExtractor::AddText(const UnicodeString & str)
 {
+	//Add original text
+	//in case that Bidi replace some Arabic chars with some others
+	//in arabic shaping
+	{
+		FOREACH_32_CHAR_ITERATION(c, str)
+		{
+			this->characters.insert(c);
+		}
+	}
+
+	//now add the same text with Bidi	
+	//that will use arabic shaping
 	UnicodeString bidiStr = BIDI(str);
 
 	FOREACH_32_CHAR_ITERATION(c, bidiStr)
@@ -348,7 +360,7 @@ void CharacterExtractor::GenerateScript(const std::string & scriptFileName)
 	for (auto & s : this->faces)
 	{
 		glyphsCodes[s.first] = "";
-		glyphsUnicode[s.first] = UnicodeString(u8" ");
+		glyphsUnicode[s.first] = UTF8_TEXT(u8" ");
 	}
 
 
@@ -397,11 +409,26 @@ void CharacterExtractor::GenerateScript(const std::string & scriptFileName)
 		s << std::hex << c;
 		std::string result(s.str());
 
-		std::string g = "U+";
-		g += std::string(4 - result.length(), '0') + result;
-		g += "\n";		
-		glyphsCodes[faceName] += g;
+		if (result.length() > 4)
+		{
+			//32bit Unicode letters
 
+			std::string g = "U+";
+			g += std::string(8 - result.length(), '0') + result;
+			g += "\n";
+			glyphsCodes[faceName] += g;
+
+			printf("32bit unicode \n");
+		}
+		else
+		{
+			//16bit Unicode letters
+
+			std::string g = "U+";
+			g += std::string(4 - result.length(), '0') + result;
+			g += "\n";
+			glyphsCodes[faceName] += g;
+		}
 
 		glyphsUnicode[faceName] += c;
 	}
@@ -542,13 +569,13 @@ void CharacterExtractor::GenerateScript(const std::string & scriptFileName)
 
 		for (auto type : types)
 		{
-			printf("Type: %s\n", type.c_str());
+			//printf("Type: %s\n", type.c_str());
 			for (auto emSize : emSizes)
 			{
-				printf("EmSize: %i\n", emSize);
+				//printf("EmSize: %i\n", emSize);
 				for (auto lineOffset : lineOffsets)
 				{
-					printf("LineOffset: %i\n", lineOffset);
+					//printf("LineOffset: %i\n", lineOffset);
 
 					int count = 0;					
 					std::string merge = "pyftmerge ";

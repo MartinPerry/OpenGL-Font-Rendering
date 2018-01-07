@@ -113,7 +113,7 @@ void display() {
 	
 	fr->Clear();
 	fr->AddStringCaption(UTF8_TEXT(u8"Pøíliš malý\nžluouèký\nkùyòy"), 0.5f, 0.5f, { 1,1,0,1 });
-	fr->AddStringCaption(UTF8_TEXT(u8"\u0633\u0644\u0627\u0645"), 0.8f, 0.5f, { 1,1,0,1 });
+	fr->AddStringCaption(UTF8_TEXT(u8"ahoj \u0633\u0644\u0627\u0645"), 0.8f, 0.5f, { 1,1,0,1 });
 	
 	
 	//fr->AddStringCaption(generateRandomString(), 0.5, 0.8);
@@ -281,7 +281,7 @@ int main(int argc, char ** argv)
 	//cr.RemoveChar(utf8_string(u8"P")[0]);
 	allChars = cr.GetAllCharacters();
 	
-	//cr.GenerateScript("run.sh");
+	cr.GenerateScript("run.sh");
 	cr.Release();
 	
 	/*		

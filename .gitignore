@@ -4,4 +4,5 @@ Release
 /FontCreator.VC.db
 .vs
 FontTools
-/arial_unicode.ttf
+*.ttf
+*.otf
