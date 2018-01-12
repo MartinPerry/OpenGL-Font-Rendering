@@ -182,6 +182,7 @@ bool TextureAtlasPack::PackGrid()
 		//erase all
 		printf("Erasing all packed data...\n");
 		this->EraseAllUnused();
+		this->RemoveUnusedGlyphsFromFontInfo();
 		this->Clear();
 		this->SetGridPacking(this->gridBinW, this->gridBinH);
 	}
@@ -244,8 +245,21 @@ bool TextureAtlasPack::PackGrid()
 
 			info.filled = false;
 
+			
 			g.tx = info.x + this->border;
 			g.ty = info.y + this->border;
+
+			//safety update - sometimes glyphs are bigger that bin - change size by removing
+			//right / bottom lines from data - during copy, texture will reside in its bin
+			if (g.bmpH > this->gridBinH)
+			{
+				g.bmpH = this->gridBinH;
+			}
+
+			if (g.bmpW > this->gridBinW)
+			{
+				g.bmpW = this->gridBinW;
+			}
 
 			count++;
 			this->averageGlyphSize += g.bmpW * g.bmpH;
@@ -254,7 +268,10 @@ bool TextureAtlasPack::PackGrid()
 		}
 	}
 
-	this->averageGlyphSize /= count;
+	if (count != 0)
+	{
+		this->averageGlyphSize /= count;
+	}
 
 	return true;
 }
@@ -364,7 +381,6 @@ void TextureAtlasPack::CopyDataToTexture()
 			this->DrawBorder(it->second.x, it->second.y,
 				g.bmpW + 2 * this->border, g.bmpH + 2 * this->border, 0);
 
-
 			//copy letter data
 			int index = 0;
 			for (int y = py; y < py + g.bmpH; y++)
@@ -380,13 +396,10 @@ void TextureAtlasPack::CopyDataToTexture()
 
 			it->second.filled = true;
 
-#ifdef _DEBUG
-			if (this->border != 0)
-			{
-				//debug - draw "visible borders" around letter
-				this->DrawBorder(it->second.x, it->second.y,
-					it->second.width, it->second.height, BORDER_DEBUG_VALUE);
-			}
+#ifdef _DEBUG			
+			//debug - draw "visible borders" around letter
+			this->DrawBorder(it->second.x, it->second.y,
+				it->second.width, it->second.height, BORDER_DEBUG_VALUE);			
 #endif
 
 		}
@@ -404,6 +417,11 @@ void TextureAtlasPack::CopyDataToTexture()
 /// <param name="borderVal"></param>
 void TextureAtlasPack::DrawBorder(int px, int py, int pw, int ph, uint8_t borderVal)
 {	
+	if (this->border == 0)
+	{
+		return;
+	}
+
 	//erase top border
 	for (int y = py; y < py + this->border; y++)
 	{
@@ -654,14 +672,15 @@ bool TextureAtlasPack::FreeSpace(int spaceWidth, int spaceHeight, CHAR_CODE * c)
 	int b = (2 * this->border);
 
 	ErasedInfo ei;
-	bool found = false;
-	
+		
 	for (auto & it : this->unused)	
 	{
 		if (it.gi->second->bmpW + b < spaceWidth) continue;
 		if (it.gi->second->bmpH + b < spaceHeight) continue;
 				
-		if (this->erased.find(it.gi->first) != this->erased.end())
+		*c = it.gi->first;
+
+		if (this->erased.find(*c) != this->erased.end())
 		{
 			//already erased - space is not free anymore
 			continue;
@@ -669,8 +688,7 @@ bool TextureAtlasPack::FreeSpace(int spaceWidth, int spaceHeight, CHAR_CODE * c)
 
 		//space find
 		
-		*c = it.gi->first;
-
+		
 		//add glyph to erased		
 		ei.gi = it.gi;
 		ei.fontIndex = it.fontIndex;
@@ -694,6 +712,23 @@ void TextureAtlasPack::EraseAllUnused()
 
 		this->erased[it.gi->first] = ei;
 	}
+}
+
+void TextureAtlasPack::RemoveUnusedGlyphsFromFontInfo()
+{	
+	//remove unused, that were removed from texture	
+	for (auto r : this->erased)
+	{
+		SAFE_DELETE_ARRAY(r.second.gi->second->rawData);
+		
+		auto & fi = (*this->fontInfos)[r.second.fontIndex];
+
+		fi.glyphs.erase(r.second.gi->second);
+		fi.usedGlyphs.erase(r.second.gi);
+	}
+
+	this->erased.clear();
+
 }
 
 /*

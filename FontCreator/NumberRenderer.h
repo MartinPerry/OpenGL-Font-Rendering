@@ -18,7 +18,7 @@ public:
 
 	static const std::string NUMBERS_STRING;
 
-	NumberRenderer(Font fs, RenderSettings r, int glVersion = 3);
+	NumberRenderer(const std::vector<Font> & fs, RenderSettings r, int glVersion = 3);
 	~NumberRenderer();
 
 	void SetExistenceCheck(bool val);

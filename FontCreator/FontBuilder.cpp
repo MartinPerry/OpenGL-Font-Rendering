@@ -182,7 +182,7 @@ void FontBuilder::SetFontSizePts(FontInfo & f, int size, int dpi)
 		return;
 	}
 
-	f.fontSizePixels = (size * dpi / 72); // this->fontFace->size->metrics.y_ppem;	
+	f.fontSizePixels = (size * dpi / 64); // this->fontFace->size->metrics.y_ppem;	
 	f.newLineOffset = static_cast<int>(f.fontFace->size->metrics.height / 64);
 }
 
@@ -435,21 +435,9 @@ bool FontBuilder::CreateFontAtlas()
 		//because before packing run out of space, it could remove glyphs from
 		//texture
 	}
+	//this->texPacker->SaveToFile("D://outofspace.png");
 	
-	
-	auto erased = this->texPacker->GetErasedGlyphs();
-
-	//remove unused, that were removed from texture	
-	for (auto r : erased)
-	{
-		SAFE_DELETE_ARRAY(r.second.gi->second->rawData);
-
-		auto & fi = this->fis[r.second.fontIndex];
-
-		fi.glyphs.erase(r.second.gi->second);
-		fi.usedGlyphs.erase(r.second.gi);		
-	}
-
+	this->texPacker->RemoveUnusedGlyphsFromFontInfo();
 
 
 	//packing successfully finished
@@ -507,7 +495,7 @@ bool FontBuilder::LoadGlyphInfo(CHAR_CODE c, FontInfo & fi)
 	//bitmap_top is the vertical distance from the pen position (on the baseline) 
 	//to the top - most border of the glyph bitmap.
 	//It is positive to indicate an upwards distance.
-
+	
 	GlyphInfo gInfo;
 	gInfo.code = c;
 	gInfo.bmpX = glyph->bitmap_left;

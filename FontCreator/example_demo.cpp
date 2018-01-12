@@ -112,9 +112,10 @@ void display() {
 	*/
 	
 	fr->Clear();
-	fr->AddStringCaption(UTF8_TEXT(u8"P¯Ìliö mal˝\nûluùouËk˝\nk˘yÚy"), 0.5f, 0.5f, { 1,1,0,1 });
+	fr->AddStringCaption(UTF8_TEXT(u8"P¯Ìliö mal˝\n(ûluùouËk˝)\nk˘yÚy"), 0.5f, 0.5f, { 1,1,0,1 });
 	fr->AddStringCaption(UTF8_TEXT(u8"ahoj \u0633\u0644\u0627\u0645"), 0.8f, 0.5f, { 1,1,0,1 });
-	
+	//fr->AddStringCaption(UTF8_TEXT(u8"Baf"), 0.8f, 0.8f, { 1,1,0,1 });
+	//fr->AddString(UTF8_TEXT(u8"[]"), 0.5f, 0.5f, { 1,1,0,1 });
 	
 	//fr->AddStringCaption(generateRandomString(), 0.5, 0.8);
 	//fr->AddStringCaption(rrr, 0.5, 0.8);
@@ -123,9 +124,9 @@ void display() {
 	fr->Render();
 
 	//fn->AddNumber(-45.27, 100, 100);
-	fn->AddNumberCaption(-450.013, 100, 100, { 1, 1.0f, 1.0f, 1 });
-	fn->AddNumberCaption(-897456, 100, 300, { 1, 1.0f, 1.0f, 1 });
-	fn->Render();
+	//fn->AddNumberCaption(-450.013, 100, 100, { 1, 1.0f, 1.0f, 1 });
+	//fn->AddNumberCaption(-897456, 100, 300, { 1, 1.0f, 1.0f, 1 });
+	//fn->Render();
 
 	glutSwapBuffers();	
 	//glutPostRedisplay();
@@ -183,8 +184,8 @@ void initGL() {
 	Font fArial;
 	fArial.name = "../fonts/arial_unicode.ttf";	
 	fArial.size = 12_pt;
-	fonts.clear();
-	fonts.push_back(fArial);
+	//fonts.clear();
+	//fonts.push_back(fArial);
 
 	/*
 	Font f4;	
@@ -225,7 +226,7 @@ void initGL() {
 	fr = new StringRenderer(fonts, r);
 	//fr = new StringRenderer({ fNum }, r);
 	//fr = new StringRenderer({ f4 }, r);
-	fn = new NumberRenderer(fArial, r);
+	//fn = new NumberRenderer({ fArial }, r);
 
 	
 	
@@ -237,19 +238,40 @@ void initGL() {
 }
 
 
+
+
+#include <unicode\ucnv.h>
+
 void Normalize()
 {
+	//http://unicode.org/reports/tr15/
+	//UnicodeString u8str = UTF8_TEXT(u8"\u4e0a\u6d77 P¯Ìliö ûluùouËk˝ k˘Ú ˙pÏl Ô·belskÈ Ûdy");
+	UnicodeString u8str = UTF8_TEXT(u8"\u0141\u00f3d\u017a");
 	
-	UnicodeString u8str = UTF8_TEXT(u8"\u4e0a\u6d77 P¯Ìliö ûluùouËk˝ k˘Ú ˙pÏl Ô·belskÈ Ûdy");
-	
+	//std::string ss;
+	//u8str.toUTF8String(ss);
+
+	//char * tt = new char[50];
+	//UErrorCode pError;
+	//ucnv_convert("US-ASCII", "UTF-8", tt, 50, ss.data(), ss.size(), &pError);
+
 	FOREACH_32_CHAR_ITERATION(c, u8str)
 	{
+		auto uu = UnicodeNormalizer::nfd(c);
+		printf("%c -> %i / %c \n", c, uu.length(), uu[0]);
+
+		if (uu[0] >= 128)
+		{
+			printf("need ascii");
+		}
+		/*
 		std::u32string uu;
 		uu.push_back(c);
 		//ufal::unilib::uninorms::nfc(uu);
 		ufal::unilib::uninorms::nfd(uu);
 
-		printf("%i ", uu.size());
+		printf("%c -> %i / %c \n", c, uu.size(), uu[0]);
+		*/
 
 		//ufal::unilib::uninorms::nfkc(uu);
 		//ufal::unilib::uninorms::nfkd(uu);
@@ -264,26 +286,28 @@ int main(int argc, char ** argv)
 #endif
 #endif
 		
+	Normalize();
 	
 	//CharacterExtractor cr({ "arial.ttf" }, "arial_out.ttf");
 	//CharacterExtractor cr(std::vector<std::string>({ "arial.ttf" }), "arial_out.ttf");
 	CharacterExtractor cr({ "../ii/noto_max_priority/", "../ii/noto/", "../ii/noto-otf/"  }, "merged_out");
 	//CharacterExtractor cr({ "../ii/noto_max_priority/", "../ii/noto/" }, "merged_out");
 	//CharacterExtractor cr({ "../ii/noto_max_priority/" }, "merged_out");
-	
+	/*
 	cr.SetOutputDir("../ii/");
 	cr.AddText(UTF8_TEXT(u8"P¯Ìliö\nûluùouËk˝\nk˘Ú"));
 	cr.AddText(UTF8_TEXT(u8"Ahoj"));
 	cr.AddText(UTF8_TEXT(u8"\u2022")); //mark in number renderer
 	cr.AddText(UTF8_TEXT(u8"0123456789"));
 	cr.AddText(UTF8_TEXT(u8" !/*-+,.="));
+	cr.AddText(UTF8_TEXT(u8"\u2022"));
 	cr.AddDirectory("D:\\Martin\\Programming\\test\\Ventusky\\VentuskyWin\\_bundle_dir_\\DATA\\cities\\");	
 	//cr.RemoveChar(utf8_string(u8"P")[0]);
 	allChars = cr.GetAllCharacters();
 	
 	cr.GenerateScript("run.sh");
 	cr.Release();
-	
+	*/
 	/*		
 	rrr = generateRandomString();
 	rrr += "\n";

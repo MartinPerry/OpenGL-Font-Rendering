@@ -15,6 +15,8 @@ public:
 	void Clear();
 	size_t GetStringsCount() const;
 	
+	void SetBidiEnabled(bool val);
+
 	void AddStringCaption(const UnicodeString & str,
 		double x, double y, Color color = DEFAULT_COLOR);
 
@@ -55,6 +57,7 @@ protected:
 	} StringInfo;
 
 
+	bool isBidiEnabled;
 	std::vector<StringInfo> strs;
 	
 

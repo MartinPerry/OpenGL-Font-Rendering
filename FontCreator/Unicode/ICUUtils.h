@@ -1,15 +1,15 @@
 #ifndef _ICU_UTILS_H_
 #define _ICU_UTILS_H_
 
-#include "../Externalncludes.h"
 
 #ifdef USE_ICU_LIBRARY
 
 //This is for ICU library
 
+#include <unicode/ustring.h>
 #include <unicode/ubidi.h>
 #include <unicode/ushape.h>
-
+#include <unicode/normlzr.h>
 
 //http://icu-project.org/apiref/icu4c/ubidi_8h.html
 class BidiHelper
@@ -165,6 +165,92 @@ protected:
 		return ss;
 	}
 };
+
+
+class UnicodeNormalizer {
+
+public:
+	static icu::UnicodeString nfc(const icu::UnicodeString &utf8) {
+		return normalize(utf8, UNORM_NFC);
+	}
+
+	static icu::UnicodeString nfc(int32_t c) {
+		return normalize(icu::UnicodeString(c), UNORM_NFC);
+	}
+
+	static icu::UnicodeString nfd(const icu::UnicodeString &utf8) {
+		return normalize(utf8, UNORM_NFD);
+	}
+
+	static icu::UnicodeString nfd(int32_t c) {
+		return normalize(icu::UnicodeString(c), UNORM_NFD);
+	}
+
+	static icu::UnicodeString nfkc(const icu::UnicodeString &utf8) {
+		return normalize(utf8, UNORM_NFKC);
+	}
+
+	static icu::UnicodeString nfkc(int32_t c) {
+		return normalize(icu::UnicodeString(c), UNORM_NFKC);
+	}
+
+	static icu::UnicodeString nfkd(const icu::UnicodeString &utf8) {
+		return normalize(utf8, UNORM_NFKD);
+	}
+
+	static icu::UnicodeString nfkd(int32_t c) {
+		return normalize(icu::UnicodeString(c), UNORM_NFKD);
+	}
+
+
+private:
+	static icu::UnicodeString normalize(const icu::UnicodeString &utf8, UNormalizationMode mode)
+	{
+		icu::UnicodeString result;
+		UErrorCode status = U_ZERO_ERROR;
+		icu::Normalizer::normalize(utf8, mode, 0, result, status);
+		if (U_FAILURE(status))
+		{
+			return utf8;
+		}
+
+		return result;
+	}
+
+};
+
+
+class IcuUtils
+{
+public:
+	static uint8_t * PackToMemory(const icu::UnicodeString & str, uint8_t * memory)
+	{
+		//store unicode string raw length
+		int strBufferSize = static_cast<int>(sizeof(char16_t) * str.length());
+		memcpy(memory, &strBufferSize, sizeof(int));
+		memory += sizeof(int);
+
+		//store unicode string
+		memcpy(memory, str.getBuffer(), strBufferSize);
+		memory += strBufferSize;
+
+		return memory;
+	};
+
+	static uint8_t * UnpackFromMemory(uint8_t * memory, icu::UnicodeString & str)
+	{
+		//restore unicode string
+		int strBufferSize = 0;
+		memcpy(&strBufferSize, memory, sizeof(int));
+		memory += sizeof(int);
+
+		str = icu::UnicodeString((char16_t *)memory, strBufferSize / sizeof(char16_t));
+		memory += (strBufferSize);
+
+		return memory;
+	}
+};
+
 #endif
 
 #endif

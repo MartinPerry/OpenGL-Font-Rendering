@@ -53,6 +53,8 @@ public:
 	
 	bool Pack();
 
+	void RemoveUnusedGlyphsFromFontInfo();
+
 private:
 	
 	typedef struct Node
@@ -108,6 +110,7 @@ private:
 
 	bool FreeSpace(int spaceWidth, int spaceHeight, CHAR_CODE * c);
 
+	
 };
 
 

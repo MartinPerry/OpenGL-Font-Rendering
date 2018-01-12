@@ -38,14 +38,14 @@ void CheckOpenGLError(const char* stmt, const char* fname, int line)
 }
 
 #ifndef GL_CHECK
-    #if defined(_DEBUG) || defined(DEBUG)
-        #define GL_CHECK(stmt) do { \
+#if defined(_DEBUG) || defined(DEBUG)
+#define GL_CHECK(stmt) do { \
                 stmt; \
                 CheckOpenGLError(#stmt, __FILE__, __LINE__); \
             } while (0);
-    #else
-        #define GL_CHECK(stmt) stmt
-    #endif
+#else
+#define GL_CHECK(stmt) stmt
+#endif
 #endif
 
 #if defined(_DEBUG) || defined(DEBUG)
@@ -96,7 +96,7 @@ const char* AbstractRenderer::Shader::pSource = {
 " };
 #else
 const char* AbstractRenderer::Shader::vSource = {
-    "\n\
+	"\n\
 	\n\
     attribute vec2 POSITION;\n\
     attribute vec2 TEXCOORD0;\n\
@@ -115,7 +115,7 @@ const char* AbstractRenderer::Shader::vSource = {
 " };
 
 const char* AbstractRenderer::Shader::pSource = {
-    "\n\
+	"\n\
     \n\
     uniform sampler2D fontTex;\n\
     varying vec2 texCoord;\n\
@@ -128,7 +128,7 @@ const char* AbstractRenderer::Shader::pSource = {
         gl_FragColor.rgb = color.xyz; \n\
 		//gl_FragColor.rgb = vec3(distance); \n\
         gl_FragColor.a = color.w * distance;\n\
-		gl_FragColor.a += 0.5;\n\
+		//gl_FragColor.a += 0.5;\n\
     }\n\
 " };
 #endif
@@ -173,7 +173,7 @@ std::vector<std::string> AbstractRenderer::GetFontsInDirectory(const std::string
 			fullPath += ent->d_name;
 
 
-			t.push_back(fullPath);			
+			t.push_back(fullPath);
 		}
 	}
 
@@ -185,15 +185,15 @@ std::vector<std::string> AbstractRenderer::GetFontsInDirectory(const std::string
 
 AbstractRenderer::AbstractRenderer(const std::vector<Font> & fs, RenderSettings r, int glVersion)
 	: rs(r), strChanged(false), renderEnabled(true), glVersion(glVersion)
-{	
+{
 	this->fb = new FontBuilder(fs, r);
 
 	int ps = this->fb->GetMaxFontPixelSize();
 	this->fb->SetGridPacking(ps, ps);
 
-	
+
 	this->SetCaption(UTF8_TEXT(u8"\u2022"), 10);
-	
+
 	this->SetAxisYOrigin(AxisYOrigin::TOP);
 
 	this->InitGL();
@@ -201,17 +201,19 @@ AbstractRenderer::AbstractRenderer(const std::vector<Font> & fs, RenderSettings 
 
 AbstractRenderer::~AbstractRenderer()
 {
-	
+
 	SAFE_DELETE(this->fb);
 
 	//this will end in error, if OpenGL is not initialized during
 	//destruction
 	//however, that should be OK
 
-	GL_CHECK(glUseProgram(0));
-	GL_CHECK(glBindTexture(GL_TEXTURE_2D, 0));
-	GL_CHECK(glBindBuffer(GL_ARRAY_BUFFER, 0));
-	GL_CHECK(glBindVertexArray(0));
+
+
+	FONT_UNBIND_SHADER;
+	FONT_UNBIND_TEXTURE_2D;
+	FONT_UNBIND_ARRAY_BUFFER;
+	FONT_UNBIND_VAO;
 
 	GL_CHECK(glDeleteProgram(shader.program));
 	GL_CHECK(glDeleteTextures(1, &this->fontTex));
@@ -254,7 +256,7 @@ void AbstractRenderer::InitGL()
 
 	//create VBO
 	GL_CHECK(glGenBuffers(1, &this->vbo));
-		
+
 	//create VAO
 	this->CreateVAO();
 
@@ -262,19 +264,19 @@ void AbstractRenderer::InitGL()
 
 	//create texture
 	GL_CHECK(glGenTextures(1, &this->fontTex));
-	GL_CHECK(glBindTexture(GL_TEXTURE_2D, this->fontTex));
+	FONT_BIND_TEXTURE_2D(this->fontTex);
 
-    GL_CHECK(glTexImage2D(GL_TEXTURE_2D, 0, GL_LUMINANCE,
-                          this->fb->GetTextureWidth(), this->fb->GetTextureHeight(), 0,
-                          GL_LUMINANCE, GL_UNSIGNED_BYTE, nullptr));
-    
-    /*
-     //for higher opengl use this
-    GL_CHECK(glTexImage2D(GL_TEXTURE_2D, 0, GL_R8,
-                          this->fb->GetTextureWidth(), this->fb->GetTextureHeight(), 0,
-                          GL_RED, GL_UNSIGNED_BYTE, nullptr));
-    */
-    
+	GL_CHECK(glTexImage2D(GL_TEXTURE_2D, 0, GL_LUMINANCE,
+		this->fb->GetTextureWidth(), this->fb->GetTextureHeight(), 0,
+		GL_LUMINANCE, GL_UNSIGNED_BYTE, nullptr));
+
+	/*
+	//for higher opengl use this
+	GL_CHECK(glTexImage2D(GL_TEXTURE_2D, 0, GL_R8,
+	this->fb->GetTextureWidth(), this->fb->GetTextureHeight(), 0,
+	GL_RED, GL_UNSIGNED_BYTE, nullptr));
+	*/
+
 	GL_CHECK(glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST));
 	GL_CHECK(glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST));
 	GL_CHECK(glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE));
@@ -286,7 +288,7 @@ void AbstractRenderer::InitGL()
 /// Create VAO
 /// </summary>
 void AbstractRenderer::CreateVAO()
-{	
+{
 #ifdef __ANDROID_API__
 	if (glVersion == 2)
 	{
@@ -297,18 +299,19 @@ void AbstractRenderer::CreateVAO()
 	//init
 	GL_CHECK(glGenVertexArrays(1, &this->vao));
 
-	//bind data to it
-	GL_CHECK(glBindBuffer(GL_ARRAY_BUFFER, this->vbo));
-	GL_CHECK(glBindVertexArray(this->vao));
+	//bind data to it	
+	FONT_BIND_ARRAY_BUFFER(this->vbo);
+
+	FONT_BIND_VAO(this->vao);
 
 	this->BindVertexAtribs();
 
-	GL_CHECK(glBindBuffer(GL_ARRAY_BUFFER, 0));
+	FONT_UNBIND_ARRAY_BUFFER;
 
-	GL_CHECK(glBindVertexArray(0));
-	
+	FONT_UNBIND_VAO;
 
-	
+
+
 }
 
 void AbstractRenderer::BindVertexAtribs()
@@ -317,7 +320,7 @@ void AbstractRenderer::BindVertexAtribs()
 	const size_t POSITION_OFFSET = 0 * sizeof(float);
 	const size_t TEX_COORD_OFFSET = 2 * sizeof(float);
 	const size_t COLOR_OFFSET = 4 * sizeof(float);
-		
+
 
 	GL_CHECK(glEnableVertexAttribArray(this->shader.positionLocation));
 	GL_CHECK(glVertexAttribPointer(this->shader.positionLocation, 2,
@@ -333,7 +336,7 @@ void AbstractRenderer::BindVertexAtribs()
 	GL_CHECK(glVertexAttribPointer(this->shader.colorLocation, 4,
 		GL_FLOAT, GL_FALSE,
 		VERTEX_SIZE, (void*)(COLOR_OFFSET)));
-	
+
 }
 
 /// <summary>
@@ -420,7 +423,7 @@ void AbstractRenderer::SetCaption(const UnicodeString & mark, int offsetInPixels
 
 	//take half of new line offset and add extra 20%
 	ci.offset = offsetInPixels;// static_cast<int>(this->fb->GetNewLineOffsetBasedOnGlyph(ci.mark[0]) * 0.5 * 1.2);
-	
+
 }
 
 void AbstractRenderer::SetCanvasSize(int w, int h)
@@ -473,7 +476,7 @@ int AbstractRenderer::GetCanvasHeight() const
 /// </summary>
 void AbstractRenderer::Clear()
 {
-	this->strChanged = true;	
+	this->strChanged = true;
 	this->geom.clear();
 }
 
@@ -493,44 +496,43 @@ void AbstractRenderer::Render()
 	{
 		return;
 	}
-		
+
 	//activate texture
 	GL_CHECK(glActiveTexture(GL_TEXTURE0));
-	GL_CHECK(glBindTexture(GL_TEXTURE_2D, fontTex));
-	
-	//activate shader
-	GL_CHECK(glUseProgram(shader.program));
-	//GL_CHECK(glUniform4f(shader.colorLocation, 0, 0, 1, 1));
+	FONT_BIND_TEXTURE_2D(this->fontTex);
+
+	//activate shader	
+	FONT_BIND_SHADER(shader.program);
 
 	//render
-	GL_CHECK(glBindBuffer(GL_ARRAY_BUFFER, this->vbo));
-	
+	FONT_BIND_ARRAY_BUFFER(this->vbo);
+
 #ifdef __ANDROID_API__
 	if (glVersion == 2)
 	{
 		this->BindVertexAtribs();
 	}
-	else 
+	else
 	{
-		GL_CHECK(glBindVertexArray(this->vao));
+		FONT_BIND_VAO(this->vao);
 	}
 #else
-	GL_CHECK(glBindVertexArray(this->vao));
+	FONT_BIND_VAO(this->vao);
 #endif		
 
 	GL_CHECK(glDrawArrays(GL_TRIANGLES, 0, static_cast<int>(geom.size()) * 6));
-	
+
 #ifdef __ANDROID_API__
 	if (glVersion != 2)
-	{			
-		GL_CHECK(glBindVertexArray(0));
+	{
+		FONT_UNBIND_VAO
 	}
 #else
-	GL_CHECK(glBindVertexArray(0));
+	FONT_UNBIND_VAO;
 #endif	
 
 	//deactivate shader
-	GL_CHECK(glUseProgram(0));
+	FONT_UNBIND_SHADER;
 
 
 
@@ -539,27 +541,26 @@ void AbstractRenderer::Render()
 
 void AbstractRenderer::FillTexture()
 {
-	GL_CHECK(glBindTexture(GL_TEXTURE_2D, this->fontTex));
+	FONT_BIND_TEXTURE_2D(this->fontTex);
 
-    
-    GL_CHECK(glTexSubImage2D(GL_TEXTURE_2D, 0,
-                             0, 0,
-                             this->fb->GetTextureWidth(), this->fb->GetTextureHeight(),
-                             GL_LUMINANCE, GL_UNSIGNED_BYTE, this->fb->GetTexture()));
-    /*
-    //for higher opengl use this
-    GL_CHECK(glTexSubImage2D(GL_TEXTURE_2D, 0,
-                             0, 0,
-                             this->fb->GetTextureWidth(), this->fb->GetTextureHeight(),
-                             GL_RED, GL_UNSIGNED_BYTE, this->fb->GetTexture()));
-    */
-    
-	GL_CHECK(glBindTexture(GL_TEXTURE_2D, 0));
+	GL_CHECK(glTexSubImage2D(GL_TEXTURE_2D, 0,
+		0, 0,
+		this->fb->GetTextureWidth(), this->fb->GetTextureHeight(),
+		GL_LUMINANCE, GL_UNSIGNED_BYTE, this->fb->GetTexture()));
+	/*
+	//for higher opengl use this
+	GL_CHECK(glTexSubImage2D(GL_TEXTURE_2D, 0,
+	0, 0,
+	this->fb->GetTextureWidth(), this->fb->GetTextureHeight(),
+	GL_RED, GL_UNSIGNED_BYTE, this->fb->GetTexture()));
+	*/
+
+	FONT_UNBIND_TEXTURE_2D;
 }
 
 void AbstractRenderer::FillVB()
 {
-	GL_CHECK(glBindBuffer(GL_ARRAY_BUFFER, this->vbo));
+	FONT_BIND_ARRAY_BUFFER(this->vbo);
 	GL_CHECK(glBufferData(GL_ARRAY_BUFFER, this->geom.size() * sizeof(LetterGeom), &(this->geom.front()), GL_STREAM_DRAW));
-	GL_CHECK(glBindBuffer(GL_ARRAY_BUFFER, 0));
+	FONT_UNBIND_ARRAY_BUFFER;
 }

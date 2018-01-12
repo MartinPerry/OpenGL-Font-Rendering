@@ -4,10 +4,10 @@
 
 #include "./FontBuilder.h"
 
-#include "./Utils/ICUUtils.h"
+#include "./Externalncludes.h"
 
 StringRenderer::StringRenderer(const std::vector<Font> & fs, RenderSettings r, int glVersion)
-	: AbstractRenderer(fs, r, glVersion)
+	: AbstractRenderer(fs, r, glVersion), isBidiEnabled(true)
 {
 	
 }
@@ -32,6 +32,10 @@ size_t StringRenderer::GetStringsCount() const
 	return strs.size();
 }
 
+void StringRenderer::SetBidiEnabled(bool val)
+{
+	this->isBidiEnabled = val;
+}
 
 void StringRenderer::AddStringCaption(const UnicodeString & str,
 	double x, double y, Color color)
@@ -95,6 +99,12 @@ void StringRenderer::AddStringInternal(const UnicodeString & str,
 
 	UnicodeString bidiStr = "";
 	bool isBidiEmpty = true;
+
+	if (this->isBidiEnabled == false)
+	{
+		bidiStr = str;
+		isBidiEmpty = false;
+	}
 
 	for (auto & s : this->strs)
 	{

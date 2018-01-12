@@ -22,7 +22,7 @@
 #include <ft2build.h>
 #include FT_FREETYPE_H
 
-#include "./ICUUtils.h"
+//#include "../Unicode/ICUUtils.h"
 #include "./Externalncludes.h"
 
 //#define USE_TEXT_FILE
@@ -369,6 +369,7 @@ void CharacterExtractor::GenerateScript(const std::string & scriptFileName)
 	
 	for (auto c : this->characters)
 	{
+		
 		if (c < 32)
 		{
 			//non printable			
@@ -381,6 +382,7 @@ void CharacterExtractor::GenerateScript(const std::string & scriptFileName)
 
 		for (auto & s : this->faces)
 		{			
+			
 			FT_UInt ci = FT_Get_Char_Index(s.second, c);
 
 			if (ci == 0)
@@ -617,7 +619,7 @@ void CharacterExtractor::GenerateScript(const std::string & scriptFileName)
 						count++;
 					}
 
-					printf("FilesCount: %i\n", count);
+					//printf("FilesCount: %i\n", count);
 
 					if (count == 0)
 					{
