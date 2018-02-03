@@ -419,11 +419,14 @@ GLuint AbstractRenderer::LinkGLSLProgram(GLuint vertexShader, GLuint fragmentSha
 
 void AbstractRenderer::SetCaption(const UnicodeString & mark, int offsetInPixels)
 {
-	ci.mark = mark;
+	ci.mark = mark;	
+	this->SetCaptionOffset(offsetInPixels);
+}
 
+void AbstractRenderer::SetCaptionOffset(int offsetInPixels)
+{
 	//take half of new line offset and add extra 20%
-	ci.offset = offsetInPixels;// static_cast<int>(this->fb->GetNewLineOffsetBasedOnGlyph(ci.mark[0]) * 0.5 * 1.2);
-
+	ci.offset = offsetInPixels;// static_cast<int>(this->fb->GetNewLineOffsetBasedOnGlyph(ci.mark[0]) * 0.5 * 1.2);	
 }
 
 void AbstractRenderer::SetCanvasSize(int w, int h)
@@ -525,7 +528,7 @@ void AbstractRenderer::Render()
 #ifdef __ANDROID_API__
 	if (glVersion != 2)
 	{
-		FONT_UNBIND_VAO
+		FONT_UNBIND_VAO;
 	}
 #else
 	FONT_UNBIND_VAO;

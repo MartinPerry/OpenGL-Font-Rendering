@@ -40,6 +40,7 @@ public:
 	void SetCanvasSize(int w, int h);
 	void SetAxisYOrigin(AxisYOrigin axisY);
 	void SetCaption(const UnicodeString & mark, int offsetInPixels);
+	void SetCaptionOffset(int offsetInPixels);
 
 	int GetCanvasWidth() const;
 	int GetCanvasHeight() const;

@@ -9,7 +9,7 @@
 StringRenderer::StringRenderer(const std::vector<Font> & fs, RenderSettings r, int glVersion)
 	: AbstractRenderer(fs, r, glVersion), isBidiEnabled(true)
 {
-	
+	this->SetNewLineOffset(0);
 }
 
 StringRenderer::~StringRenderer()
@@ -30,6 +30,11 @@ void StringRenderer::Clear()
 size_t StringRenderer::GetStringsCount() const
 {
 	return strs.size();
+}
+
+void StringRenderer::SetNewLineOffset(int offsetInPixels)
+{
+	this->nlOffsetPx = offsetInPixels;
 }
 
 void StringRenderer::SetBidiEnabled(bool val)
@@ -306,7 +311,7 @@ std::vector<AbstractRenderer::AABB> StringRenderer::CalcStringAABB(const Unicode
 
 	aabb.newLineOffset = 0;
 
-	int maxNewLineOffset = this->fb->GetMaxNewLineOffset();
+	int maxNewLineOffset = this->fb->GetMaxNewLineOffset() + this->nlOffsetPx;
 
 	AbstractRenderer::AABB lineAabb = aabb;
 	std::vector<AABB> aabbs;
@@ -346,7 +351,7 @@ std::vector<AbstractRenderer::AABB> StringRenderer::CalcStringAABB(const Unicode
 				continue;
 			}
 			it = std::get<0>(r);
-			lineAabb.newLineOffset = std::max(lineAabb.newLineOffset, std::get<2>(r)->newLineOffset);
+			lineAabb.newLineOffset = std::max(lineAabb.newLineOffset, std::get<2>(r)->newLineOffset) + this->nlOffsetPx;
 		}
 		else
 		{
@@ -358,7 +363,7 @@ std::vector<AbstractRenderer::AABB> StringRenderer::CalcStringAABB(const Unicode
 				continue;
 			}
 
-			lineAabb.newLineOffset = std::max(lineAabb.newLineOffset, fi->newLineOffset);
+			lineAabb.newLineOffset = std::max(lineAabb.newLineOffset, fi->newLineOffset) + this->nlOffsetPx;
 		}
 
 		GlyphInfo & gi = *it->second;
@@ -404,7 +409,7 @@ std::vector<AbstractRenderer::AABB> StringRenderer::CalcStringAABB(const Unicode
 void StringRenderer::CalcAnchoredPosition()
 {
 	//Calculate anchored position of text
-	int newLineOffset = this->fb->GetMaxNewLineOffset();
+	int newLineOffset = this->fb->GetMaxNewLineOffset() + this->nlOffsetPx;
 
 	int captionMarkAnchorY = 0;
 
@@ -625,7 +630,7 @@ bool StringRenderer::GenerateGeometry()
 				}
 
 				x = startX;
-				y += newLineOffset;
+				y += newLineOffset + this->nlOffsetPx;
 				lineId++;
 
 				this->CalcLineAlign(si, lineId, x, y);

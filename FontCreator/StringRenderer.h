@@ -15,6 +15,8 @@ public:
 	void Clear();
 	size_t GetStringsCount() const;
 	
+	void SetNewLineOffset(int offsetInPixels);
+
 	void SetBidiEnabled(bool val);
 
 	void AddStringCaption(const UnicodeString & str,
@@ -59,7 +61,7 @@ protected:
 
 	bool isBidiEnabled;
 	std::vector<StringInfo> strs;
-	
+	int nlOffsetPx;
 
 
 	void AddStringInternal(const UnicodeString & str,

@@ -112,7 +112,7 @@ void display() {
 	*/
 	
 	fr->Clear();
-	fr->AddStringCaption(UTF8_TEXT(u8"Pøíliš malý\n(žluouèký)\nkùyòy"), 0.5f, 0.5f, { 1,1,0,1 });
+	fr->AddStringCaption(UTF8_TEXT(u8"Pøíliš malýp\n(žluouèký)\nkùyòy"), 0.5f, 0.5f, { 1,1,0,1 });
 	fr->AddStringCaption(UTF8_TEXT(u8"ahoj \u0633\u0644\u0627\u0645"), 0.8f, 0.5f, { 1,1,0,1 });
 	//fr->AddStringCaption(UTF8_TEXT(u8"Baf"), 0.8f, 0.8f, { 1,1,0,1 });
 	//fr->AddString(UTF8_TEXT(u8"[]"), 0.5f, 0.5f, { 1,1,0,1 });
@@ -235,6 +235,7 @@ void initGL() {
 	//fr->AddStringCaption(u8"AbBd", 0.5f, 0.5f, { 1,1,0,1 });
 	//fr->Render();
 	//fr->GetFontBuilder()->Save("D://88.png");
+	fr->SetNewLineOffset(0);
 }
 
 
