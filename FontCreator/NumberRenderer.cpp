@@ -109,6 +109,16 @@ void NumberRenderer::SetDecimalPrecission(int digits)
 	this->decimalMult = std::pow(10, decimalPlaces);
 }
 
+
+/// <summary>
+/// Get precision for decimal part in digits count
+/// </summary>
+/// <returns></returns>
+int NumberRenderer::GetDecimalPrecission()
+{
+	return this->decimalPlaces;
+}
+
 /// <summary>
 /// Get number of numbers
 /// </summary>
@@ -168,7 +178,7 @@ void NumberRenderer::AddIntegralNumberInternal(long val,
 	i.val = val;
 	i.negative = val < 0;
 
-	if (i.negative) val *= -1;
+	if (i.negative) val *= -1; //create absolute value
 	i.intPart = static_cast<unsigned long>(val);
 	i.fractPartReverse = 0;
 
@@ -216,7 +226,7 @@ void NumberRenderer::AddFloatNumberInternal(double val,
 	i.val = val;
 	i.negative = val < 0;
 
-	if (i.negative) val *= -1;
+	if (i.negative) val *= -1; //create absolute value
 	i.intPart = static_cast<unsigned long>(val);
 	i.fractPartReverse = this->GetFractPartReversed(val, i.intPart);
 
@@ -508,6 +518,7 @@ bool NumberRenderer::GenerateGeometry()
 	//Build geometry
 	
 	this->geom.clear();
+	this->geom.reserve(50);
 	
 	for (const NumberRenderer::NumberInfo & si : this->nmbrs)
 	{
@@ -610,30 +621,32 @@ void NumberRenderer::AddQuad(const GlyphInfo & gi, int x, int y, const NumberInf
 
 	//build geometry		
 	Vertex a, b, c, d;
-	a.x = static_cast<float>(fx);
-	a.y = static_cast<float>(fy);
-	a.u = static_cast<float>(gi.tx);
-	a.v = static_cast<float>(gi.ty);
+	a.x = static_cast<float>(fx) * psW;
+	a.y = static_cast<float>(fy) * psH;
+	a.u = static_cast<float>(gi.tx) * tW;
+	a.v = static_cast<float>(gi.ty) * tH;
 
-	b.x = static_cast<float>(fx + gi.bmpW);
-	b.y = static_cast<float>(fy);
-	b.u = static_cast<float>(gi.tx + gi.bmpW);
-	b.v = static_cast<float>(gi.ty);
+	b.x = static_cast<float>(fx + gi.bmpW) * psW;
+	b.y = a.y;
+	b.u = static_cast<float>(gi.tx + gi.bmpW) * tW;
+	b.v = a.v;
 
-	c.x = static_cast<float>(fx + gi.bmpW);
-	c.y = static_cast<float>(fy + gi.bmpH);
-	c.u = static_cast<float>(gi.tx + gi.bmpW);
-	c.v = static_cast<float>(gi.ty + gi.bmpH);
+	c.x = b.x;
+	c.y = static_cast<float>(fy + gi.bmpH) * psH;
+	c.u = b.u;
+	c.v = static_cast<float>(gi.ty + gi.bmpH) * tH;
 
-	d.x = static_cast<float>(fx);
-	d.y = static_cast<float>(fy + gi.bmpH);
-	d.u = static_cast<float>(gi.tx);
-	d.v = static_cast<float>(gi.ty + gi.bmpH);
+	d.x = a.x;
+	d.y = c.y;
+	d.u = a.u;
+	d.v = c.v;
 
+	/*
 	a.Mul(psW, psH, tW, tH);
 	b.Mul(psW, psH, tW, tH);
 	c.Mul(psW, psH, tW, tH);
 	d.Mul(psW, psH, tW, tH);
+	*/
 
 	LetterGeom l;
 	l.AddQuad(a, b, c, d);

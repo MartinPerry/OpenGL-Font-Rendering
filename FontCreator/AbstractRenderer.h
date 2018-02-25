@@ -113,10 +113,11 @@ protected:
 		{
 			for (int i = 0; i < 6; i++)
 			{
-				v[i].r = c.r;
-				v[i].g = c.g;
-				v[i].b = c.b;
-				v[i].a = c.a;
+				auto & tmp = v[i];
+				tmp.r = c.r;
+				tmp.g = c.g;
+				tmp.b = c.b;
+				tmp.a = c.a;
 			}
 		}
 

@@ -24,6 +24,8 @@ public:
 	void SetExistenceCheck(bool val);
 	void SetDecimalPrecission(int digits);
 
+	int GetDecimalPrecission();
+
 	void Clear();
 	size_t GetNumbersCount() const;
 

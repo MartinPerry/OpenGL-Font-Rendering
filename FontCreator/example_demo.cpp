@@ -112,8 +112,8 @@ void display() {
 	*/
 	
 	fr->Clear();
-	fr->AddStringCaption(UTF8_TEXT(u8"Pøíliš malýp\n(žluouèký)\nkùyòy"), 0.5f, 0.5f, { 1,1,0,1 });
-	fr->AddStringCaption(UTF8_TEXT(u8"ahoj \u0633\u0644\u0627\u0645"), 0.8f, 0.5f, { 1,1,0,1 });
+	//fr->AddStringCaption(UTF8_TEXT(u8"Pøíliš malýp\n(žluouèký)\nkùyòy"), 0.5f, 0.5f, { 1,1,0,1 });
+	//fr->AddStringCaption(UTF8_TEXT(u8"ahoj \u0633\u0644\u0627\u0645"), 0.8f, 0.5f, { 1,1,0,1 });
 	//fr->AddStringCaption(UTF8_TEXT(u8"Baf"), 0.8f, 0.8f, { 1,1,0,1 });
 	//fr->AddString(UTF8_TEXT(u8"[]"), 0.5f, 0.5f, { 1,1,0,1 });
 	
@@ -123,10 +123,10 @@ void display() {
 	//fr->AddString(u8"lll", 200, 300);
 	fr->Render();
 
-	//fn->AddNumber(-45.27, 100, 100);
-	//fn->AddNumberCaption(-450.013, 100, 100, { 1, 1.0f, 1.0f, 1 });
-	//fn->AddNumberCaption(-897456, 100, 300, { 1, 1.0f, 1.0f, 1 });
-	//fn->Render();
+	fn->AddNumber(-45.27, 100, 100);
+	fn->AddNumberCaption(-450.013, 100, 100, { 1, 1.0f, 1.0f, 1 });
+	fn->AddNumberCaption(-897456, 100, 300, { 1, 1.0f, 1.0f, 1 });
+	fn->Render();
 
 	glutSwapBuffers();	
 	//glutPostRedisplay();
@@ -226,7 +226,7 @@ void initGL() {
 	fr = new StringRenderer(fonts, r);
 	//fr = new StringRenderer({ fNum }, r);
 	//fr = new StringRenderer({ f4 }, r);
-	//fn = new NumberRenderer({ fArial }, r);
+	fn = new NumberRenderer({ fArial }, r);
 
 	
 	
@@ -287,7 +287,7 @@ int main(int argc, char ** argv)
 #endif
 #endif
 		
-	Normalize();
+	//Normalize();
 	
 	//CharacterExtractor cr({ "arial.ttf" }, "arial_out.ttf");
 	//CharacterExtractor cr(std::vector<std::string>({ "arial.ttf" }), "arial_out.ttf");
