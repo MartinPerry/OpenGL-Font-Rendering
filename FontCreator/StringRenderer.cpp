@@ -161,11 +161,14 @@ void StringRenderer::AddStringInternal(const UnicodeString & str,
 		estimAABB.maxY -= (h / 2);
 	}
 
-	if (estimAABB.maxX <= 0) return;
-	if (estimAABB.maxY <= 0) return;
-	if (estimAABB.minX > this->rs.deviceW) return;
-	if (estimAABB.minY > this->rs.deviceH) return;
-
+	if (str != ci.mark)
+	{
+		if ((estimAABB.maxX <= 0) || (estimAABB.maxY <= 0) ||
+			(estimAABB.minX > this->rs.deviceW) || (estimAABB.minY > this->rs.deviceH))
+		{			
+			return;
+		}		
+	}
 
 	//new visible string - add it
 
@@ -225,8 +228,8 @@ AbstractRenderer::AABB StringRenderer::EstimateStringAABB(const UnicodeString & 
 
 	
 	int w = this->fb->GetMaxFontPixelSize();
-	int h = this->fb->GetMaxFontPixelSize();
-	int adv = this->fb->GetMaxFontPixelSize();
+	int h = w;// this->fb->GetMaxFontPixelSize();
+	int adv = w;// this->fb->GetMaxFontPixelSize();
 
 	int startX = x;
 
@@ -460,7 +463,7 @@ void StringRenderer::CalcAnchoredPosition()
 		}
 
 		if (si.type == TextType::CAPTION)
-		{						
+		{	
 			if (si.str == ci.mark)
 			{				
 				bool exist;
@@ -480,7 +483,7 @@ void StringRenderer::CalcAnchoredPosition()
 			}
 			else
 			{								
-				si.anchorY -= (captionMarkAnchorY - si.anchorY);
+				si.anchorY -= (captionMarkAnchorY - si.anchorY);				
 			}
 			
 		}
@@ -664,31 +667,32 @@ bool StringRenderer::GenerateGeometry()
 
 			//build geometry		
 			Vertex a, b, c, d;
-			a.x = static_cast<float>(fx);
-			a.y = static_cast<float>(fy);
-			a.u = static_cast<float>(gi.tx);
-			a.v = static_cast<float>(gi.ty);
+			a.x = static_cast<float>(fx) * psW;
+			a.y = static_cast<float>(fy) * psH;
+			a.u = static_cast<float>(gi.tx) * tW;
+			a.v = static_cast<float>(gi.ty) * tH;
 
-			b.x = static_cast<float>(fx + gi.bmpW);
-			b.y = static_cast<float>(fy);
-			b.u = static_cast<float>(gi.tx + gi.bmpW);
-			b.v = static_cast<float>(gi.ty);
+			b.x = static_cast<float>(fx + gi.bmpW) * psW;
+			b.y = a.y;
+			b.u = static_cast<float>(gi.tx + gi.bmpW) * tW;
+			b.v = a.v;
 
-			c.x = static_cast<float>(fx + gi.bmpW);
-			c.y = static_cast<float>(fy + gi.bmpH);
-			c.u = static_cast<float>(gi.tx + gi.bmpW);
-			c.v = static_cast<float>(gi.ty + gi.bmpH);
+			c.x = b.x;
+			c.y = static_cast<float>(fy + gi.bmpH) * psH;
+			c.u = b.u;
+			c.v = static_cast<float>(gi.ty + gi.bmpH) * tH;
 
-			d.x = static_cast<float>(fx);
-			d.y = static_cast<float>(fy + gi.bmpH);
-			d.u = static_cast<float>(gi.tx);
-			d.v = static_cast<float>(gi.ty + gi.bmpH);
+			d.x = a.x;
+			d.y = c.y;
+			d.u = a.u;
+			d.v = c.v;
 
+			/*
 			a.Mul(psW, psH, tW, tH);
 			b.Mul(psW, psH, tW, tH);
 			c.Mul(psW, psH, tW, tH);
 			d.Mul(psW, psH, tW, tH);
-
+			*/
 			LetterGeom l;
 			l.AddQuad(a, b, c, d);
 			l.SetColor(si.color);
