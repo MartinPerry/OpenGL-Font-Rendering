@@ -112,6 +112,8 @@ void display() {
 	*/
 	
 	fr->Clear();
+	//fr->AddStringCaption(UTF8_TEXT(u8"Velmi"), -0.05f, 0.5f, { 1,1,0,1 });
+	fr->AddStringCaption(UTF8_TEXT(u8"Velmi"), 0.5f, 0.5f, { 1,1,0,1 });
 	//fr->AddStringCaption(UTF8_TEXT(u8"P¯Ìliö mal˝p\n(ûluùouËk˝)\nk˘yÚy"), 0.5f, 0.5f, { 1,1,0,1 });
 	//fr->AddStringCaption(UTF8_TEXT(u8"ahoj \u0633\u0644\u0627\u0645"), 0.8f, 0.5f, { 1,1,0,1 });
 	//fr->AddStringCaption(UTF8_TEXT(u8"Baf"), 0.8f, 0.8f, { 1,1,0,1 });
@@ -123,10 +125,10 @@ void display() {
 	//fr->AddString(u8"lll", 200, 300);
 	fr->Render();
 
-	fn->AddNumber(-45.27, 100, 100);
-	fn->AddNumberCaption(-450.013, 100, 100, { 1, 1.0f, 1.0f, 1 });
-	fn->AddNumberCaption(-897456, 100, 300, { 1, 1.0f, 1.0f, 1 });
-	fn->Render();
+	//fn->AddNumber(-45.27, 100, 100);
+	//fn->AddNumberCaption(-450.013, 100, 100, { 1, 1.0f, 1.0f, 1 });
+	//fn->AddNumberCaption(-897456, 100, 300, { 1, 1.0f, 1.0f, 1 });
+	//fn->Render();
 
 	glutSwapBuffers();	
 	//glutPostRedisplay();
@@ -288,14 +290,14 @@ int main(int argc, char ** argv)
 #endif
 		
 	//Normalize();
-	
+	/*
 	//CharacterExtractor cr({ "arial.ttf" }, "arial_out.ttf");
 	//CharacterExtractor cr(std::vector<std::string>({ "arial.ttf" }), "arial_out.ttf");
-	CharacterExtractor cr({ "../ii/noto_max_priority/", "../ii/noto/", "../ii/noto-otf/"  }, "merged_out");
+	CharacterExtractor cr({ "../ii_v2/noto_max_priority/", "../ii_v2/noto/", "../ii_v2/noto-otf/"  }, "merged_out");
 	//CharacterExtractor cr({ "../ii/noto_max_priority/", "../ii/noto/" }, "merged_out");
 	//CharacterExtractor cr({ "../ii/noto_max_priority/" }, "merged_out");
-	/*
-	cr.SetOutputDir("../ii/");
+	
+	cr.SetOutputDir("../ii_v2/");
 	cr.AddText(UTF8_TEXT(u8"P¯Ìliö\nûluùouËk˝\nk˘Ú"));
 	cr.AddText(UTF8_TEXT(u8"Ahoj"));
 	cr.AddText(UTF8_TEXT(u8"\u2022")); //mark in number renderer
@@ -309,6 +311,7 @@ int main(int argc, char ** argv)
 	cr.GenerateScript("run.sh");
 	cr.Release();
 	*/
+
 	/*		
 	rrr = generateRandomString();
 	rrr += "\n";

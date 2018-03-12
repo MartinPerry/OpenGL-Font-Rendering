@@ -266,9 +266,9 @@ void AbstractRenderer::InitGL()
 	GL_CHECK(glGenTextures(1, &this->fontTex));
 	FONT_BIND_TEXTURE_2D(this->fontTex);
 
-	GL_CHECK(glTexImage2D(GL_TEXTURE_2D, 0, GL_LUMINANCE,
+	GL_CHECK(glTexImage2D(GL_TEXTURE_2D, 0, TEXTURE_SINGLE_CHANNEL,
 		this->fb->GetTextureWidth(), this->fb->GetTextureHeight(), 0,
-		GL_LUMINANCE, GL_UNSIGNED_BYTE, nullptr));
+		TEXTURE_SINGLE_CHANNEL, GL_UNSIGNED_BYTE, nullptr));
 
 	/*
 	//for higher opengl use this
@@ -549,7 +549,7 @@ void AbstractRenderer::FillTexture()
 	GL_CHECK(glTexSubImage2D(GL_TEXTURE_2D, 0,
 		0, 0,
 		this->fb->GetTextureWidth(), this->fb->GetTextureHeight(),
-		GL_LUMINANCE, GL_UNSIGNED_BYTE, this->fb->GetTexture()));
+		TEXTURE_SINGLE_CHANNEL, GL_UNSIGNED_BYTE, this->fb->GetTexture()));
 	/*
 	//for higher opengl use this
 	GL_CHECK(glTexSubImage2D(GL_TEXTURE_2D, 0,

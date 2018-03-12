@@ -53,6 +53,13 @@
 #define FONT_BIND_TEXTURE_2D(id) GL_CHECK(glBindTexture(GL_TEXTURE_2D, id))
 #define FONT_UNBIND_TEXTURE_2D GL_CHECK(glBindTexture(GL_TEXTURE_2D, 0))
 
+
+#ifdef TARGET_COMPUTER
+#define TEXTURE_SINGLE_CHANNEL GL_RED
+#else 
+#define TEXTURE_SINGLE_CHANNEL GL_LUMINANCE
+#endif
+
 /*
 typedef utf8_string UnicodeString;
 
