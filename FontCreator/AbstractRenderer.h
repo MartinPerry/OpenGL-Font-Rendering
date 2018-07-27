@@ -2,14 +2,17 @@
 #define _ABSTRACT_RENDERER_H_
 
 class FontBuilder;
+class IFontShaderManager;
 
 #include <vector>
 #include <list>
 #include <unordered_set>
+#include <functional>
 
 #include "./FontStructures.h"
 
 #include "./Externalncludes.h"
+
 
 class AbstractRenderer
 {
@@ -19,14 +22,19 @@ public:
 	typedef enum TextType { TEXT, CAPTION } TextType;
 	typedef enum AxisYOrigin { TOP, DOWN } AxisYOrigin;
 
-	typedef struct Color 
-	{ 
-		float r, g, b, a; 
-		bool IsSame(const Color & c) { 
-			return (c.r == r) && (c.g == g) && 
-			(c.b == b) && (c.a == a); }
-	} Color;
-
+    typedef struct Vertex
+    {
+        float x, y;
+        float u, v;
+    } Vertex;
+    
+    typedef struct Color
+    {
+        float r, g, b, a;
+        bool IsSame(const Color & c) {
+            return (c.r == r) && (c.g == g) &&
+            (c.b == b) && (c.a == a); }
+    } Color;
 	
 
 	static const Color DEFAULT_COLOR;
@@ -34,6 +42,9 @@ public:
 	static std::vector<std::string> GetFontsInDirectory(const std::string & fontDir);
 
 	AbstractRenderer(const std::vector<Font> & fs, RenderSettings r, int glVersion);
+    AbstractRenderer(const std::vector<Font> & fs, RenderSettings r, int glVersion,
+                     const char * vSource, const char * pSource, std::shared_ptr<IFontShaderManager> sm);
+    
 	virtual ~AbstractRenderer();
 
 	FontBuilder * GetFontBuilder();
@@ -53,12 +64,15 @@ public:
 	bool IsEnabled() const;
 
 	void Render();
-
+    void Render(std::function<void(GLuint)> preDrawCallback);
 	
 
 	
 protected:
 	
+    static const char * DEFAULT_VERTEX_SHADER_SOURCE;
+    static const char * DEFAULT_PIXEL_SHADER_SOURCE;
+    
 	typedef struct CaptionInfo
 	{
 		UnicodeString mark;
@@ -78,65 +92,19 @@ protected:
 	} AABB;
 
 	
-	typedef struct Vertex
-	{
-		float x, y;
-		float u, v;
-		float r, g, b, a;
-
-		void Mul(float pW, float pH, float tW, float tH)
-		{
-			x *= pW;
-			y *= pH;
-			u *= tW;
-			v *= tH;
-		};
-
-	} Vertex;
-
-	typedef struct LetterGeom
-	{
-		Vertex v[6];
-
-		void AddQuad(Vertex & a, Vertex & b, Vertex & c, Vertex & d) 
-		{
-			v[0] = a;
-			v[1] = b;
-			v[2] = d;
-
-			v[3] = b;
-			v[4] = c;
-			v[5] = d;
-		}
-
-		void SetColor(const Color & c)
-		{
-			for (int i = 0; i < 6; i++)
-			{
-				auto & tmp = v[i];
-				tmp.r = c.r;
-				tmp.g = c.g;
-				tmp.b = c.b;
-				tmp.a = c.a;
-			}
-		}
-
-	} LetterGeom;
+	
 
 	typedef struct Shader
 	{
-		GLuint program;
+        GLuint program;
 
-
-		GLuint positionLocation;
-		GLuint texCoordLocation;
-		GLuint colorLocation;
-
-		static const char * vSource;
-		static const char * pSource;
-
+		const char * vSource;
+		const char * pSource;
+        bool isDefault;
+        
 	} Shader;
 
+    std::shared_ptr<IFontShaderManager> sm;
     RenderSettings rs;
     
 	FontBuilder * fb;
@@ -145,7 +113,8 @@ protected:
 
 	AxisYOrigin axisYOrigin;
 
-	std::vector<LetterGeom> geom;
+    int quadsCount;
+	std::vector<float> geom;
 		
 	bool strChanged;
 
@@ -162,10 +131,10 @@ protected:
 	void InitGL();
 	
 	void CreateVAO();
-	void BindVertexAtribs();
 	GLuint CompileGLSLShader(GLenum target, const char* shader);
 	GLuint LinkGLSLProgram(GLuint vertexShader, GLuint fragmentShader);
 
+    void AddQuad(const GlyphInfo & gi, int x, int y, const Color & col);
 	void FillTexture();
 	void FillVB();
 };

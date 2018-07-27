@@ -54,6 +54,9 @@
     <ClCompile Include="NumberRenderer.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="FontShaderManager.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="TextureAtlasPack.h">
@@ -100,6 +103,9 @@
     </ClInclude>
     <ClInclude Include="Unicode\ICUUtils.h">
       <Filter>Header Files\Unicode</Filter>
+    </ClInclude>
+    <ClInclude Include="FontShaderManager.h">
+      <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

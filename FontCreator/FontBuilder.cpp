@@ -508,8 +508,7 @@ bool FontBuilder::LoadGlyphInfo(CHAR_CODE c, FontInfo & fi)
 	if (c > 32)
 	{
 		//add texture for only "non whitespace chars"
-
-		//je to nutny kopirovat ?
+        
 		int bitmapSize = glyph->bitmap.width * glyph->bitmap.rows;
 		uint8_t * textureData = new uint8_t[bitmapSize];
 

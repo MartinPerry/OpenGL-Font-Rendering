@@ -1,6 +1,8 @@
 #ifndef _STRING_RENDERER_H_
 #define _STRING_RENDERER_H_
 
+class IFontShaderManager;
+
 #include "./AbstractRenderer.h"
 
 #include "./Externalncludes.h"
@@ -10,6 +12,8 @@ class StringRenderer : public AbstractRenderer
 public:
 
 	StringRenderer(const std::vector<Font> & fs, RenderSettings r, int glVersion = 3);
+    StringRenderer(const std::vector<Font> & fs, RenderSettings r, int glVersion,
+                   const char * vSource, const char * pSource, std::shared_ptr<IFontShaderManager> sm);
 	~StringRenderer();
 		
 	void Clear();
@@ -45,7 +49,6 @@ protected:
 		int x;
 		int y;
 		Color color;
-		bool isDefaultColor;
 		TextAnchor anchor;
 		TextAlign align;
 		TextType type;
@@ -64,7 +67,7 @@ protected:
 	int nlOffsetPx;
 
 
-	void AddStringInternal(const UnicodeString & str,
+	bool AddStringInternal(const UnicodeString & str,
 		int x, int y, Color color = { 1,1,1,1 },
 		TextAnchor anchor = TextAnchor::LEFT_TOP,
 		TextAlign align = TextAlign::ALIGN_LEFT,

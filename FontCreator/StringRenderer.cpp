@@ -12,6 +12,13 @@ StringRenderer::StringRenderer(const std::vector<Font> & fs, RenderSettings r, i
 	this->SetNewLineOffset(0);
 }
 
+StringRenderer::StringRenderer(const std::vector<Font> & fs, RenderSettings r, int glVersion,
+               const char * vSource, const char * pSource, std::shared_ptr<IFontShaderManager> sm)
+    : AbstractRenderer(fs, r, glVersion, vSource, pSource, sm), isBidiEnabled(true)
+{
+    this->SetNewLineOffset(0);
+}
+
 StringRenderer::~StringRenderer()
 {
 }
@@ -54,8 +61,8 @@ void StringRenderer::AddStringCaption(const UnicodeString & str,
 void StringRenderer::AddStringCaption(const UnicodeString & str,
 	int x, int y, Color color)
 {
-	this->AddStringInternal(ci.mark, x, y, color, TextAnchor::CENTER, TextAlign::ALIGN_CENTER, TextType::CAPTION);
-	this->AddStringInternal(str, x, y, color, TextAnchor::CENTER, TextAlign::ALIGN_CENTER, TextType::CAPTION);
+    this->AddStringInternal(ci.mark, x, y, color, TextAnchor::CENTER, TextAlign::ALIGN_CENTER, TextType::CAPTION);
+    this->AddStringInternal(str, x, y, color, TextAnchor::CENTER, TextAlign::ALIGN_CENTER, TextType::CAPTION);
 }
 
 /// <summary>
@@ -93,7 +100,7 @@ void StringRenderer::AddString(const UnicodeString & str,
 }
 
 
-void StringRenderer::AddStringInternal(const UnicodeString & str,
+bool StringRenderer::AddStringInternal(const UnicodeString & str,
 	int x, int y, Color color,
 	TextAnchor anchor, TextAlign align, TextType type)
 {
@@ -111,26 +118,27 @@ void StringRenderer::AddStringInternal(const UnicodeString & str,
 		isBidiEmpty = false;
 	}
 
-	for (auto & s : this->strs)
-	{
-		if ((s.x == x) && (s.y == y) &&
-			(s.align == align) && (s.anchor == anchor) && (s.type == type))
-		{
-			if (isBidiEmpty)
-			{
-				//we need to compare string... create bidi only for first comparison
-				bidiStr = BIDI(str);
-				isBidiEmpty = false;
-			}
+   for (auto & s : this->strs)
+    {
+        if ((s.x == x) && (s.y == y) &&
+            (s.align == align) && (s.anchor == anchor) && (s.type == type))
+        {
+            
+            if (isBidiEmpty)
+            {
+                //we need to compare string... create bidi only for first comparison
+                bidiStr = BIDI(str);
+                isBidiEmpty = false;
+            }
 
-			if (s.str == bidiStr)
-			{
-				//same string on the same position and with same align
-				//already exist - do not add it again
-				return;
-			}
-		}
-	}
+            if (s.str == bidiStr)
+            {
+                //same string on the same position and with same align
+                //already exist - do not add it again
+                return false;
+            }
+        }
+    }
 
 	//fill basic structure info
 	StringInfo i;
@@ -166,7 +174,7 @@ void StringRenderer::AddStringInternal(const UnicodeString & str,
 		if ((estimAABB.maxX <= 0) || (estimAABB.maxY <= 0) ||
 			(estimAABB.minX > this->rs.deviceW) || (estimAABB.minY > this->rs.deviceH))
 		{			
-			return;
+			return false;
 		}		
 	}
 
@@ -177,7 +185,7 @@ void StringRenderer::AddStringInternal(const UnicodeString & str,
 	i.x = x;
 	i.y = y;
 	i.color = color;
-	i.isDefaultColor = color.IsSame(DEFAULT_COLOR);
+	//i.isDefaultColor = color.IsSame(DEFAULT_COLOR);
 	i.anchor = anchor;
 	i.align = align;
 	i.type = type;
@@ -190,6 +198,8 @@ void StringRenderer::AddStringInternal(const UnicodeString & str,
 	this->strs.push_back(i);
 
 	this->fb->AddString(i.str);
+    
+    return true;
 }
 
 /// <summary>
@@ -226,16 +236,18 @@ AbstractRenderer::AABB StringRenderer::EstimateStringAABB(const UnicodeString & 
 	aabb.maxX = std::numeric_limits<int>::min();
 	aabb.maxY = std::numeric_limits<int>::min();
 
-	
-	int w = this->fb->GetMaxFontPixelSize();
-	int h = w;// this->fb->GetMaxFontPixelSize();
-	int adv = w;// this->fb->GetMaxFontPixelSize();
+    int maxFontSize = this->fb->GetMaxFontPixelSize();
+    
+	int w = maxFontSize;
+	int h = maxFontSize;
+    int adv = maxFontSize;;
 
 	int startX = x;
 
 	int lastNewLineOffset = this->fb->GetMaxNewLineOffset();
 	int newLineOffset = 0;// this->fb->GetNewLineOffsetBasedOnFirstGlyph(strUTF8.at(0));
-
+    
+    
 	FOREACH_32_CHAR_ITERATION(c, str)
 	{
 		if (c == '\n')
@@ -266,9 +278,9 @@ AbstractRenderer::AABB StringRenderer::EstimateStringAABB(const UnicodeString & 
 		}
 		else
 		{
-			w = this->fb->GetMaxFontPixelSize();
-			h = this->fb->GetMaxFontPixelSize();
-			adv = this->fb->GetMaxFontPixelSize();
+			w = maxFontSize;
+			h = maxFontSize;
+			adv = maxFontSize;
 		}
 
 		newLineOffset = std::max(newLineOffset, fi->newLineOffset);
@@ -598,18 +610,12 @@ bool StringRenderer::GenerateGeometry()
 
 	//Build geometry
 	
-	float psW = 1.0f / static_cast<float>(rs.deviceW);	//pixel size in width
-	float psH = 1.0f / static_cast<float>(rs.deviceH); //pixel size in height
-
-	float tW = 1.0f / static_cast<float>(this->fb->GetTextureWidth());	//pixel size in width
-	float tH = 1.0f / static_cast<float>(this->fb->GetTextureHeight()); //pixel size in height
-
-	this->geom.clear();
+    AbstractRenderer::Clear();
 
 	int lastNewLineOffset = this->fb->GetMaxNewLineOffset();
 	int newLineOffset = 0;// this->fb->GetMaxNewLineOffset();
 
-	this->geom.reserve(this->strs.size() * 10);
+	this->geom.reserve(this->strs.size() * 80);
 
 	for (const StringRenderer::StringInfo & si : this->strs)
 	{
@@ -617,38 +623,35 @@ bool StringRenderer::GenerateGeometry()
 		int x = si.anchorX;
 		int y = si.anchorY;
 
-		int startX = x;
-		int startY = y;
-
 		this->CalcLineAlign(si, lineId, x, y);
 		
 
 		FOREACH_32_CHAR_ITERATION(cc, si.str)
 		{
-			if (cc == '\n')
-			{
-				if (newLineOffset == 0)
-				{
-					newLineOffset = lastNewLineOffset;
-				}
+            if (cc <= 32)
+            {
+                if (cc == '\n')
+                {
+                    if (newLineOffset == 0)
+                    {
+                        newLineOffset = lastNewLineOffset;
+                    }
 
-				x = startX;
-				y += newLineOffset + this->nlOffsetPx;
-				lineId++;
+                    x = si.anchorX;
+                    y += newLineOffset + this->nlOffsetPx;
+                    lineId++;
 
-				this->CalcLineAlign(si, lineId, x, y);
+                    this->CalcLineAlign(si, lineId, x, y);
 
-				lastNewLineOffset = newLineOffset;
-				newLineOffset = 0;
-
-				continue;
-			}
-
-			if (cc <= 32)
-			{
-				x += spaceSize;
-				continue;
-			}
+                    lastNewLineOffset = newLineOffset;
+                    newLineOffset = 0;
+                }
+                else
+                {
+                    x += spaceSize;
+                }
+                continue;
+            }
 
 			bool exist;
 			FontInfo * fi = nullptr;
@@ -662,52 +665,15 @@ bool StringRenderer::GenerateGeometry()
 			
 			GlyphInfo & gi = *it->second;
 			
-			int fx = x + gi.bmpX;
-			int fy = y - gi.bmpY;
-
-			//build geometry		
-			Vertex a, b, c, d;
-			a.x = static_cast<float>(fx) * psW;
-			a.y = static_cast<float>(fy) * psH;
-			a.u = static_cast<float>(gi.tx) * tW;
-			a.v = static_cast<float>(gi.ty) * tH;
-
-			b.x = static_cast<float>(fx + gi.bmpW) * psW;
-			b.y = a.y;
-			b.u = static_cast<float>(gi.tx + gi.bmpW) * tW;
-			b.v = a.v;
-
-			c.x = b.x;
-			c.y = static_cast<float>(fy + gi.bmpH) * psH;
-			c.u = b.u;
-			c.v = static_cast<float>(gi.ty + gi.bmpH) * tH;
-
-			d.x = a.x;
-			d.y = c.y;
-			d.u = a.u;
-			d.v = c.v;
-
-			/*
-			a.Mul(psW, psH, tW, tH);
-			b.Mul(psW, psH, tW, tH);
-			c.Mul(psW, psH, tW, tH);
-			d.Mul(psW, psH, tW, tH);
-			*/
-			LetterGeom l;
-			l.AddQuad(a, b, c, d);
-			l.SetColor(si.color);
-			this->geom.push_back(l);
-
+            this->AddQuad(gi, x, y, si.color);
+            
 			x += (gi.adv >> 6);
 		}
 	}
 
 	this->strChanged = false;
 
-	if (this->geom.size() != 0)
-	{
-		this->FillVB();
-	}
+	this->FillVB();
 
 	return true;
 }

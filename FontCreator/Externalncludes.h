@@ -1,11 +1,17 @@
 #ifndef _EXTERNAL_INCLUDES_H_
 #define _EXTERNAL_INCLUDES_H_
 
+//=====================================================================================
+//additional preprocessor directives
+
 #define USE_ICU_LIBRARY
 
 //Path to this can be changes - eg. if you are not using freeglut - include OpenGL here
 //if you want to move strings change dir here
 //the same goes if you want to move lodepng
+
+//=====================================================================================
+//includes
 
 #include "./lodepng.h"
 
@@ -28,6 +34,8 @@
 #include <dirent.h>
 #endif
 
+//=====================================================================================
+//Global macros
 
 #ifndef SAFE_DELETE
 #define SAFE_DELETE(a) {if (a != nullptr) { delete   a; a = nullptr; }};
@@ -41,6 +49,49 @@
 #define MY_LOG_ERROR(...) printf(__VA_ARGS__)
 #endif
 
+
+//=====================================================================================
+//OpenGL error checks
+
+static void CheckOpenGLError(const char* stmt, const char* fname, int line)
+{
+	GLenum err = glGetError();
+
+	if (err != GL_NO_ERROR)
+	{
+		std::string error = "";
+
+		switch (err)
+		{
+		case GL_INVALID_OPERATION:      error = "INVALID_OPERATION";      break;
+		case GL_INVALID_ENUM:           error = "INVALID_ENUM";           break;
+		case GL_INVALID_VALUE:          error = "INVALID_VALUE";          break;
+		case GL_OUT_OF_MEMORY:          error = "OUT_OF_MEMORY";          break;
+		case GL_INVALID_FRAMEBUFFER_OPERATION:  error = "INVALID_FRAMEBUFFER_OPERATION";  break;
+		default: error = "Unknown"; break;
+		}
+		error += " (";
+		error += std::to_string(err);
+		error += ") ";
+
+		MY_LOG_ERROR("OpenGL error %s, at %s:%i - for %s", error.c_str(), fname, line, stmt);
+		//abort();
+	}
+}
+
+#ifndef GL_CHECK
+#if defined(_DEBUG) || defined(DEBUG)
+#define GL_CHECK(stmt) do { \
+                stmt; \
+                CheckOpenGLError(#stmt, __FILE__, __LINE__); \
+            } while (0);
+#else
+#define GL_CHECK(stmt) stmt
+#endif
+#endif
+
+//=====================================================================================
+//OpenGL "overrides"
 
 //You can override here binding / unbinding of OpenGL things and 
 //use your own management system
@@ -59,6 +110,9 @@
 #else 
 #define TEXTURE_SINGLE_CHANNEL GL_LUMINANCE
 #endif
+
+//=====================================================================================
+//String manipulation
 
 /*
 typedef utf8_string UnicodeString;

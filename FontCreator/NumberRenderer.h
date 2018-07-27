@@ -113,7 +113,6 @@ protected:
 	
 	void CalcAnchoredPosition();
 	
-	void AddQuad(const GlyphInfo & gi, int x, int y, const NumberInfo & ni);
 
 	unsigned long GetFractPartReversed(double val, unsigned long intPart);
 	unsigned long ReversDigits(unsigned long num);

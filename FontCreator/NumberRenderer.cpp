@@ -46,8 +46,7 @@ NumberRenderer::NumberRenderer(const std::vector<Font> & fs, RenderSettings r, i
 		auto it = this->fb->GetGlyph(c, exist);
 		if (!exist)
 		{
-			throw std::invalid_argument("Unknown number character");
-			continue;
+			throw std::invalid_argument("Unknown number character");			
 		}
 		
 
@@ -178,7 +177,7 @@ void NumberRenderer::AddIntegralNumberInternal(long val,
 	i.val = val;
 	i.negative = val < 0;
 
-	if (i.negative) val *= -1; //create absolute value
+	if (i.negative) val *= -1;
 	i.intPart = static_cast<unsigned long>(val);
 	i.fractPartReverse = 0;
 
@@ -226,7 +225,7 @@ void NumberRenderer::AddFloatNumberInternal(double val,
 	i.val = val;
 	i.negative = val < 0;
 
-	if (i.negative) val *= -1; //create absolute value
+	if (i.negative) val *= -1;
 	i.intPart = static_cast<unsigned long>(val);
 	i.fractPartReverse = this->GetFractPartReversed(val, i.intPart);
 
@@ -276,7 +275,7 @@ void NumberRenderer::AddNumber(NumberInfo & n, int x, int y, Color color,
 	n.x = x;
 	n.y = y;
 	n.color = color;
-	n.isDefaultColor = color.IsSame(DEFAULT_COLOR);
+	//n.isDefaultColor = color.IsSame(DEFAULT_COLOR);
 	n.anchor = anchor;
 	n.type = type;
 	n.anchorX = x;
@@ -517,8 +516,8 @@ bool NumberRenderer::GenerateGeometry()
 
 	//Build geometry
 	
-	this->geom.clear();
-	this->geom.reserve(50);
+    AbstractRenderer::Clear();
+	this->geom.reserve(400);
 	
 	for (const NumberRenderer::NumberInfo & si : this->nmbrs)
 	{
@@ -537,14 +536,14 @@ bool NumberRenderer::GenerateGeometry()
 			int yy = si.y + (this->captionMark.bmpH);
 			
 
-			this->AddQuad(this->captionMark, xx, yy, si);
+			this->AddQuad(this->captionMark, xx, yy, si.color);
 		}
 
 
 
 		if (si.negative)
 		{
-			this->AddQuad(this->gi['-'], x, y, si);
+			this->AddQuad(this->gi['-'], x, y, si.color);
 			x += (this->gi['-'].adv >> 6);
 		}
 
@@ -563,7 +562,7 @@ bool NumberRenderer::GenerateGeometry()
 			lastDigit--;
 			const GlyphInfo & gi = this->gi[digits[lastDigit] + '0'];
 
-			this->AddQuad(gi, x, y, si);
+			this->AddQuad(gi, x, y, si.color);
 
 			x += (gi.adv >> 6);
 			
@@ -571,7 +570,7 @@ bool NumberRenderer::GenerateGeometry()
 
 		if (fractPartReverse)
 		{
-			this->AddQuad(this->gi['.'], x, y, si);
+			this->AddQuad(this->gi['.'], x, y, si.color);
 			x += (this->gi['.'].adv >> 6);
 
 			
@@ -581,7 +580,7 @@ bool NumberRenderer::GenerateGeometry()
 				fractPartReverse /= 10;
 				const GlyphInfo & gi = this->gi[cc + '0'];
 
-				this->AddQuad(gi, x, y, si);
+				this->AddQuad(gi, x, y, si.color);
 
 				x += (gi.adv >> 6);
 			}
@@ -590,66 +589,7 @@ bool NumberRenderer::GenerateGeometry()
 
 	this->strChanged = false;
 
-	if (this->geom.size() != 0)
-	{
-		this->FillVB();
-	}
+	this->FillVB();
 
 	return true;
-}
-
-
-/// <summary>
-/// Add single "letter" quad to geom buffer
-/// </summary>
-/// <param name="gi"></param>
-/// <param name="x"></param>
-/// <param name="y"></param>
-/// <param name="ni"></param>
-void NumberRenderer::AddQuad(const GlyphInfo & gi, int x, int y, const NumberInfo & ni)
-{
-	float psW = 1.0f / static_cast<float>(rs.deviceW);	//pixel size in width
-	float psH = 1.0f / static_cast<float>(rs.deviceH); //pixel size in height
-
-	float tW = 1.0f / static_cast<float>(this->fb->GetTextureWidth());	//pixel size in width
-	float tH = 1.0f / static_cast<float>(this->fb->GetTextureHeight()); //pixel size in height
-
-
-
-	int fx = x + gi.bmpX;
-	int fy = y - gi.bmpY;
-
-	//build geometry		
-	Vertex a, b, c, d;
-	a.x = static_cast<float>(fx) * psW;
-	a.y = static_cast<float>(fy) * psH;
-	a.u = static_cast<float>(gi.tx) * tW;
-	a.v = static_cast<float>(gi.ty) * tH;
-
-	b.x = static_cast<float>(fx + gi.bmpW) * psW;
-	b.y = a.y;
-	b.u = static_cast<float>(gi.tx + gi.bmpW) * tW;
-	b.v = a.v;
-
-	c.x = b.x;
-	c.y = static_cast<float>(fy + gi.bmpH) * psH;
-	c.u = b.u;
-	c.v = static_cast<float>(gi.ty + gi.bmpH) * tH;
-
-	d.x = a.x;
-	d.y = c.y;
-	d.u = a.u;
-	d.v = c.v;
-
-	/*
-	a.Mul(psW, psH, tW, tH);
-	b.Mul(psW, psH, tW, tH);
-	c.Mul(psW, psH, tW, tH);
-	d.Mul(psW, psH, tW, tH);
-	*/
-
-	LetterGeom l;
-	l.AddQuad(a, b, c, d);
-	l.SetColor(ni.color);
-	this->geom.push_back(l);
 }

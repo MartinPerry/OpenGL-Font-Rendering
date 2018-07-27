@@ -4,49 +4,12 @@
 #include <algorithm>
 
 #include "./FontBuilder.h"
-
-
+#include "./FontShaderManager.h"
 
 //=============================================================================
 // GL helpers
 //=============================================================================
 
-void CheckOpenGLError(const char* stmt, const char* fname, int line)
-{
-	GLenum err = glGetError();
-
-	if (err != GL_NO_ERROR)
-	{
-		std::string error = "";
-
-		switch (err)
-		{
-		case GL_INVALID_OPERATION:      error = "INVALID_OPERATION";      break;
-		case GL_INVALID_ENUM:           error = "INVALID_ENUM";           break;
-		case GL_INVALID_VALUE:          error = "INVALID_VALUE";          break;
-		case GL_OUT_OF_MEMORY:          error = "OUT_OF_MEMORY";          break;
-		case GL_INVALID_FRAMEBUFFER_OPERATION:  error = "INVALID_FRAMEBUFFER_OPERATION";  break;
-		default: error = "Unknown"; break;
-		}
-		error += " (";
-		error += std::to_string(err);
-		error += ") ";
-
-		MY_LOG_ERROR("OpenGL error %s, at %s:%i - for %s", error.c_str(), fname, line, stmt);
-		//abort();
-	}
-}
-
-#ifndef GL_CHECK
-#if defined(_DEBUG) || defined(DEBUG)
-#define GL_CHECK(stmt) do { \
-                stmt; \
-                CheckOpenGLError(#stmt, __FILE__, __LINE__); \
-            } while (0);
-#else
-#define GL_CHECK(stmt) stmt
-#endif
-#endif
 
 #if defined(_DEBUG) || defined(DEBUG)
 #define NV_REPORT_COMPILE_ERRORS
@@ -58,7 +21,7 @@ void CheckOpenGLError(const char* stmt, const char* fname, int line)
 
 
 #if defined(__APPLE__) || defined(__ANDROID_API__)
-const char* AbstractRenderer::Shader::vSource = {
+const char* AbstractRenderer::DEFAULT_VERTEX_SHADER_SOURCE = {
 	"\n\
 	precision highp float;\n\
     attribute vec2 POSITION;\n\
@@ -70,14 +33,12 @@ const char* AbstractRenderer::Shader::vSource = {
     void main()\n\
     {\n\
         gl_Position = vec4(POSITION.x, POSITION.y, 0.0, 1.0); \n\
-		gl_Position.xy = 2.0 * gl_Position.xy - 1.0; \n\
-		gl_Position.y *= -1.0;\n\
         texCoord = TEXCOORD0; \n\
 		color = COLOR; \n\
     }\n\
 " };
 
-const char* AbstractRenderer::Shader::pSource = {
+const char* AbstractRenderer::DEFAULT_PIXEL_SHADER_SOURCE = {
 	"\n\
 	precision highp float;\n\
     uniform sampler2D fontTex;\n\
@@ -95,7 +56,7 @@ const char* AbstractRenderer::Shader::pSource = {
     }\n\
 " };
 #else
-const char* AbstractRenderer::Shader::vSource = {
+const char* AbstractRenderer::DEFAULT_VERTEX_SHADER_SOURCE = {
 	"\n\
 	\n\
     attribute vec2 POSITION;\n\
@@ -107,14 +68,12 @@ const char* AbstractRenderer::Shader::vSource = {
     void main()\n\
     {\n\
         gl_Position = vec4(POSITION.x, POSITION.y, 0.0, 1.0); \n\
-		gl_Position.xy = 2.0 * gl_Position.xy - 1.0; \n\
-		gl_Position.y *= -1.0;\n\
         texCoord = TEXCOORD0; \n\
 		color = COLOR; \n\
     }\n\
 " };
 
-const char* AbstractRenderer::Shader::pSource = {
+const char* AbstractRenderer::DEFAULT_PIXEL_SHADER_SOURCE = {
 	"\n\
     \n\
     uniform sampler2D fontTex;\n\
@@ -184,19 +143,43 @@ std::vector<std::string> AbstractRenderer::GetFontsInDirectory(const std::string
 }
 
 AbstractRenderer::AbstractRenderer(const std::vector<Font> & fs, RenderSettings r, int glVersion)
-	: rs(r), strChanged(false), renderEnabled(true), glVersion(glVersion)
+	: AbstractRenderer(fs, r, glVersion,
+                       DEFAULT_VERTEX_SHADER_SOURCE, DEFAULT_PIXEL_SHADER_SOURCE,
+                       std::make_shared<DefaultFontShaderManager>())
 {
-	this->fb = new FontBuilder(fs, r);
+}
 
-	int ps = this->fb->GetMaxFontPixelSize();
-	this->fb->SetGridPacking(ps, ps);
-
-
-	this->SetCaption(UTF8_TEXT(u8"\u2022"), 10);
-
-	this->SetAxisYOrigin(AxisYOrigin::TOP);
-
-	this->InitGL();
+AbstractRenderer::AbstractRenderer(const std::vector<Font> & fs, RenderSettings r, int glVersion,
+                 const char * vSource, const char * pSource, std::shared_ptr<IFontShaderManager> sm)
+    : rs(r), renderEnabled(true), glVersion(glVersion), sm(sm)
+{
+    this->Clear();
+    this->strChanged = false;
+    
+    this->shader.pSource = pSource;
+    this->shader.vSource = vSource;
+    
+    if ((pSource == DEFAULT_PIXEL_SHADER_SOURCE) && (vSource == DEFAULT_VERTEX_SHADER_SOURCE))
+    {
+        this->shader.isDefault = true;
+    }
+    else
+    {
+        this->shader.isDefault = false;
+    }
+    
+    this->fb = new FontBuilder(fs, r);
+    
+    int ps = this->fb->GetMaxFontPixelSize();
+    this->fb->SetGridPacking(ps, ps);
+    
+    
+    this->SetCaption(UTF8_TEXT(u8"\u2022"), 10);
+    
+    this->SetAxisYOrigin(AxisYOrigin::TOP);
+    
+    
+    this->InitGL();
 }
 
 AbstractRenderer::~AbstractRenderer()
@@ -237,22 +220,19 @@ void AbstractRenderer::InitGL()
 	GL_CHECK(glDeleteShader(vShader));
 	GL_CHECK(glDeleteShader(pShader));
 
+    this->sm->SetShaderProgram(shader.program);
+    
 	//get location of data in shader
-
-	//GL_CHECK(shader.colorLocation = glGetUniformLocation(shader.program, "color"));
-
-	GLint fontTexLoc = 0;
-	GL_CHECK(fontTexLoc = glGetUniformLocation(shader.program, "fontTex"));
+    GLint fontTexLoc = 0;
+    GL_CHECK(fontTexLoc = glGetUniformLocation(shader.program, "fontTex"));
 #ifdef glProgramUniform1i
-	GL_CHECK(glProgramUniform1i(shader.program, fontTexLoc, 0)); //Texture unit 0 is for font Tex.
+    GL_CHECK(glProgramUniform1i(shader.program, fontTexLoc, 0)); //Texture unit 0 is for font Tex.
 #elif glProgramUniform1iEXT
-	GL_CHECK(glProgramUniform1iEXT(shader.program, fontTexLoc, 0)); //Texture unit 0 is for font Tex.
+    GL_CHECK(glProgramUniform1iEXT(shader.program, fontTexLoc, 0)); //Texture unit 0 is for font Tex.
 #endif
-
-	GL_CHECK(shader.positionLocation = glGetAttribLocation(shader.program, "POSITION"));
-	GL_CHECK(shader.texCoordLocation = glGetAttribLocation(shader.program, "TEXCOORD0"));
-	GL_CHECK(shader.colorLocation = glGetAttribLocation(shader.program, "COLOR"));
-
+    
+    this->sm->GetAttributtesUniforms();
+    
 
 	//create VBO
 	GL_CHECK(glGenBuffers(1, &this->vbo));
@@ -270,19 +250,12 @@ void AbstractRenderer::InitGL()
 		this->fb->GetTextureWidth(), this->fb->GetTextureHeight(), 0,
 		TEXTURE_SINGLE_CHANNEL, GL_UNSIGNED_BYTE, nullptr));
 
-	/*
-	//for higher opengl use this
-	GL_CHECK(glTexImage2D(GL_TEXTURE_2D, 0, GL_R8,
-	this->fb->GetTextureWidth(), this->fb->GetTextureHeight(), 0,
-	GL_RED, GL_UNSIGNED_BYTE, nullptr));
-	*/
-
 	GL_CHECK(glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST));
 	GL_CHECK(glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST));
 	GL_CHECK(glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE));
 	GL_CHECK(glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE));
-
 }
+
 
 /// <summary>
 /// Create VAO
@@ -304,38 +277,13 @@ void AbstractRenderer::CreateVAO()
 
 	FONT_BIND_VAO(this->vao);
 
-	this->BindVertexAtribs();
+	this->sm->BindVertexAtribs();
 
 	FONT_UNBIND_ARRAY_BUFFER;
 
 	FONT_UNBIND_VAO;
 
 
-
-}
-
-void AbstractRenderer::BindVertexAtribs()
-{
-	const size_t VERTEX_SIZE = sizeof(Vertex);
-	const size_t POSITION_OFFSET = 0 * sizeof(float);
-	const size_t TEX_COORD_OFFSET = 2 * sizeof(float);
-	const size_t COLOR_OFFSET = 4 * sizeof(float);
-
-
-	GL_CHECK(glEnableVertexAttribArray(this->shader.positionLocation));
-	GL_CHECK(glVertexAttribPointer(this->shader.positionLocation, 2,
-		GL_FLOAT, GL_FALSE,
-		VERTEX_SIZE, (void*)(POSITION_OFFSET)));
-
-	GL_CHECK(glEnableVertexAttribArray(this->shader.texCoordLocation));
-	GL_CHECK(glVertexAttribPointer(this->shader.texCoordLocation, 2,
-		GL_FLOAT, GL_FALSE,
-		VERTEX_SIZE, (void*)(TEX_COORD_OFFSET)));
-
-	GL_CHECK(glEnableVertexAttribArray(this->shader.colorLocation));
-	GL_CHECK(glVertexAttribPointer(this->shader.colorLocation, 4,
-		GL_FLOAT, GL_FALSE,
-		VERTEX_SIZE, (void*)(COLOR_OFFSET)));
 
 }
 
@@ -481,12 +429,18 @@ void AbstractRenderer::Clear()
 {
 	this->strChanged = true;
 	this->geom.clear();
+    this->quadsCount = 0;
 }
 
 /// <summary>
 /// Render all fonts
 /// </summary>
 void AbstractRenderer::Render()
+{
+    this->Render(nullptr);
+}
+
+void AbstractRenderer::Render(std::function<void(GLuint)> preDrawCallback)
 {
 	if (this->renderEnabled == false)
 	{
@@ -500,6 +454,7 @@ void AbstractRenderer::Render()
 		return;
 	}
 
+    
 	//activate texture
 	GL_CHECK(glActiveTexture(GL_TEXTURE0));
 	FONT_BIND_TEXTURE_2D(this->fontTex);
@@ -513,7 +468,7 @@ void AbstractRenderer::Render()
 #ifdef __ANDROID_API__
 	if (glVersion == 2)
 	{
-		this->BindVertexAtribs();
+		this->sm->BindVertexAtribs();
 	}
 	else
 	{
@@ -523,7 +478,12 @@ void AbstractRenderer::Render()
 	FONT_BIND_VAO(this->vao);
 #endif		
 
-	GL_CHECK(glDrawArrays(GL_TRIANGLES, 0, static_cast<int>(geom.size()) * 6));
+    if (preDrawCallback != nullptr)
+    {
+        preDrawCallback(shader.program);
+    }
+    
+	GL_CHECK(glDrawArrays(GL_TRIANGLES, 0, quadsCount * 6));
 
 #ifdef __ANDROID_API__
 	if (glVersion != 2)
@@ -536,11 +496,9 @@ void AbstractRenderer::Render()
 
 	//deactivate shader
 	FONT_UNBIND_SHADER;
-
-
-
-
 }
+
+
 
 void AbstractRenderer::FillTexture()
 {
@@ -550,20 +508,56 @@ void AbstractRenderer::FillTexture()
 		0, 0,
 		this->fb->GetTextureWidth(), this->fb->GetTextureHeight(),
 		TEXTURE_SINGLE_CHANNEL, GL_UNSIGNED_BYTE, this->fb->GetTexture()));
-	/*
-	//for higher opengl use this
-	GL_CHECK(glTexSubImage2D(GL_TEXTURE_2D, 0,
-	0, 0,
-	this->fb->GetTextureWidth(), this->fb->GetTextureHeight(),
-	GL_RED, GL_UNSIGNED_BYTE, this->fb->GetTexture()));
-	*/
 
 	FONT_UNBIND_TEXTURE_2D;
 }
 
+/// <summary>
+/// Add single "letter" quad to geom buffer
+/// </summary>
+/// <param name="gi"></param>
+/// <param name="x"></param>
+/// <param name="y"></param>
+void AbstractRenderer::AddQuad(const GlyphInfo & gi, int x, int y, const Color & col)
+{
+    float psW = 1.0f / static_cast<float>(rs.deviceW); //pixel size in width
+    float psH = 1.0f / static_cast<float>(rs.deviceH); //pixel size in height
+    
+    float tW = 1.0f / static_cast<float>(this->fb->GetTextureWidth());  //pixel size in width
+    float tH = 1.0f / static_cast<float>(this->fb->GetTextureHeight()); //pixel size in height
+    
+    
+    
+    int fx = x + gi.bmpX;
+    int fy = y - gi.bmpY;
+    
+    //build geometry
+    Vertex min, max;
+    
+    min.x = static_cast<float>(fx) * psW;
+    min.y = static_cast<float>(fy) * psH;
+    min.u = static_cast<float>(gi.tx) * tW;
+    min.v = static_cast<float>(gi.ty) * tH;
+    
+    max.x = static_cast<float>(fx + gi.bmpW) * psW;
+    max.y = static_cast<float>(fy + gi.bmpH) * psH;
+    max.u = static_cast<float>(gi.tx + gi.bmpW) * tW;
+    max.v = static_cast<float>(gi.ty + gi.bmpH) * tH;
+    
+    this->sm->FillVertexData(min, max, col, this->geom);
+    
+    quadsCount++;
+}
+
+
 void AbstractRenderer::FillVB()
 {
+    if (this->geom.size() == 0)
+    {
+        return;
+    }
+    
 	FONT_BIND_ARRAY_BUFFER(this->vbo);
-	GL_CHECK(glBufferData(GL_ARRAY_BUFFER, this->geom.size() * sizeof(LetterGeom), &(this->geom.front()), GL_STREAM_DRAW));
+	GL_CHECK(glBufferData(GL_ARRAY_BUFFER, this->geom.size() * sizeof(float), this->geom.data(), GL_STREAM_DRAW));
 	FONT_UNBIND_ARRAY_BUFFER;
 }
