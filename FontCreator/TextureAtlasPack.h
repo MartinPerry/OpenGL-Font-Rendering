@@ -38,7 +38,7 @@ public:
 	std::unordered_map<CHAR_CODE, PackedInfo> & GetPackedInfos();
 
 	void SetAllGlyphs(std::vector<FontInfo> * fontInfos);
-	void SetUnusedGlyphs(const std::list<UnusedGlyphInfo> & unused);
+	void SetUnusedGlyphs(std::list<UnusedGlyphInfo> * unused);
 	const std::unordered_map<CHAR_CODE, TextureAtlasPack::ErasedInfo> & GetErasedGlyphs();
 
 	void SetTightPacking();
@@ -79,7 +79,7 @@ private:
 		
 	//std::list<GlyphInfo> * glyphs;
 	std::vector<FontInfo> * fontInfos;
-	std::list<UnusedGlyphInfo> unused;	
+	std::list<UnusedGlyphInfo> * unused;	
 	std::unordered_map<CHAR_CODE, ErasedInfo> erased;
 	
 	int gridBinW;

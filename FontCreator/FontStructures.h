@@ -60,6 +60,8 @@ typedef struct FontInfo
 
 	std::string fontFaceName;
 	int fontSizePixels;
+	//int fontPixelsWidth;
+	//int fontPixelsHeight;
 
 	
 	int newLineOffset;
@@ -71,7 +73,10 @@ typedef struct FontInfo
 
 	FT_Face fontFace;
 	int index;
-
+	
+	bool onlyBitmapGlyphs;
+	float scaleFactor;
+	
 
 } FontInfo;
 

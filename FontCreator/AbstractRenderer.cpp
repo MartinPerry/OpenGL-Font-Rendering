@@ -531,6 +531,8 @@ void AbstractRenderer::AddQuad(const GlyphInfo & gi, int x, int y, const Color &
     int fx = x + gi.bmpX;
     int fy = y - gi.bmpY;
     
+	
+
     //build geometry
     Vertex min, max;
     

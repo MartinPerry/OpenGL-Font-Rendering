@@ -20,7 +20,7 @@ FontBuilder::FontBuilder(const std::vector<Font> & fonts, RenderSettings r)
 	this->texPacker->SetTightPacking();
 	//this->texPacker->SetGridPacking(fontSize, fontSize);
 
-
+	
 	if (FT_Init_FreeType(&this->library))
 	{
 		MY_LOG_ERROR("Failed to initialize FreeType library.");
@@ -37,6 +37,7 @@ FontBuilder::FontBuilder(const std::vector<Font> & fonts, RenderSettings r)
 			continue;
 		}
 
+				
 		if (f.size.sizeType == FontSize::SizeType::px)
 		{
 			this->SetFontSizePixels(this->fis[index], static_cast<int>(f.size));
@@ -53,6 +54,15 @@ FontBuilder::FontBuilder(const std::vector<Font> & fonts, RenderSettings r)
 		}
 	}
 
+
+	int maxSize = this->GetMaxFontPixelSize();
+	for (auto & f : this->fis)
+	{
+		if (f.onlyBitmapGlyphs)
+		{
+			f.scaleFactor = static_cast<float>(maxSize) / f.fontSizePixels;
+		}
+	}
 
 }
 
@@ -163,8 +173,19 @@ int FontBuilder::InitializeFont(const std::string & fontFacePath)
 
 	fi.fontFace = ff;
 	fi.index = static_cast<int>(this->fis.size());
-
-
+	fi.onlyBitmapGlyphs = false;
+	fi.scaleFactor = 1.0f;
+	
+	if (ff->num_fixed_sizes != 0)
+	{
+		if (ff->units_per_EM == 0)
+		{
+			//only bitmap font
+			fi.onlyBitmapGlyphs = true;
+			//fi.scaleFactor = 0.5f;
+		}
+	}
+	
 	this->fis.push_back(fi);
 
 	return fi.index;
@@ -172,39 +193,103 @@ int FontBuilder::InitializeFont(const std::string & fontFacePath)
 }
 
 
-void FontBuilder::SetFontSizePts(FontInfo & f, int size, int dpi)
+
+bool FontBuilder::SetFontSizePts(FontInfo & f, int size, int dpi)
 {
 	//https://www.freetype.org/freetype2/docs/glyphs/glyphs-2.html
+		
 	
-	if (FT_Set_Char_Size(f.fontFace, 0, size * 64, dpi, dpi))
+	if (f.onlyBitmapGlyphs)
 	{
-		MY_LOG_ERROR("Failed to set font size in points");
-		return;
+		//only bitmap font
+		return this->SetClosestFontSizeForBitmaps(f, size);
 	}
 
-	f.fontSizePixels = (size * dpi / 64); // this->fontFace->size->metrics.y_ppem;	
+	if (FT_Error err = FT_Set_Char_Size(f.fontFace, 0, size * 64, dpi, dpi))
+	{
+		MY_LOG_ERROR("Failed to set font size in points: %i", err);
+		return false;
+	}
+
+	
+	double pixel_size = size * dpi / 72;
+
+	//f.fontPixelsHeight = round((f.fontFace->bbox.yMax - f.fontFace->bbox.yMin) * pixel_size / f.fontFace->units_per_EM);
+	//f.fontPixelsWidth = round((f.fontFace->bbox.xMax - f.fontFace->bbox.xMin) * pixel_size / f.fontFace->units_per_EM);
+
+	f.fontSizePixels = (size * (dpi / 64)); // this->fontFace->size->metrics.y_ppem;	
 	f.newLineOffset = static_cast<int>(f.fontFace->size->metrics.height / 64);
+
+	return true;
 }
 
-void FontBuilder::SetFontSizePixels(FontInfo & f, int size)
+bool FontBuilder::SetFontSizePixels(FontInfo & f, int size)
 {	
 	//https://www.freetype.org/freetype2/docs/tutorial/step1.html
-
-	if (FT_Set_Pixel_Sizes(f.fontFace, 0, size))
+	
+	if (f.onlyBitmapGlyphs)
 	{
-		MY_LOG_ERROR("Failed to set font size in pixels\n");
-		return;
+		//only bitmap font
+		return this->SetClosestFontSizeForBitmaps(f, size);				
+	}
+
+	if (FT_Error err = FT_Set_Pixel_Sizes(f.fontFace, 0, size))
+	{
+		MY_LOG_ERROR("Failed to set font size in pixels: %i", err);
+		return false;
 	}
 
 	//http://stackoverflow.com/questions/28009564/new-line-pixel-distance-in-freetype
+
+	
+	//f.fontPixelsHeight = round((f.fontFace->bbox.yMax - f.fontFace->bbox.yMin) * size / f.fontFace->units_per_EM);
+	//f.fontPixelsWidth = round((f.fontFace->bbox.xMax - f.fontFace->bbox.xMin) * size / f.fontFace->units_per_EM);
+
 
 	f.fontSizePixels = size;
 
 	// get the scaled line spacing (for 48pt), also measured in 64ths of a pixel
 	f.newLineOffset = static_cast<int>(f.fontFace->size->metrics.height / 64);
 
+	return true;
 }
 
+
+bool FontBuilder::SetClosestFontSizeForBitmaps(FontInfo & f, int size)
+{
+	FT_Pos minDif = std::numeric_limits<FT_Pos>::max();
+	int minDifIndex = 0;
+
+	for (int i = 0; i < f.fontFace->num_fixed_sizes; i++)
+	{
+		auto s = f.fontFace->available_sizes[i];
+		auto dif = std::abs(s.width - size);
+		if (dif < minDif)
+		{
+			minDif = dif;
+			minDifIndex = i;
+		}
+	}
+	
+	if (FT_Error err = FT_Select_Size(f.fontFace, minDifIndex))
+	{
+		MY_LOG_ERROR("Failed to set closest font size: %i", err);
+		return false;
+	}
+
+	auto tmp = f.fontFace->available_sizes[minDifIndex];
+
+	//f.fontPixelsWidth = tmp.width;
+	//f.fontPixelsHeight = tmp.height;
+	f.fontSizePixels = std::max(tmp.width, tmp.height);
+
+	// get the scaled line spacing (for 48pt), also measured in 64ths of a pixel
+	f.newLineOffset = static_cast<int>(f.fontFace->size->metrics.height / 64);
+
+	//return closestSize / 64;
+
+	return true;
+}
 
 //================================================================
 
@@ -220,6 +305,12 @@ int FontBuilder::GetMaxFontPixelSize() const
 	int fontSizePixels = std::numeric_limits<int>::min();
 	for (auto & fi : this->fis)
 	{
+		if (fi.onlyBitmapGlyphs)
+		{
+			continue;
+		}
+		//fontSizePixels = std::max(fontSizePixels, fi.fontPixelsWidth);
+		//fontSizePixels = std::max(fontSizePixels, fi.fontPixelsHeight);
 		fontSizePixels = std::max(fontSizePixels, fi.fontSizePixels);
 	}
 
@@ -346,7 +437,7 @@ void FontBuilder::AddCharacter(CHAR_CODE c)
 		return;
 	}
 
-	for (auto & fi : this->fis)
+	for (const FontInfo & fi : this->fis)
 	{
 		if (fi.usedGlyphs.find(c) != fi.usedGlyphs.end())
 		{
@@ -356,10 +447,13 @@ void FontBuilder::AddCharacter(CHAR_CODE c)
 		else
 		{
 			//new character
-			if (this->newCodes.find(c) == this->newCodes.end())
-			{
-				this->newCodes.insert(c);
-			}
+			//can insert the same character again, set does not contain duplicities
+			this->newCodes.insert(c);
+
+			//if (this->newCodes.find(c) == this->newCodes.end())
+			//{
+			//	this->newCodes.insert(c);
+			//}
 		}
 	}
 
@@ -394,7 +488,7 @@ bool FontBuilder::CreateFontAtlas()
 
 
 	int index = 0;
-	for (auto & fi : this->fis)
+	for (FontInfo & fi : this->fis)
 	{
 		for (FontInfo::UsedGlyphIterator it = fi.usedGlyphs.begin();
 			it != fi.usedGlyphs.end();
@@ -418,7 +512,7 @@ bool FontBuilder::CreateFontAtlas()
 
 	//try to add new codes to texture
 	this->texPacker->SetAllGlyphs(&this->fis);
-	this->texPacker->SetUnusedGlyphs(unused);
+	this->texPacker->SetUnusedGlyphs(&unused);
 
 
 	if (this->texPacker->Pack() == false)
@@ -435,7 +529,10 @@ bool FontBuilder::CreateFontAtlas()
 		//because before packing run out of space, it could remove glyphs from
 		//texture
 	}
-	//this->texPacker->SaveToFile("D://outofspace.png");
+
+#if defined(_WIN32) && defined(_DEBUG)
+	//this->texPacker->SaveToFile("D://packed_tex.png");
+#endif
 	
 	this->texPacker->RemoveUnusedGlyphsFromFontInfo();
 
@@ -444,6 +541,8 @@ bool FontBuilder::CreateFontAtlas()
 	//there was a space in texture and new glyphs can be added
 	this->newCodes.clear();
 	this->reused.clear();
+
+	this->texPacker->SetUnusedGlyphs(nullptr);
 
 	return true;
 }
@@ -456,6 +555,7 @@ bool FontBuilder::CreateFontAtlas()
 /// <param name="c"></param>
 void FontBuilder::LoadGlyphInfo(CHAR_CODE c)
 {
+	
 	for (auto & fi : this->fis)
 	{
 		if (this->LoadGlyphInfo(c, fi))
@@ -469,6 +569,7 @@ void FontBuilder::LoadGlyphInfo(CHAR_CODE c)
 
 bool FontBuilder::LoadGlyphInfo(CHAR_CODE c, FontInfo & fi)
 {
+	
 	if (fi.usedGlyphs.find(c) != fi.usedGlyphs.end())
 	{
 		//glyph already exist
@@ -481,13 +582,28 @@ bool FontBuilder::LoadGlyphInfo(CHAR_CODE c, FontInfo & fi)
 	{		
 		return false;
 	}
-
-	if (FT_Load_Glyph(fi.fontFace, ci, FT_LOAD_RENDER))
+	
+	
+	//FT_LOAD_RENDER
+	if (FT_Error err = FT_Load_Glyph(fi.fontFace, ci, FT_LOAD_RENDER))
 	{		
 		return false;
 	}
-
+	
 	FT_GlyphSlot glyph = fi.fontFace->glyph;
+
+	/*
+	if (FT_Error err = FT_Render_Glyph(glyph, FT_RENDER_MODE_NORMAL))
+	{		
+		return false;
+	}
+	*/
+			
+	if (glyph->bitmap.pixel_mode != FT_PIXEL_MODE_GRAY)
+	{
+		MY_LOG_ERROR("Only gray-scale glyphs are supported");
+		return false;		
+	}
 
 
 	//bitmap_left is the horizontal distance from the current pen position 
@@ -498,27 +614,45 @@ bool FontBuilder::LoadGlyphInfo(CHAR_CODE c, FontInfo & fi)
 	
 	GlyphInfo gInfo;
 	gInfo.code = c;
-	gInfo.bmpX = glyph->bitmap_left;
-	gInfo.bmpY = glyph->bitmap_top;
-	gInfo.bmpW = glyph->bitmap.width;
-	gInfo.bmpH = glyph->bitmap.rows;
-	gInfo.adv = glyph->advance.x;
+	gInfo.bmpX = static_cast<int>(glyph->bitmap_left * fi.scaleFactor);
+	gInfo.bmpY = static_cast<int>(glyph->bitmap_top * fi.scaleFactor);
+	gInfo.bmpW = static_cast<int>(glyph->bitmap.width * fi.scaleFactor);
+	gInfo.bmpH = static_cast<int>(glyph->bitmap.rows * fi.scaleFactor);
+	gInfo.adv = static_cast<long>(glyph->advance.x * fi.scaleFactor);
 	gInfo.rawData = nullptr;
 
 	if (c > 32)
 	{
 		//add texture for only "non whitespace chars"
-        
-		int bitmapSize = glyph->bitmap.width * glyph->bitmap.rows;
-		uint8_t * textureData = new uint8_t[bitmapSize];
 
-		for (int j = 0; j < bitmapSize; j++)
+		if (fi.scaleFactor != 1.0)
 		{
-			textureData[j + 0] = glyph->bitmap.buffer[j];
+			gInfo.rawData = this->ResizeBitmap(glyph, fi);
 		}
-		//---------------------
+		else
+		{
+			int bitmapSize = glyph->bitmap.width * glyph->bitmap.rows;
+			uint8_t * textureData = new uint8_t[bitmapSize];
 
-		gInfo.rawData = textureData;
+			size_t j = 0;
+			for (unsigned int y = 0; y < glyph->bitmap.rows; y++)
+			{
+				for (unsigned int x = 0; x < glyph->bitmap.width; x++)
+				{
+					textureData[j] = glyph->bitmap.buffer[x + y * glyph->bitmap.pitch];
+					j++;
+				}
+			}
+
+			for (int j = 0; j < bitmapSize; j++)
+			{
+				//textureData[j + 0] = glyph->bitmap.buffer[j];
+			}
+			//---------------------
+
+
+			gInfo.rawData = textureData;
+		}
 	}
 
 
@@ -532,3 +666,25 @@ bool FontBuilder::LoadGlyphInfo(CHAR_CODE c, FontInfo & fi)
 
 }
 
+
+uint8_t * FontBuilder::ResizeBitmap(FT_GlyphSlot glyph, FontInfo & fi)
+{
+	size_t w = static_cast<size_t>(glyph->bitmap.width * fi.scaleFactor);
+	size_t h = static_cast<size_t>(glyph->bitmap.rows * fi.scaleFactor);
+
+	uint8_t * textureData = new uint8_t[w * h];
+	
+	double x_ratio = glyph->bitmap.width / (double)w;
+	double y_ratio = glyph->bitmap.rows / (double)h;
+	double px, py;
+	for (size_t i = 0; i < h; i++) 
+	{
+		for (size_t j = 0; j < w; j++)
+		{
+			px = floor(j * x_ratio);
+			py = floor(i * y_ratio);
+			textureData[(i*w) + j] = glyph->bitmap.buffer[static_cast<int>(px + py * glyph->bitmap.pitch)];			
+		}
+	}
+	return textureData;
+}

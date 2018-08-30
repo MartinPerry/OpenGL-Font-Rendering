@@ -3,7 +3,8 @@
 
 //http://www.blackpawn.com/texts/lightmaps/default.html
 
-TextureAtlasPack::TextureAtlasPack(int w, int h, int border)
+TextureAtlasPack::TextureAtlasPack(int w, int h, int border) : 
+	fontInfos(nullptr), unused(nullptr)
 {
 	
 	this->w = w;
@@ -43,13 +44,9 @@ std::unordered_map<CHAR_CODE, TextureAtlasPack::PackedInfo> & TextureAtlasPack::
 void TextureAtlasPack::SaveToFile(const std::string & path)
 {
 	//save image as PNG
-
 	
 	lodepng::encode(path.c_str(), this->rawPackedData, this->w, this->h, 
-		LodePNGColorType::LCT_GREY, 8 * sizeof(uint8_t));
-
-
-	
+		LodePNGColorType::LCT_GREY, 8 * sizeof(uint8_t));	
 }
 
 
@@ -99,7 +96,7 @@ void TextureAtlasPack::SetAllGlyphs(std::vector<FontInfo> * fontInfos)
 	this->fontInfos = fontInfos;
 }
 
-void TextureAtlasPack::SetUnusedGlyphs(const std::list<UnusedGlyphInfo> & unused)
+void TextureAtlasPack::SetUnusedGlyphs(std::list<UnusedGlyphInfo> * unused)
 {
 	this->unused = unused;
 }
@@ -176,11 +173,11 @@ bool TextureAtlasPack::Pack()
 /// <returns></returns>
 bool TextureAtlasPack::PackGrid()
 {				
-	if (this->unused.size() * this->averageGlyphSize >= (this->w * this->h) * 0.4)
+	if (this->unused->size() * this->averageGlyphSize >= (this->w * this->h) * 0.4)
 	{
 		//total unused space is over 40% of entire texture
 		//erase all
-		printf("Erasing all packed data...\n");
+		MY_LOG_INFO("Erasing all packed data...");
 		this->EraseAllUnused();
 		this->RemoveUnusedGlyphsFromFontInfo();
 		this->Clear();
@@ -209,7 +206,7 @@ bool TextureAtlasPack::PackGrid()
 
 			if (this->freeSpace.size() == 0)
 			{
-				if (this->unused.size() == this->erased.size())
+				if (this->unused->size() == this->erased.size())
 				{
 					//all unused characters are erased
 					//no more empty space
@@ -222,7 +219,7 @@ bool TextureAtlasPack::PackGrid()
 
 				if (this->FreeSpace(g.bmpW, g.bmpH, &removedCode) == false)
 				{
-					printf("Empty space in atlas not found and cannot be freed for glyph %lu\n", g.code);
+					MY_LOG_INFO("Empty space in atlas not found and cannot be freed for glyph %lu", g.code);
 					return false;
 				}
 
@@ -249,18 +246,7 @@ bool TextureAtlasPack::PackGrid()
 			g.tx = info.x + this->border;
 			g.ty = info.y + this->border;
 
-			//safety update - sometimes glyphs are bigger that bin - change size by removing
-			//right / bottom lines from data - during copy, texture will reside in its bin
-			if (g.bmpH > this->gridBinH)
-			{
-				g.bmpH = this->gridBinH;
-			}
-
-			if (g.bmpW > this->gridBinW)
-			{
-				g.bmpW = this->gridBinW;
-			}
-
+			
 			count++;
 			this->averageGlyphSize += g.bmpW * g.bmpH;
 
@@ -353,9 +339,9 @@ void TextureAtlasPack::CopyDataToTexture()
 {
 	const uint8_t BORDER_DEBUG_VALUE = 125;
 
-	for (auto & fi : *this->fontInfos)
+	for (const FontInfo & fi : *this->fontInfos)
 	{
-		for (GlyphInfo & g : fi.glyphs)
+		for (const GlyphInfo & g : fi.glyphs)
 		{
 			auto it = this->packedInfo.find(g.code);
 			if (it == this->packedInfo.end())
@@ -376,20 +362,33 @@ void TextureAtlasPack::CopyDataToTexture()
 			int px = it->second.x + this->border;
 			int py = it->second.y + this->border;
 
+			int gw = g.bmpW;
+			int gh = g.bmpH;
+
+			//safety update - sometimes glyphs are bigger that bin - change size by removing
+			//right / bottom lines from data - during copy, texture will reside in its bin
+			if (gh > this->gridBinH)
+			{
+				gh = this->gridBinH;
+			}
+
+			if (gw > this->gridBinW)
+			{
+				gw = this->gridBinW;
+			}
+
 			//draw "border around letter"
 			//if there was some previous letter - it will remove its remains
 			this->DrawBorder(it->second.x, it->second.y,
-				g.bmpW + 2 * this->border, g.bmpH + 2 * this->border, 0);
+				gw + 2 * this->border, gh + 2 * this->border, 0);
 
-			//copy letter data
-			int index = 0;
-			for (int y = py; y < py + g.bmpH; y++)
+			//copy letter data			
+			for (int y = py, gy = 0; y < py + gh; y++, gy++)
 			{
-				for (int x = px; x < px + g.bmpW; x++)
+				for (int x = px, gx = 0; x < px + gw; x++, gx++)
 				{
-					this->rawPackedData[x + y * w] = g.rawData[index];
+					this->rawPackedData[x + y * w] = g.rawData[gx + gy * g.bmpW];
 
-					index++;
 					this->freePixels--;
 				}
 			}
@@ -673,7 +672,7 @@ bool TextureAtlasPack::FreeSpace(int spaceWidth, int spaceHeight, CHAR_CODE * c)
 
 	ErasedInfo ei;
 		
-	for (auto & it : this->unused)	
+	for (auto & it : *this->unused)	
 	{
 		if (it.gi->second->bmpW + b < spaceWidth) continue;
 		if (it.gi->second->bmpH + b < spaceHeight) continue;
@@ -704,7 +703,7 @@ bool TextureAtlasPack::FreeSpace(int spaceWidth, int spaceHeight, CHAR_CODE * c)
 void TextureAtlasPack::EraseAllUnused()
 {
 	ErasedInfo ei;
-	for (auto & it : this->unused)
+	for (auto & it : *this->unused)
 	{				
 		//add glyph to erased		
 		ei.gi = it.gi;
@@ -720,7 +719,8 @@ void TextureAtlasPack::RemoveUnusedGlyphsFromFontInfo()
 	for (auto r : this->erased)
 	{
 		SAFE_DELETE_ARRAY(r.second.gi->second->rawData);
-		
+				
+
 		auto & fi = (*this->fontInfos)[r.second.fontIndex];
 
 		fi.glyphs.erase(r.second.gi->second);

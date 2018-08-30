@@ -50,6 +50,10 @@
 #endif
 
 
+#ifndef MY_LOG_INFO
+#define MY_LOG_INFO(...) printf(__VA_ARGS__)
+#endif
+
 //=====================================================================================
 //OpenGL error checks
 

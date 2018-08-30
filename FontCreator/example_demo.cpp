@@ -113,12 +113,17 @@ void display() {
 	
 	fr->Clear();
 	//fr->AddStringCaption(UTF8_TEXT(u8"Velmi"), -0.05f, 0.5f, { 1,1,0,1 });
-	fr->AddStringCaption(UTF8_TEXT(u8"Velmi"), 0.5f, 0.5f, { 1,1,0,1 });
+	//fr->AddString(UTF8_TEXT(u8"Velmi \U0001F300"), 0.5f, 0.5f, { 1,1,0,1 });
 	//fr->AddStringCaption(UTF8_TEXT(u8"Pøíliš malýp\n(žluouèký)\nkùyòy"), 0.5f, 0.5f, { 1,1,0,1 });
 	//fr->AddStringCaption(UTF8_TEXT(u8"ahoj \u0633\u0644\u0627\u0645"), 0.8f, 0.5f, { 1,1,0,1 });
 	//fr->AddStringCaption(UTF8_TEXT(u8"Baf"), 0.8f, 0.8f, { 1,1,0,1 });
 	//fr->AddString(UTF8_TEXT(u8"[]"), 0.5f, 0.5f, { 1,1,0,1 });
 	
+	//fr->AddString(UTF8_TEXT(u8"x \U0001F300 x"), 0.5f, 0.5f);
+	fr->AddString(UTF8_TEXT(u8"MLQp\U0001F300x"), 0.5f, 0.5f, { 1,1,1,1 }, AbstractRenderer::TextAnchor::CENTER);
+	//fr->AddString(UTF8_TEXT(u8"\U0001F600"), 0.5f, 0.5f);
+	//fr->AddString(UTF8_TEXT(u8"x"), 0.5f, 0.5f);
+
 	//fr->AddStringCaption(generateRandomString(), 0.5, 0.8);
 	//fr->AddStringCaption(rrr, 0.5, 0.8);
 
@@ -176,7 +181,7 @@ void initGL() {
 	{
 		Font f;
 		f.name = d;
-		f.size = 12_pt;
+		f.size = 12_pt;		
 
 		fonts.push_back(f);
 	}
@@ -228,7 +233,7 @@ void initGL() {
 	fr = new StringRenderer(fonts, r);
 	//fr = new StringRenderer({ fNum }, r);
 	//fr = new StringRenderer({ f4 }, r);
-	fn = new NumberRenderer({ fArial }, r);
+	//fn = new NumberRenderer({ fArial }, r);
 
 	
 	
@@ -293,7 +298,7 @@ int main(int argc, char ** argv)
 	/*
 	//CharacterExtractor cr({ "arial.ttf" }, "arial_out.ttf");
 	//CharacterExtractor cr(std::vector<std::string>({ "arial.ttf" }), "arial_out.ttf");
-	CharacterExtractor cr({ "../ii_v2/noto_max_priority/", "../ii_v2/noto/", "../ii_v2/noto-otf/"  }, "merged_out");
+	CharacterExtractor cr({ "../ii_v2/noto_max_priority/", "../ii_v2/noto/", "../ii_v2/noto-otf/", "../ii_v2/emoji/"  }, "merged_out");
 	//CharacterExtractor cr({ "../ii/noto_max_priority/", "../ii/noto/" }, "merged_out");
 	//CharacterExtractor cr({ "../ii/noto_max_priority/" }, "merged_out");
 	
@@ -304,7 +309,8 @@ int main(int argc, char ** argv)
 	cr.AddText(UTF8_TEXT(u8"0123456789"));
 	cr.AddText(UTF8_TEXT(u8" !/*-+,.="));
 	cr.AddText(UTF8_TEXT(u8"\u2022"));
-	cr.AddDirectory("D:\\Martin\\Programming\\test\\Ventusky\\VentuskyWin\\_bundle_dir_\\DATA\\cities\\");	
+	cr.AddText(UTF8_TEXT(u8"\U0001F300"));
+	//cr.AddDirectory("D:\\Martin\\Programming\\test\\Ventusky\\VentuskyWin\\_bundle_dir_\\DATA\\cities\\");	
 	//cr.RemoveChar(utf8_string(u8"P")[0]);
 	allChars = cr.GetAllCharacters();
 	

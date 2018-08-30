@@ -6,3 +6,4 @@ Release
 FontTools
 *.ttf
 *.otf
+/freetype-2.9.1

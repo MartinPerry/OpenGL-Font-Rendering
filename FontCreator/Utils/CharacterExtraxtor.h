@@ -204,12 +204,26 @@ void CharacterExtractor::InitFreeType()
 
 		FT_Select_Charmap(fontFace, FT_ENCODING_UNICODE);
 		
-		int dpi = 260;
-		int size = 12;
-		if (FT_Set_Char_Size(fontFace, 0, size * 64, dpi, dpi))
+		
+		if (fontFace->num_fixed_sizes != 0)
 		{
-			MY_LOG_ERROR("Failed to set font size in points");
-			return;
+			int size = fontFace->available_sizes[0].size / 64;
+			if (FT_Set_Pixel_Sizes(fontFace, 0, size))
+			{
+				MY_LOG_ERROR("Failed to set font size in points");
+				return;
+			}
+		}
+		else
+		{
+			int dpi = 260;
+			int size = 12;
+
+			if (FT_Set_Char_Size(fontFace, 0, size * 64, dpi, dpi))
+			{
+				MY_LOG_ERROR("Failed to set font size in points");
+				return;
+			}
 		}
 
 		int newLineOffset = static_cast<int>(fontFace->size->metrics.height / 64);

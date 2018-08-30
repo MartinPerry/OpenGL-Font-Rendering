@@ -72,14 +72,15 @@ protected:
 		
 	int InitializeFont(const std::string & fontFacePath);
 	uint8_t * LoadFontFromFile(const std::string & fontFacePath, size_t * bufSize);
-	void SetFontSizePixels(FontInfo & f, int size);
-	void SetFontSizePts(FontInfo & f, int size, int dpi);
+	bool SetFontSizePixels(FontInfo & f, int size);
+	bool SetFontSizePts(FontInfo & f, int size, int dpi);
+	bool SetClosestFontSizeForBitmaps(FontInfo & f, int size);
 
 	void LoadGlyphInfo(CHAR_CODE c);
 	bool LoadGlyphInfo(CHAR_CODE c, FontInfo & fi);
 
 	
-
+	uint8_t * ResizeBitmap(FT_GlyphSlot glyph, FontInfo & fi);
 	
 };
 
