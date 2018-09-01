@@ -236,11 +236,11 @@ AbstractRenderer::AABB StringRenderer::EstimateStringAABB(const UnicodeString & 
 	aabb.maxX = std::numeric_limits<int>::min();
 	aabb.maxY = std::numeric_limits<int>::min();
 
-    int maxFontSize = this->fb->GetMaxFontPixelSize();
+	int maxGlyphHeight = this->fb->GetMaxFontPixelHeight();
     
-	int w = maxFontSize;
-	int h = maxFontSize;
-    int adv = maxFontSize;;
+	int w = maxGlyphHeight;
+	int h = maxGlyphHeight;
+    int adv = maxGlyphHeight;
 
 	int startX = x;
 
@@ -278,9 +278,9 @@ AbstractRenderer::AABB StringRenderer::EstimateStringAABB(const UnicodeString & 
 		}
 		else
 		{
-			w = maxFontSize;
-			h = maxFontSize;
-			adv = maxFontSize;
+			w = maxGlyphHeight;
+			h = maxGlyphHeight;
+			adv = maxGlyphHeight;
 		}
 
 		newLineOffset = std::max(newLineOffset, fi->newLineOffset);
@@ -662,6 +662,7 @@ bool StringRenderer::GenerateGeometry()
 			}
 
 			newLineOffset = std::max(newLineOffset, fi->newLineOffset);
+			
 			
 			GlyphInfo & gi = *it->second;
 			

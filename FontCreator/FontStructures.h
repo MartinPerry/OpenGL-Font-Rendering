@@ -58,10 +58,10 @@ typedef struct FontInfo
 	typedef std::list<GlyphInfo>::iterator GlyphIterator;
 	typedef std::unordered_map<CHAR_CODE, GlyphIterator>::iterator UsedGlyphIterator;
 
-	std::string fontFaceName;
-	int fontSizePixels;
-	//int fontPixelsWidth;
-	//int fontPixelsHeight;
+	std::string faceName;
+	//int fontSizePixels;
+	int maxPixelsWidth;
+	int maxPixelsHeight;
 
 	
 	int newLineOffset;
@@ -75,7 +75,7 @@ typedef struct FontInfo
 	int index;
 	
 	bool onlyBitmapGlyphs;
-	float scaleFactor;
+	double scaleFactor;
 	
 
 } FontInfo;

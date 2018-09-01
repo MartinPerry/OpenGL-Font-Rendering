@@ -338,10 +338,11 @@ bool TextureAtlasPack::PackTight()
 void TextureAtlasPack::CopyDataToTexture()
 {
 	const uint8_t BORDER_DEBUG_VALUE = 125;
+	const uint8_t BORDER_EMPTY_VALUE = 0;
 
-	for (const FontInfo & fi : *this->fontInfos)
+	for (FontInfo & fi : *this->fontInfos)
 	{
-		for (const GlyphInfo & g : fi.glyphs)
+		for (GlyphInfo & g : fi.glyphs)
 		{
 			auto it = this->packedInfo.find(g.code);
 			if (it == this->packedInfo.end())
@@ -362,32 +363,32 @@ void TextureAtlasPack::CopyDataToTexture()
 			int px = it->second.x + this->border;
 			int py = it->second.y + this->border;
 
-			int gw = g.bmpW;
-			int gh = g.bmpH;
-
+			
+			int origW = g.bmpW;
+			
 			//safety update - sometimes glyphs are bigger that bin - change size by removing
 			//right / bottom lines from data - during copy, texture will reside in its bin
-			if (gh > this->gridBinH)
+			if (g.bmpH > this->gridBinH)
 			{
-				gh = this->gridBinH;
+				g.bmpH = this->gridBinH;				
 			}
 
-			if (gw > this->gridBinW)
+			if (g.bmpW > this->gridBinW)
 			{
-				gw = this->gridBinW;
+				g.bmpW = this->gridBinW;				
 			}
 
 			//draw "border around letter"
 			//if there was some previous letter - it will remove its remains
 			this->DrawBorder(it->second.x, it->second.y,
-				gw + 2 * this->border, gh + 2 * this->border, 0);
+				g.bmpW + 2 * this->border, g.bmpH + 2 * this->border, BORDER_EMPTY_VALUE);
 
 			//copy letter data			
-			for (int y = py, gy = 0; y < py + gh; y++, gy++)
+			for (int y = py, gy = 0; y < py + g.bmpH; y++, gy++)
 			{
-				for (int x = px, gx = 0; x < px + gw; x++, gx++)
+				for (int x = px, gx = 0; x < px + g.bmpW; x++, gx++)
 				{
-					this->rawPackedData[x + y * w] = g.rawData[gx + gy * g.bmpW];
+					this->rawPackedData[x + y * w] = g.rawData[gx + gy * origW];
 
 					this->freePixels--;
 				}

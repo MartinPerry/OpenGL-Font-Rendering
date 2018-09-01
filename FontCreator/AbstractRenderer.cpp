@@ -170,7 +170,7 @@ AbstractRenderer::AbstractRenderer(const std::vector<Font> & fs, RenderSettings 
     
     this->fb = new FontBuilder(fs, r);
     
-    int ps = this->fb->GetMaxFontPixelSize();
+	int ps = this->fb->GetMaxEmSize();// this->fb->GetMaxFontPixelHeight();
     this->fb->SetGridPacking(ps, ps);
     
     

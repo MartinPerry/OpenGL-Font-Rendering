@@ -38,7 +38,10 @@ public:
 
 	
 	const std::vector<FontInfo> & GetFontInfos() const;
-	int GetMaxFontPixelSize() const;
+	int GetMaxFontPixelHeight() const;
+	int GetMaxFontPixelWidth() const;
+	int GetMaxEmSize() const;
+
 	int GetMaxNewLineOffset() const;
 	int GetNewLineOffsetBasedOnGlyph(CHAR_CODE c);	
 	FontInfo::UsedGlyphIterator GetGlyph(CHAR_CODE c, bool & exist);
@@ -81,7 +84,8 @@ protected:
 
 	
 	uint8_t * ResizeBitmap(FT_GlyphSlot glyph, FontInfo & fi);
-	
+	uint8_t * ResizeBitmapHermite(FT_GlyphSlot glyph, FontInfo & fi);
+
 };
 
 

@@ -114,13 +114,16 @@ void display() {
 	fr->Clear();
 	//fr->AddStringCaption(UTF8_TEXT(u8"Velmi"), -0.05f, 0.5f, { 1,1,0,1 });
 	//fr->AddString(UTF8_TEXT(u8"Velmi \U0001F300"), 0.5f, 0.5f, { 1,1,0,1 });
+	fr->AddStringCaption(UTF8_TEXT(u8"\U0001F300Pøíliš malýp\n(žluouèký)\nkùyòy"), 0.5f, 0.5f, { 1,1,0,1 });
 	//fr->AddStringCaption(UTF8_TEXT(u8"Pøíliš malýp\n(žluouèký)\nkùyòy"), 0.5f, 0.5f, { 1,1,0,1 });
-	//fr->AddStringCaption(UTF8_TEXT(u8"ahoj \u0633\u0644\u0627\u0645"), 0.8f, 0.5f, { 1,1,0,1 });
+	//fr->AddStringCaption(UTF8_TEXT(u8"ahoj \u4e3d xx \u0633\u0644\u0627\u0645"), 0.5f, 0.5f, { 1,1,0,1 });
+	fr->AddStringCaption(UTF8_TEXT(u8"\u4e3d"), 0.8f, 0.5f, { 1,1,0,1 });
+	fr->AddStringCaption(UTF8_TEXT(u8"\u103c"), 0.2f, 0.5f, { 1,1,0,1 });
 	//fr->AddStringCaption(UTF8_TEXT(u8"Baf"), 0.8f, 0.8f, { 1,1,0,1 });
 	//fr->AddString(UTF8_TEXT(u8"[]"), 0.5f, 0.5f, { 1,1,0,1 });
 	
 	//fr->AddString(UTF8_TEXT(u8"x \U0001F300 x"), 0.5f, 0.5f);
-	fr->AddString(UTF8_TEXT(u8"MLQp\U0001F300x"), 0.5f, 0.5f, { 1,1,1,1 }, AbstractRenderer::TextAnchor::CENTER);
+	//fr->AddString(UTF8_TEXT(u8"MLQp\U0001F300x"), 0.5f, 0.5f, { 1,1,1,1 }, AbstractRenderer::TextAnchor::CENTER);
 	//fr->AddString(UTF8_TEXT(u8"\U0001F600"), 0.5f, 0.5f);
 	//fr->AddString(UTF8_TEXT(u8"x"), 0.5f, 0.5f);
 
@@ -186,7 +189,10 @@ void initGL() {
 		fonts.push_back(f);
 	}
 	
-
+	Font ft;	
+	ft.name = "../fonts2/merged_out_2048_94.ttf";
+	ft.size = 12_pt;
+	//fonts.push_back(ft);
 	
 	Font fArial;
 	fArial.name = "../fonts/arial_unicode.ttf";	
