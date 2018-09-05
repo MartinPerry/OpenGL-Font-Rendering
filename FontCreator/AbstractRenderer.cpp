@@ -151,11 +151,19 @@ AbstractRenderer::AbstractRenderer(const std::vector<Font> & fs, RenderSettings 
 
 AbstractRenderer::AbstractRenderer(const std::vector<Font> & fs, RenderSettings r, int glVersion,
                  const char * vSource, const char * pSource, std::shared_ptr<IFontShaderManager> sm)
-    : rs(r), renderEnabled(true), glVersion(glVersion), sm(sm)
-{
-    this->Clear();
-    this->strChanged = false;
-    
+    : rs(r), 
+	renderEnabled(true), 
+	glVersion(glVersion), 
+	sm(sm), 
+	ci({ UTF8_TEXT(u8""), 0}),
+	axisYOrigin(AxisYOrigin::TOP), 
+	quadsCount(0), 
+	strChanged(false),
+	vbo(0),
+	vao(0),
+	fontTex(0)
+{   
+	this->shader.program = 0;
     this->shader.pSource = pSource;
     this->shader.vSource = vSource;
     
@@ -172,13 +180,9 @@ AbstractRenderer::AbstractRenderer(const std::vector<Font> & fs, RenderSettings 
     
 	int ps = this->fb->GetMaxEmSize();// this->fb->GetMaxFontPixelHeight();
     this->fb->SetGridPacking(ps, ps);
-    
-    
+        
     this->SetCaption(UTF8_TEXT(u8"\u2022"), 10);
-    
-    this->SetAxisYOrigin(AxisYOrigin::TOP);
-    
-    
+         
     this->InitGL();
 }
 

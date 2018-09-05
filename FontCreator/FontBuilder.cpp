@@ -62,9 +62,9 @@ FontBuilder::FontBuilder(const std::vector<Font> & fonts, RenderSettings r)
 		{
 			f.scaleFactor = static_cast<double>(maxEmSize) / f.maxPixelsHeight;
 
-			f.maxPixelsHeight *= f.scaleFactor;
-			f.maxPixelsWidth *= f.scaleFactor;
-			f.newLineOffset *= f.scaleFactor;			
+			f.maxPixelsHeight = static_cast<int>(std::round(f.maxPixelsHeight * f.scaleFactor));
+			f.maxPixelsWidth = static_cast<int>(std::round(f.maxPixelsWidth * f.scaleFactor));
+			f.newLineOffset = static_cast<int>(std::round(f.newLineOffset * f.scaleFactor));
 		}
 	}
 
@@ -245,11 +245,11 @@ bool FontBuilder::SetFontSizePts(FontInfo & f, int size, int dpi)
 	}
 
 	
-	double pixel_size = size * dpi / 72;
+	double pixel_size = size * dpi / 72.0;
 
 	
-	f.maxPixelsHeight = round((f.fontFace->bbox.yMax - f.fontFace->bbox.yMin) * pixel_size / f.fontFace->units_per_EM);
-	f.maxPixelsWidth = round((f.fontFace->bbox.xMax - f.fontFace->bbox.xMin) * pixel_size / f.fontFace->units_per_EM);
+	f.maxPixelsHeight = static_cast<int>(std::round((f.fontFace->bbox.yMax - f.fontFace->bbox.yMin) * pixel_size / f.fontFace->units_per_EM));
+	f.maxPixelsWidth = static_cast<int>(std::round((f.fontFace->bbox.xMax - f.fontFace->bbox.xMin) * pixel_size / f.fontFace->units_per_EM));
 
 	//f.fontSizePixels = (size * (dpi / 64)); // this->fontFace->size->metrics.y_ppem;	
 	f.newLineOffset = static_cast<int>(f.fontFace->size->metrics.height / 64);
@@ -282,8 +282,8 @@ bool FontBuilder::SetFontSizePixels(FontInfo & f, int size)
 	//http://stackoverflow.com/questions/28009564/new-line-pixel-distance-in-freetype
 
 	
-	f.maxPixelsHeight = round((f.fontFace->bbox.yMax - f.fontFace->bbox.yMin) * size / f.fontFace->units_per_EM);
-	f.maxPixelsWidth = round((f.fontFace->bbox.xMax - f.fontFace->bbox.xMin) * size / f.fontFace->units_per_EM);
+	f.maxPixelsHeight = static_cast<int>(std::round((f.fontFace->bbox.yMax - f.fontFace->bbox.yMin) * double(size) / f.fontFace->units_per_EM));
+	f.maxPixelsWidth = static_cast<int>(std::round((f.fontFace->bbox.xMax - f.fontFace->bbox.xMin) * double(size) / f.fontFace->units_per_EM));
 
 
 	//f.fontSizePixels = size;
@@ -851,11 +851,11 @@ uint8_t * FontBuilder::ResizeBitmapHermite(FT_GlyphSlot glyph, FontInfo & fi)
 			double center_y = (j + 0.5) * ratio_h;
 			double center_x = (i + 0.5) * ratio_w;
 			
-			size_t yy_start = std::floor(j * ratio_h);
-			size_t yy_stop = std::ceil((j + 1) * ratio_h);
+			size_t yy_start = static_cast<size_t>(std::floor(j * ratio_h));
+			size_t yy_stop = static_cast<size_t>(std::ceil((j + 1) * ratio_h));
 
-			size_t xx_start = std::floor(i * ratio_w);
-			size_t xx_stop = std::ceil((i + 1) * ratio_w);
+			size_t xx_start = static_cast<size_t>(std::floor(i * ratio_w));
+			size_t xx_stop = static_cast<size_t>(std::ceil((i + 1) * ratio_w));
 
 			xx_stop = std::min(xx_stop, glyph->bitmap.width);
 			yy_stop = std::min(yy_stop, glyph->bitmap.rows);

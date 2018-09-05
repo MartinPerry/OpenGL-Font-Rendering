@@ -9,6 +9,7 @@
 class IFontShaderManager
 {
 public:
+	IFontShaderManager() : shaderProgram(0) {}
     virtual ~IFontShaderManager() = default;
     
     void SetShaderProgram(GLuint program)

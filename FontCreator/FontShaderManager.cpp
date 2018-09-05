@@ -1,6 +1,7 @@
 #include "FontShaderManager.h"
 
 DefaultFontShaderManager::DefaultFontShaderManager()
+	: positionLocation(0), texCoordLocation(0), colorLocation(0)
 {
 }
 

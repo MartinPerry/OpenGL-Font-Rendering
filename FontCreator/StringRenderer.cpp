@@ -7,16 +7,19 @@
 #include "./Externalncludes.h"
 
 StringRenderer::StringRenderer(const std::vector<Font> & fs, RenderSettings r, int glVersion)
-	: AbstractRenderer(fs, r, glVersion), isBidiEnabled(true)
+	: AbstractRenderer(fs, r, glVersion), 
+	isBidiEnabled(true), 
+	nlOffsetPx(0)
 {
-	this->SetNewLineOffset(0);
 }
 
 StringRenderer::StringRenderer(const std::vector<Font> & fs, RenderSettings r, int glVersion,
                const char * vSource, const char * pSource, std::shared_ptr<IFontShaderManager> sm)
-    : AbstractRenderer(fs, r, glVersion, vSource, pSource, sm), isBidiEnabled(true)
+    : AbstractRenderer(fs, r, glVersion, vSource, pSource, sm), 
+	isBidiEnabled(true), 
+	nlOffsetPx(0)
 {
-    this->SetNewLineOffset(0);
+    
 }
 
 StringRenderer::~StringRenderer()

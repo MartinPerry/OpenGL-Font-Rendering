@@ -16,7 +16,9 @@ const std::string NumberRenderer::NUMBERS_STRING = "0123456789,.-";
 /// <param name="r"></param>
 /// <param name="glVersion"></param>
 NumberRenderer::NumberRenderer(const std::vector<Font> & fs, RenderSettings r, int glVersion)
-	: AbstractRenderer(fs, r, glVersion)
+	: AbstractRenderer(fs, r, glVersion),
+	decimalPlaces(0), 
+	decimalMult(1)
 {
 	this->checkIfExist = true;
 

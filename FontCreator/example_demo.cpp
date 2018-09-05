@@ -114,7 +114,7 @@ void display() {
 	fr->Clear();
 	//fr->AddStringCaption(UTF8_TEXT(u8"Velmi"), -0.05f, 0.5f, { 1,1,0,1 });
 	//fr->AddString(UTF8_TEXT(u8"Velmi \U0001F300"), 0.5f, 0.5f, { 1,1,0,1 });
-	fr->AddStringCaption(UTF8_TEXT(u8"\U0001F300Pøíliš malýp\n(žluouèký)\nkùyòy"), 0.5f, 0.5f, { 1,1,0,1 });
+	fr->AddStringCaption(UTF8_TEXT(u8"\U0001F300Pøíliš malý p\n(žluouèký)\nkùyòy"), 0.5f, 0.5f, { 1,1,0,1 });
 	//fr->AddStringCaption(UTF8_TEXT(u8"Pøíliš malýp\n(žluouèký)\nkùyòy"), 0.5f, 0.5f, { 1,1,0,1 });
 	//fr->AddStringCaption(UTF8_TEXT(u8"ahoj \u4e3d xx \u0633\u0644\u0627\u0645"), 0.5f, 0.5f, { 1,1,0,1 });
 	fr->AddStringCaption(UTF8_TEXT(u8"\u4e3d"), 0.8f, 0.5f, { 1,1,0,1 });
@@ -182,21 +182,15 @@ void initGL() {
 	std::vector<Font> fonts;
 	for (auto d : fontFiles)
 	{
-		Font f;
-		f.name = d;
-		f.size = 12_pt;		
-
+		Font f(d, 12_pt);
+		
 		fonts.push_back(f);
 	}
 	
-	Font ft;	
-	ft.name = "../fonts2/merged_out_2048_94.ttf";
-	ft.size = 12_pt;
+	Font ft("../fonts2/merged_out_2048_94.ttf", 12_pt);	
 	//fonts.push_back(ft);
 	
-	Font fArial;
-	fArial.name = "../fonts/arial_unicode.ttf";	
-	fArial.size = 12_pt;
+	Font fArial("../fonts/arial_unicode.ttf", 12_pt);
 	//fonts.clear();
 	//fonts.push_back(fArial);
 
@@ -221,11 +215,10 @@ void initGL() {
 	f3.size = 16_pt;
 	*/
 
-	Font fNum;
+	Font fNum("../fonts2/merged_out_2048_53.ttf", 12_pt);
 	//fNum.name = "../fonts/arial.ttf";
 	//fNum.name = "../fonts/NotoSans-Regular.ttf";
-	fNum.name = "../fonts2/merged_out_2048_53.ttf";
-	fNum.size = 12_pt;
+
 
 	RenderSettings r;
 	r.screenDpi = 260;

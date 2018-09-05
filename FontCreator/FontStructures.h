@@ -176,7 +176,11 @@ typedef struct Font
 {
 	std::string name;
 	FontSize size;
-	int defaultFontSizeInPx = 0;
+	int defaultFontSizeInPx;
+
+	Font(const std::string & name, FontSize size) : 
+		name(name), size(size), defaultFontSizeInPx(0)
+	{}
 
 } Font;
 

@@ -4,29 +4,22 @@
 //http://www.blackpawn.com/texts/lightmaps/default.html
 
 TextureAtlasPack::TextureAtlasPack(int w, int h, int border) : 
-	fontInfos(nullptr), unused(nullptr)
+	fontInfos(nullptr), 
+	unused(nullptr), 
+	w(w), 
+	h(h), 
+	border(border), 
+	method(PACKING_METHOD::TIGHT),
+	freePixels(w * h),
+	averageGlyphSize(2500),
+	gridBinW(0), gridBinH(0)
 {
-	
-	this->w = w;
-	this->h = h;
-	this->border = border;
-	this->method = PACKING_METHOD::TIGHT;
-
-	this->freePixels = w * h;
+		
 	this->rawPackedData = new uint8_t[w * h];
 	memset(this->rawPackedData, 0, sizeof(uint8_t) * w * h);
 
-
-	Node emptyNode;
-	emptyNode.x = 0;
-	emptyNode.y = 0;
-	emptyNode.w = w;
-	emptyNode.h = h;	
-
-	this->freeSpace.push_back(emptyNode);
-	
-
-	this->averageGlyphSize = 50 * 50;
+		
+	this->freeSpace.push_back(Node(0, 0, w, h));
 }
 
 
@@ -76,14 +69,8 @@ void TextureAtlasPack::SetGridPacking(int binW, int binH)
 	for (int y = 0; y < gridedH; y += binH)
 	{
 		for (int x = 0; x < gridedH; x += binW)
-		{
-			Node emptyNode;
-			emptyNode.x = x;
-			emptyNode.y = y;
-			emptyNode.w = binW;
-			emptyNode.h = binH;
-
-			this->freeSpace.push_back(emptyNode);
+		{			
+			this->freeSpace.push_back(Node(x, y, binW, binH));
 		}
 	}
 
@@ -129,16 +116,9 @@ void TextureAtlasPack::Clear()
 	this->freePixels = w * h;
 	
 	this->freeSpace.clear();
-	
-	Node emptyNode;
-	emptyNode.x = 0;
-	emptyNode.y = 0;
-	emptyNode.w = w;
-	emptyNode.h = h;
-	emptyNode.hasOthers = false;
-	
+		
 
-	this->freeSpace.push_back(emptyNode);
+	this->freeSpace.push_back(Node(0, 0, w, h));
 	
 	this->packedInfo.clear();
 }

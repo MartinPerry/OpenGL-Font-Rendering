@@ -28,7 +28,7 @@ public:
 	typedef struct ErasedInfo 
 	{
 		FontInfo::UsedGlyphIterator gi;
-		int fontIndex;
+		int fontIndex;		
 	} ErasedInfo;
 
 	TextureAtlasPack(int w, int h, int border);
@@ -68,6 +68,14 @@ private:
 		std::list<Node>::iterator other[2];
 		std::list<Node>::iterator same;
 		bool hasOthers;
+
+		Node(int x, int y, int w, int h) :
+			x(x), y(y), w(w), h(h), hasOthers(false)
+		{};
+
+		Node() :
+			x(0), y(0), w(0), h(0), hasOthers(false)
+		{};
 
 	} Node;
 
