@@ -66,9 +66,10 @@ void TextureAtlasPack::SetGridPacking(int binW, int binH)
 	int gridedH = this->h - this->h % binH;
 	int gridedW = this->w - this->w % binW;
 
+	
 	for (int y = 0; y < gridedH; y += binH)
 	{
-		for (int x = 0; x < gridedH; x += binW)
+		for (int x = 0; x < gridedW; x += binW)
 		{			
 			this->freeSpace.push_back(Node(x, y, binW, binH));
 		}
@@ -184,7 +185,7 @@ bool TextureAtlasPack::PackGrid()
 				continue;
 			}
 
-			if (this->freeSpace.size() == 0)
+			if (this->freeSpace.empty())
 			{
 				if (this->unused->size() == this->erased.size())
 				{

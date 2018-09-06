@@ -59,6 +59,13 @@ protected:
 		std::vector<AABB> linesAABB;
 		AABB aabb;
 
+		StringInfo(UnicodeString & str, int x, int y, 
+			Color c, TextAnchor anchor, 
+			TextAlign align, TextType type,
+			int linesCount) : 
+		str(str), x(x), y(y), color(c), anchor(anchor), align(align),
+		type(type), linesCount(linesCount), anchorX(x), anchorY(y) {}
+
 	} StringInfo;
 
 
@@ -66,6 +73,9 @@ protected:
 	std::vector<StringInfo> strs;
 	int nlOffsetPx;
 
+	bool spaceSizeExist;
+	long spaceSize;
+	long CalcSpaceSize();
 
 	bool AddStringInternal(const UnicodeString & str,
 		int x, int y, Color color = { 1,1,1,1 },

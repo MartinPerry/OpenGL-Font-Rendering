@@ -89,6 +89,7 @@ protected:
 		int maxY;
 
 		int newLineOffset;
+		
 	} AABB;
 
 	

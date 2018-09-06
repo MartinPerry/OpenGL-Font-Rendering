@@ -182,6 +182,10 @@ typedef struct Font
 		name(name), size(size), defaultFontSizeInPx(0)
 	{}
 
+	Font() :
+		name(""), size(0_pt), defaultFontSizeInPx(0)
+	{}
+
 } Font;
 
 

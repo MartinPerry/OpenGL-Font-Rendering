@@ -79,7 +79,7 @@ protected:
 		int anchorX;
 		int anchorY;		
 		AABB aabb;
-
+		
 	} StringInfo;
 
 	bool checkIfExist;

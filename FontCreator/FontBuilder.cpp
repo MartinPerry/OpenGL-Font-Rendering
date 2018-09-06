@@ -433,7 +433,7 @@ FontInfo::UsedGlyphIterator FontBuilder::GetGlyph(CHAR_CODE c, bool & exist, Fon
 {
 	exist = false;
 
-	for (auto & fi : this->fis)
+	for (FontInfo & fi : this->fis)
 	{
 
 		auto it = fi.usedGlyphs.find(c);
@@ -583,7 +583,7 @@ void FontBuilder::AddCharacter(CHAR_CODE c)
 
 bool FontBuilder::CreateFontAtlas()
 {		
-	if (this->newCodes.size() == 0)
+	if (this->newCodes.empty())
 	{
 		//all is reused - clear reused
 		this->reused.clear();

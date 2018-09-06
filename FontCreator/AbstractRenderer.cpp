@@ -558,7 +558,7 @@ void AbstractRenderer::AddQuad(const GlyphInfo & gi, int x, int y, const Color &
 
 void AbstractRenderer::FillVB()
 {
-    if (this->geom.size() == 0)
+    if (this->geom.empty())
     {
         return;
     }

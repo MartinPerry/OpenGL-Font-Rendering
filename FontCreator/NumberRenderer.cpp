@@ -160,7 +160,7 @@ void NumberRenderer::AddIntegralNumberInternal(long val,
 
 	if (this->checkIfExist)
 	{
-		for (auto & s : this->nmbrs)
+		for (NumberInfo & s : this->nmbrs)
 		{
 			if ((s.x == x) && (s.y == y) &&
 				(s.anchor == anchor) && (s.type == type))
@@ -208,7 +208,7 @@ void NumberRenderer::AddFloatNumberInternal(double val,
 
 	if (this->checkIfExist)
 	{
-		for (auto & s : this->nmbrs)
+		for (NumberInfo & s : this->nmbrs)
 		{
 			if ((s.x == x) && (s.y == y) &&
 				(s.anchor == anchor) && (s.type == type))
@@ -276,8 +276,7 @@ void NumberRenderer::AddNumber(NumberInfo & n, int x, int y, Color color,
 
 	n.x = x;
 	n.y = y;
-	n.color = color;
-	//n.isDefaultColor = color.IsSame(DEFAULT_COLOR);
+	n.color = color;	
 	n.anchor = anchor;
 	n.type = type;
 	n.anchorX = x;

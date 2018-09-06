@@ -9,7 +9,9 @@
 StringRenderer::StringRenderer(const std::vector<Font> & fs, RenderSettings r, int glVersion)
 	: AbstractRenderer(fs, r, glVersion), 
 	isBidiEnabled(true), 
-	nlOffsetPx(0)
+	nlOffsetPx(0),
+	spaceSizeExist(false),
+	spaceSize(10)
 {
 }
 
@@ -17,7 +19,9 @@ StringRenderer::StringRenderer(const std::vector<Font> & fs, RenderSettings r, i
                const char * vSource, const char * pSource, std::shared_ptr<IFontShaderManager> sm)
     : AbstractRenderer(fs, r, glVersion, vSource, pSource, sm), 
 	isBidiEnabled(true), 
-	nlOffsetPx(0)
+	nlOffsetPx(0),
+	spaceSizeExist(false), 
+	spaceSize(10)
 {
     
 }
@@ -121,7 +125,7 @@ bool StringRenderer::AddStringInternal(const UnicodeString & str,
 		isBidiEmpty = false;
 	}
 
-   for (auto & s : this->strs)
+   for (StringInfo & s : this->strs)
     {
         if ((s.x == x) && (s.y == y) &&
             (s.align == align) && (s.anchor == anchor) && (s.type == type))
@@ -143,21 +147,21 @@ bool StringRenderer::AddStringInternal(const UnicodeString & str,
         }
     }
 
-	//fill basic structure info
-	StringInfo i;
+   //fill basic structure info
+   UnicodeString uniStr;
 
 	if (isBidiEmpty)
 	{		
 		//no bidi yet - create it
-		i.str = BIDI(str);
+		uniStr = BIDI(str);
 	}
 	else
 	{
 		//bidi was already constructed
-		i.str = bidiStr;
+		uniStr = bidiStr;
 	}
 
-	AbstractRenderer::AABB estimAABB = this->EstimateStringAABB(i.str, x, y);
+	AbstractRenderer::AABB estimAABB = this->EstimateStringAABB(uniStr, x, y);
 
 	//test if entire string is outside visible area
 
@@ -183,25 +187,16 @@ bool StringRenderer::AddStringInternal(const UnicodeString & str,
 
 	//new visible string - add it
 
+	int linesCount = this->CalcStringLines(uniStr);
+
 	this->strChanged = true;
 	
-	i.x = x;
-	i.y = y;
-	i.color = color;
-	//i.isDefaultColor = color.IsSame(DEFAULT_COLOR);
-	i.anchor = anchor;
-	i.align = align;
-	i.type = type;
-	i.anchorX = x;
-	i.anchorY = y;
-	i.linesCount = this->CalcStringLines(i.str);
-	
+	this->fb->AddString(uniStr);
 
-
-	this->strs.push_back(i);
-
-	this->fb->AddString(i.str);
-    
+	this->strs.emplace_back(std::move(uniStr), x, y, 
+		color, anchor, align, type, 
+		linesCount);
+		    
     return true;
 }
 
@@ -431,7 +426,7 @@ void StringRenderer::CalcAnchoredPosition()
 
 	int captionMarkAnchorY = 0;
 
-	for (auto & si : this->strs)
+	for (StringInfo & si : this->strs)
 	{		
 		if (si.linesAABB.size() != 0)
 		{
@@ -450,7 +445,7 @@ void StringRenderer::CalcAnchoredPosition()
 		}
 		else if (si.anchor == TextAnchor::CENTER)
 		{
-			if (si.linesAABB.size() == 0)
+			if (si.linesAABB.empty())
 			{
 				si.linesAABB = this->CalcStringAABB(si.str, si.x, si.y, si.aabb, &gc);
 			}
@@ -551,10 +546,49 @@ StringRenderer::UsedGlyphCache StringRenderer::ExtractGlyphs(const UnicodeString
 		bool exist;
 		FontInfo * fi = nullptr;
 		auto it = this->fb->GetGlyph(c, exist, &fi);		
-		g.push_back({ it, exist, fi });
+		g.emplace_back(it, exist, fi);
 	}
 
 	return g;
+}
+
+/// <summary>
+/// Calc size of space " ". If it was already
+/// calculated, return this calculated result
+/// </summary>
+/// <returns></returns>
+long StringRenderer::CalcSpaceSize()
+{
+	if (spaceSizeExist)
+	{
+		return spaceSize;
+	}
+
+	//calc space size	
+	auto it = this->fb->GetGlyph(' ', spaceSizeExist);
+	if (spaceSizeExist)
+	{
+		GlyphInfo & gi = *it->second;
+		spaceSize = (gi.adv >> 6);
+	}
+	else
+	{
+		//we want to store only real space if it exist
+		bool tmpExist = false;
+		auto tmp = this->fb->GetGlyph('a', tmpExist);
+		if (tmpExist)
+		{
+			GlyphInfo & gi = *tmp->second;
+			spaceSize = (gi.adv >> 6);
+		}
+		else
+		{
+			spaceSize = 10;
+		}
+	}
+
+	return spaceSize;
+
 }
 
 /// <summary>
@@ -586,30 +620,8 @@ bool StringRenderer::GenerateGeometry()
 	//wont be calculated again
 	this->CalcAnchoredPosition();
 
-
-	//calc space size
-	long spaceSize = 0;
-	bool exist;
-	auto it = this->fb->GetGlyph(' ', exist);
-	if (exist)
-	{
-		GlyphInfo & gi = *it->second;
-		spaceSize = (gi.adv >> 6);
-	}
-	else 
-	{
-		auto tmp = this->fb->GetGlyph('a', exist);
-		if (exist)
-		{
-			GlyphInfo & gi = *tmp->second;
-			spaceSize = (gi.adv >> 6);
-		}
-		else 
-		{
-			spaceSize = 10;
-		}
-	}
-
+	long spaceSize = this->CalcSpaceSize();
+	
 
 	//Build geometry
 	
@@ -620,7 +632,7 @@ bool StringRenderer::GenerateGeometry()
 
 	this->geom.reserve(this->strs.size() * 80);
 
-	for (const StringRenderer::StringInfo & si : this->strs)
+	for (const StringInfo & si : this->strs)
 	{
 		int lineId = 0;
 		int x = si.anchorX;
