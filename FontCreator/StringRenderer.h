@@ -65,7 +65,7 @@ protected:
 			int linesCount) : 
 		str(str), x(x), y(y), color(c), anchor(anchor), align(align),
 		type(type), linesCount(linesCount), anchorX(x), anchorY(y) {}
-
+               
 	} StringInfo;
 
 

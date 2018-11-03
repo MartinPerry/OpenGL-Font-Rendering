@@ -1,6 +1,8 @@
 #include "./FontBuilder.h"
 
 
+#include <algorithm>
+
 #include "./TextureAtlasPack.h"
 
 
@@ -857,8 +859,8 @@ uint8_t * FontBuilder::ResizeBitmapHermite(FT_GlyphSlot glyph, FontInfo & fi)
 			size_t xx_start = static_cast<size_t>(std::floor(i * ratio_w));
 			size_t xx_stop = static_cast<size_t>(std::ceil((i + 1) * ratio_w));
 
-			xx_stop = std::min(xx_stop, glyph->bitmap.width);
-			yy_stop = std::min(yy_stop, glyph->bitmap.rows);
+			xx_stop = std::min(xx_stop, static_cast<size_t>(glyph->bitmap.width));
+			yy_stop = std::min(yy_stop, static_cast<size_t>(glyph->bitmap.rows));
 
 			for (size_t yy = yy_start; yy < yy_stop; yy++) 
 			{

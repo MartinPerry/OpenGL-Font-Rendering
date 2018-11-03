@@ -193,7 +193,7 @@ bool StringRenderer::AddStringInternal(const UnicodeString & str,
 	
 	this->fb->AddString(uniStr);
 
-	this->strs.emplace_back(std::move(uniStr), x, y, 
+	this->strs.emplace_back(uniStr, x, y, 
 		color, anchor, align, type, 
 		linesCount);
 		    
