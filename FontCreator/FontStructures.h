@@ -11,7 +11,7 @@ typedef struct FT_FaceRec_*  FT_Face;
 
 
 
-typedef unsigned long CHAR_CODE;
+typedef uint32_t CHAR_CODE;
 
 /// <summary>
 /// Info for single glyph

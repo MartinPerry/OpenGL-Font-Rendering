@@ -44,6 +44,25 @@ NumberRenderer * fn;
 
 std::vector<int32_t> allChars;
 
+
+std::string CreateRandomString(int len)
+{
+	srand(static_cast<unsigned int>(time(0)));
+
+	static const char alphanum[] =
+		"0123456789"
+		"ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+		"abcdefghijklmnopqrstuvwxyz";
+
+	std::string r = "";
+	for (int i = 0; i < len; ++i) {
+		r += alphanum[rand() % (sizeof(alphanum) - 1)];
+	}
+
+	return r;
+}
+
+
 //------------------------------------------------------------------------------
 void reshape(int width, int height) {
 
@@ -114,14 +133,17 @@ void display() {
 	fr->Clear();
 	//fr->AddStringCaption(UTF8_TEXT(u8"Velmi"), -0.05f, 0.5f, { 1,1,0,1 });
 	//fr->AddString(UTF8_TEXT(u8"Velmi \U0001F300"), 0.5f, 0.5f, { 1,1,0,1 });
-	fr->AddStringCaption(UTF8_TEXT(u8"\U0001F300Pøíliš malý p\n(žluouèký)\nkùyòy"), 0.5f, 0.5f, { 1,1,0,1 });
+	//fr->AddStringCaption(UTF8_TEXT(u8"\U0001F300Pøíliš malý p\n(žluouèký)\nkùyòy"), 0.5f, 0.5f, { 1,1,0,1 });
 	//fr->AddStringCaption(UTF8_TEXT(u8"Pøíliš malýp\n(žluouèký)\nkùyòy"), 0.5f, 0.5f, { 1,1,0,1 });
 	//fr->AddStringCaption(UTF8_TEXT(u8"ahoj \u4e3d xx \u0633\u0644\u0627\u0645"), 0.5f, 0.5f, { 1,1,0,1 });
-	fr->AddStringCaption(UTF8_TEXT(u8"\u4e3d"), 0.8f, 0.5f, { 1,1,0,1 });
-	fr->AddStringCaption(UTF8_TEXT(u8"\u103c"), 0.2f, 0.5f, { 1,1,0,1 });
+	//fr->AddStringCaption(UTF8_TEXT(u8"\u4e3d"), 0.8f, 0.5f, { 1,1,0,1 });
+	//fr->AddStringCaption(UTF8_TEXT(u8"\u103c"), 0.2f, 0.5f, { 1,1,0,1 });
 	//fr->AddStringCaption(UTF8_TEXT(u8"Baf"), 0.8f, 0.8f, { 1,1,0,1 });
 	//fr->AddString(UTF8_TEXT(u8"[]"), 0.5f, 0.5f, { 1,1,0,1 });
+		
+	//fr->AddString(UTF8_TEXT(CreateRandomString(int(1 + rand() % 15)).c_str()), 0.5f, 0.5f, { 1,1,0,1 }, AbstractRenderer::TextAnchor::CENTER);
 	
+
 	//fr->AddString(UTF8_TEXT(u8"x \U0001F300 x"), 0.5f, 0.5f);
 	//fr->AddString(UTF8_TEXT(u8"MLQp\U0001F300x"), 0.5f, 0.5f, { 1,1,1,1 }, AbstractRenderer::TextAnchor::CENTER);
 	//fr->AddString(UTF8_TEXT(u8"\U0001F600"), 0.5f, 0.5f);
@@ -133,10 +155,12 @@ void display() {
 	//fr->AddString(u8"lll", 200, 300);
 	fr->Render();
 
+	fn->Clear();
 	//fn->AddNumber(-45.27, 100, 100);
 	//fn->AddNumberCaption(-450.013, 100, 100, { 1, 1.0f, 1.0f, 1 });
 	//fn->AddNumberCaption(-897456, 100, 300, { 1, 1.0f, 1.0f, 1 });
-	//fn->Render();
+	fn->AddNumber(rand(), 0.5f, 0.5f, { 1,1,0,1 }, AbstractRenderer::TextAnchor::CENTER);
+	fn->Render();
 
 	glutSwapBuffers();	
 	//glutPostRedisplay();
@@ -232,7 +256,7 @@ void initGL() {
 	fr = new StringRenderer(fonts, r);
 	//fr = new StringRenderer({ fNum }, r);
 	//fr = new StringRenderer({ f4 }, r);
-	//fn = new NumberRenderer({ fArial }, r);
+	fn = new NumberRenderer({ fArial }, r);
 
 	
 	
