@@ -15,6 +15,10 @@ TextureAtlasPack::TextureAtlasPack(int w, int h, int border) :
 	gridBinW(0), gridBinH(0)
 {
 		
+	std::random_device rd;
+	this->mt = std::mt19937(rd());
+	this->uniDist01 = std::uniform_int_distribution<int>(0, 1);
+
 	this->rawPackedData = new uint8_t[w * h];
 	memset(this->rawPackedData, 0, sizeof(uint8_t) * w * h);
 
@@ -71,7 +75,7 @@ void TextureAtlasPack::SetGridPacking(int binW, int binH)
 	{
 		for (int x = 0; x < gridedW; x += binW)
 		{			
-			this->freeSpace.push_back(Node(x, y, binW, binH));
+			this->freeSpace.emplace_back(x, y, binW, binH);
 		}
 	}
 
@@ -546,10 +550,6 @@ void TextureAtlasPack::DivideNode(const Node & empty, int spaceWidth, int spaceH
 	//divide space to 3 parts
 	//one is desired space, rest are 2 left spaces
 
-	std::random_device rd;
-	std::mt19937 mt = std::mt19937(rd());
-	std::uniform_int_distribution<int> dist01(0, 1);
-
 
 	std::list<Node>::iterator downItA;
 	std::list<Node>::iterator rightItA;
@@ -557,23 +557,15 @@ void TextureAtlasPack::DivideNode(const Node & empty, int spaceWidth, int spaceH
 	std::list<Node>::iterator downItB;
 	std::list<Node>::iterator rightItB;
 
-	Node nDown;
-	Node nRight;
-
-	nDown.x = empty.x;
-	nDown.y = empty.y + spaceHeight;
-	nDown.h = empty.h - spaceHeight;
-
-	nRight.x = empty.x + spaceWidth;
-	nRight.y = empty.y;
-	nRight.w = empty.w - spaceWidth;
-
+	Node nDown = { empty.x, empty.y + spaceHeight, 0, empty.h - spaceHeight };
+	Node nRight = { empty.x + spaceWidth, empty.y, empty.w - spaceWidth, 0 };
+	
 	nDown.hasOthers = true;
 	nRight.hasOthers = true;
 
 	//random division of the space - 
 	//either  down is wider is first or right is taller is first
-	if (dist01(mt) == 0)
+	if (this->uniDist01(this->mt) == 0)
 	{
 		//append A than B to list
 

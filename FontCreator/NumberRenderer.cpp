@@ -328,6 +328,8 @@ unsigned long NumberRenderer::GetFractPartReversed(double val, unsigned long int
 /// <returns></returns>
 unsigned long NumberRenderer::ReversDigits(unsigned long num)
 {
+	if (num < 10) return num;
+
 	unsigned long rev_num = 0;
 	while (num > 0)
 	{
@@ -352,13 +354,7 @@ AbstractRenderer::AABB NumberRenderer::CalcNumberAABB(double val, int x, int y,
 {
 
 	AbstractRenderer::AABB aabb;
-	aabb.minX = std::numeric_limits<int>::max();
-	aabb.minY = std::numeric_limits<int>::max();
-
-	aabb.maxX = std::numeric_limits<int>::min();
-	aabb.maxY = std::numeric_limits<int>::min();
-
-	
+		
 	if (negative)
 	{
 		GlyphInfo & gi = this->gi['-'];
@@ -473,9 +469,8 @@ void NumberRenderer::CalcAnchoredPosition()
 			si.anchorX = si.x - (si.aabb.maxX - si.aabb.minX) / 2;
 
 			si.anchorY = si.y;
-			si.anchorY += newLineOffset; //move top position to TOP_LEFT
-			si.anchorY -= (newLineOffset) / 2; //calc center from all lines and move TOP_LEFT down
-
+			si.anchorY += (newLineOffset / 2); //move top position to TOP_LEFT
+											   //and calc center from all lines and move TOP_LEFT down
 		}
 		else if (si.anchor == TextAnchor::LEFT_DOWN)
 		{

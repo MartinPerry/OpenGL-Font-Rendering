@@ -83,7 +83,8 @@ private:
 	
 
 	std::list<Node> freeSpace;
-	
+	std::mt19937 mt;
+	std::uniform_int_distribution<int> uniDist01;
 		
 	//std::list<GlyphInfo> * glyphs;
 	std::vector<FontInfo> * fontInfos;

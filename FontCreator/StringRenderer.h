@@ -86,8 +86,7 @@ protected:
 	bool GenerateGeometry() override;
 
 	AABB EstimateStringAABB(const UnicodeString & str, int x, int y);
-	std::vector<AABB> CalcStringAABB(const UnicodeString & str,
-		int x, int y, AABB & globalAABB, const UsedGlyphCache * gc);
+	std::vector<AABB> CalcStringAABB(StringInfo & si, const UsedGlyphCache * gc);
 
 	int CalcStringLines(const UnicodeString & str) const;
 	void CalcAnchoredPosition();

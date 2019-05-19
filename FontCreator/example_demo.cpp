@@ -134,7 +134,7 @@ void display() {
 	//fr->AddStringCaption(UTF8_TEXT(u8"Velmi"), -0.05f, 0.5f, { 1,1,0,1 });
 	//fr->AddString(UTF8_TEXT(u8"Velmi \U0001F300"), 0.5f, 0.5f, { 1,1,0,1 });
 	//fr->AddStringCaption(UTF8_TEXT(u8"\U0001F300P¯Ìliö mal˝ p\n(ûluùouËk˝)\nk˘yÚy"), 0.5f, 0.5f, { 1,1,0,1 });
-	//fr->AddStringCaption(UTF8_TEXT(u8"P¯Ìliö mal˝p\n(ûluùouËk˝)\nk˘yÚy"), 0.5f, 0.5f, { 1,1,0,1 });
+	fr->AddStringCaption(UTF8_TEXT(u8"P¯Ìliö mal˝p\n(ûluùouËk˝)\nk˘yÚy"), 0.5f, 0.5f, { 1,1,0,1 });
 	//fr->AddStringCaption(UTF8_TEXT(u8"ahoj \u4e3d xx \u0633\u0644\u0627\u0645"), 0.5f, 0.5f, { 1,1,0,1 });
 	//fr->AddStringCaption(UTF8_TEXT(u8"\u4e3d"), 0.8f, 0.5f, { 1,1,0,1 });
 	//fr->AddStringCaption(UTF8_TEXT(u8"\u103c"), 0.2f, 0.5f, { 1,1,0,1 });
@@ -321,19 +321,17 @@ int main(int argc, char ** argv)
 	/*
 	//CharacterExtractor cr({ "arial.ttf" }, "arial_out.ttf");
 	//CharacterExtractor cr(std::vector<std::string>({ "arial.ttf" }), "arial_out.ttf");
-	CharacterExtractor cr({ "../ii_v2/noto_max_priority/", "../ii_v2/noto/", "../ii_v2/noto-otf/", "../ii_v2/emoji/"  }, "merged_out");
+	CharacterExtractor cr({ "../ii_v3/noto_max_priority/", "../ii_v3/noto/", "../ii_v3/noto-otf/", "../ii_v3/emoji/"  }, "merged_out");
 	//CharacterExtractor cr({ "../ii/noto_max_priority/", "../ii/noto/" }, "merged_out");
 	//CharacterExtractor cr({ "../ii/noto_max_priority/" }, "merged_out");
 	
-	cr.SetOutputDir("../ii_v2/");
-	cr.AddText(UTF8_TEXT(u8"P¯Ìliö\nûluùouËk˝\nk˘Ú"));
-	cr.AddText(UTF8_TEXT(u8"Ahoj"));
+	cr.SetOutputDir("../ii_v3/");
+	cr.AddText(UTF8_TEXT(u8"P¯Ìliö\nûluùouËk˝\nk˘Ú")); //CZ accents	
 	cr.AddText(UTF8_TEXT(u8"\u2022")); //mark in number renderer
-	cr.AddText(UTF8_TEXT(u8"0123456789"));
-	cr.AddText(UTF8_TEXT(u8" !/*-+,.="));
-	cr.AddText(UTF8_TEXT(u8"\u2022"));
-	cr.AddText(UTF8_TEXT(u8"\U0001F300"));
-	//cr.AddDirectory("D:\\Martin\\Programming\\test\\Ventusky\\VentuskyWin\\_bundle_dir_\\DATA\\cities\\");	
+	cr.AddText(UTF8_TEXT(u8"0123456789")); //all numbers
+	cr.AddText(UTF8_TEXT(u8" !/*-+,.=")); //basic math operators	
+	cr.AddText(UTF8_TEXT(u8"\U0001F300")); //CYCLONE "icon"
+	cr.AddDirectory("D:\\Martin\\Programming\\test\\Ventusky\\VentuskyWin\\_bundle_dir_\\DATA\\cities\\");	
 	//cr.RemoveChar(utf8_string(u8"P")[0]);
 	allChars = cr.GetAllCharacters();
 	

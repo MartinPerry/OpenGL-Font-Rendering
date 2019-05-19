@@ -116,29 +116,16 @@ bool StringRenderer::AddStringInternal(const UnicodeString & str,
 		y = this->rs.deviceH - y;
 	}
 
-	UnicodeString bidiStr = "";
-	bool isBidiEmpty = true;
-
-	if (this->isBidiEnabled == false)
-	{
-		bidiStr = str;
-		isBidiEmpty = false;
-	}
+	UnicodeString uniStr = (this->isBidiEnabled) ? BIDI(str) : str;
+	
 
    for (StringInfo & s : this->strs)
     {
         if ((s.x == x) && (s.y == y) &&
             (s.align == align) && (s.anchor == anchor) && (s.type == type))
         {
-            
-            if (isBidiEmpty)
-            {
-                //we need to compare string... create bidi only for first comparison
-                bidiStr = BIDI(str);
-                isBidiEmpty = false;
-            }
-
-            if (s.str == bidiStr)
+                        
+            if (s.str == uniStr)
             {
                 //same string on the same position and with same align
                 //already exist - do not add it again
@@ -146,21 +133,7 @@ bool StringRenderer::AddStringInternal(const UnicodeString & str,
             }
         }
     }
-
-   //fill basic structure info
-   UnicodeString uniStr;
-
-	if (isBidiEmpty)
-	{		
-		//no bidi yet - create it
-		uniStr = BIDI(str);
-	}
-	else
-	{
-		//bidi was already constructed
-		uniStr = bidiStr;
-	}
-
+   
 	AbstractRenderer::AABB estimAABB = this->EstimateStringAABB(uniStr, x, y);
 
 	//test if entire string is outside visible area
@@ -228,12 +201,7 @@ int StringRenderer::CalcStringLines(const UnicodeString & str) const
 AbstractRenderer::AABB StringRenderer::EstimateStringAABB(const UnicodeString & str, int x, int y)
 {
 	AbstractRenderer::AABB aabb;
-	aabb.minX = std::numeric_limits<int>::max();
-	aabb.minY = std::numeric_limits<int>::max();
-
-	aabb.maxX = std::numeric_limits<int>::min();
-	aabb.maxY = std::numeric_limits<int>::min();
-
+	
 	int maxGlyphHeight = this->fb->GetMaxFontPixelHeight();
     
 	int w = maxGlyphHeight;
@@ -305,37 +273,27 @@ AbstractRenderer::AABB StringRenderer::EstimateStringAABB(const UnicodeString & 
 /// <summary>
 /// Calculate AABB of entire text and AABB for every line
 /// </summary>
-/// <param name="strUTF8"></param>
-/// <param name="x"></param>
-/// <param name="y"></param>
-/// <param name="globalAABB"></param>
+/// <param name="si"></param>
 /// <param name="gc"></param>
 /// <returns></returns>
-std::vector<AbstractRenderer::AABB> StringRenderer::CalcStringAABB(const UnicodeString & str,
-	int x, int y, AbstractRenderer::AABB & globalAABB, const UsedGlyphCache * gc)
-{
+std::vector<AbstractRenderer::AABB> StringRenderer::CalcStringAABB(StringInfo & si,
+	const UsedGlyphCache * gc)
+{	
+	//if there are no new lines, we dont need new line offset
+	int maxNewLineOffset = (si.linesCount < 1) ? 0 : this->fb->GetMaxNewLineOffset() + this->nlOffsetPx;
 
-	AbstractRenderer::AABB aabb;
-	aabb.minX = std::numeric_limits<int>::max();
-	aabb.minY = std::numeric_limits<int>::max();
-
-	aabb.maxX = std::numeric_limits<int>::min();
-	aabb.maxY = std::numeric_limits<int>::min();
-
-	aabb.newLineOffset = 0;
-
-	int maxNewLineOffset = this->fb->GetMaxNewLineOffset() + this->nlOffsetPx;
-
-	AbstractRenderer::AABB lineAabb = aabb;
-	std::vector<AABB> aabbs;
-	
+	AbstractRenderer::AABB lineAabb;
+	std::vector<AABB> aabbs;	
 	aabbs.reserve(10); //reserve space for 10 lines
+
 	
+	int x = si.x;
+	int y = si.y;
 
 	int startX = x;
 	int index = -1;
 
-	FOREACH_32_CHAR_ITERATION(c, str)
+	FOREACH_32_CHAR_ITERATION(c, si.str)
 	{
 		if (c == '\n')
 		{			
@@ -348,7 +306,7 @@ std::vector<AbstractRenderer::AABB> StringRenderer::CalcStringAABB(const Unicode
 			y += lineAabb.newLineOffset;
 						
 			aabbs.push_back(lineAabb);
-			lineAabb = aabb;
+			lineAabb = AbstractRenderer::AABB();
 			
 			continue;
 		}
@@ -400,15 +358,15 @@ std::vector<AbstractRenderer::AABB> StringRenderer::CalcStringAABB(const Unicode
 
 
 	aabbs.push_back(lineAabb);
-	globalAABB = aabb;
+	si.aabb = AbstractRenderer::AABB();
 
 	for (auto & a : aabbs)
 	{
-		if (a.minX < globalAABB.minX) globalAABB.minX = a.minX;
-		if (a.minY < globalAABB.minY) globalAABB.minY = a.minY;
+		if (a.minX < si.aabb.minX) si.aabb.minX = a.minX;
+		if (a.minY < si.aabb.minY) si.aabb.minY = a.minY;
 
-		if (a.maxX > globalAABB.maxX) globalAABB.maxX = a.maxX;
-		if (a.maxY > globalAABB.maxY) globalAABB.maxY = a.maxY;
+		if (a.maxX > si.aabb.maxX) si.aabb.maxX = a.maxX;
+		if (a.maxY > si.aabb.maxY) si.aabb.maxY = a.maxY;
 	}
 
 
@@ -447,7 +405,7 @@ void StringRenderer::CalcAnchoredPosition()
 		{
 			if (si.linesAABB.empty())
 			{
-				si.linesAABB = this->CalcStringAABB(si.str, si.x, si.y, si.aabb, &gc);
+				si.linesAABB = this->CalcStringAABB(si, &gc);
 			}
 
 			int totalLineOffset = 0;
@@ -498,7 +456,7 @@ void StringRenderer::CalcAnchoredPosition()
 			
 		}
 		
-		si.linesAABB = this->CalcStringAABB(si.str, si.anchorX, si.anchorY, si.aabb, &gc);
+		si.linesAABB = this->CalcStringAABB(si, &gc);
 
 	}
 }
