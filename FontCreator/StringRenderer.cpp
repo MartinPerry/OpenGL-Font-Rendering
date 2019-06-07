@@ -134,15 +134,17 @@ bool StringRenderer::AddStringInternal(const UnicodeString & str,
         }
     }
    
+   //this->CalcStringAABB(uniStr, x, y, nullptr);
+
 	AbstractRenderer::AABB estimAABB = this->EstimateStringAABB(uniStr, x, y);
 
-	//test if entire string is outside visible area
-
-	int w = estimAABB.maxX - estimAABB.minX;
-	int h = estimAABB.maxY - estimAABB.minY;
+	//test if entire string is outside visible area	
 
 	if (anchor == TextAnchor::CENTER)
 	{
+		int w = estimAABB.maxX - estimAABB.minX;
+		int h = estimAABB.maxY - estimAABB.minY;
+
 		estimAABB.minX -= (w / 2);
 		estimAABB.maxX -= (w / 2);
 		estimAABB.minY -= (h / 2);
@@ -151,45 +153,28 @@ bool StringRenderer::AddStringInternal(const UnicodeString & str,
 
 	if (str != ci.mark)
 	{
-		if ((estimAABB.maxX <= 0) || (estimAABB.maxY <= 0) ||
-			(estimAABB.minX > this->rs.deviceW) || (estimAABB.minY > this->rs.deviceH))
+		if ((estimAABB.maxX <= 0) || 
+			(estimAABB.maxY <= 0) ||
+			(estimAABB.minX > this->rs.deviceW) || 
+			(estimAABB.minY > this->rs.deviceH))
 		{			
 			return false;
 		}		
 	}
 
 	//new visible string - add it
-
-	int linesCount = this->CalcStringLines(uniStr);
-
+		
 	this->strChanged = true;
 	
 	this->fb->AddString(uniStr);
 
 	this->strs.emplace_back(uniStr, x, y, 
-		color, anchor, align, type, 
-		linesCount);
+		color, anchor, align, type);
 		    
     return true;
 }
 
-/// <summary>
-/// Calculate number of lines in input string
-/// </summary>
-/// <param name="strUTF8"></param>
-/// <returns></returns>
-int StringRenderer::CalcStringLines(const UnicodeString & str) const
-{
-	int count = 1;
-	FOREACH_32_CHAR_ITERATION(c, str)
-	{
-		if (c == '\n')
-		{
-			count++;
-		}
-	}
-	return count;
-}
+
 
 /// <summary>
 /// Estimate AABB based on font size - each glyph will have the same size
@@ -211,7 +196,7 @@ AbstractRenderer::AABB StringRenderer::EstimateStringAABB(const UnicodeString & 
 	int startX = x;
 
 	int lastNewLineOffset = this->fb->GetMaxNewLineOffset();
-	int newLineOffset = 0;// this->fb->GetNewLineOffsetBasedOnFirstGlyph(strUTF8.at(0));
+	int newLineOffset = 0;
     
     
 	FOREACH_32_CHAR_ITERATION(c, str)
@@ -253,9 +238,7 @@ AbstractRenderer::AABB StringRenderer::EstimateStringAABB(const UnicodeString & 
 
 		int fx = x + w;
 		int fy = y - h;
-
-
-		
+			   		
 		if (fx < aabb.minX) aabb.minX = fx;
 		if (fy < aabb.minY) aabb.minY = fy;
 
@@ -276,38 +259,45 @@ AbstractRenderer::AABB StringRenderer::EstimateStringAABB(const UnicodeString & 
 /// <param name="si"></param>
 /// <param name="gc"></param>
 /// <returns></returns>
-std::vector<AbstractRenderer::AABB> StringRenderer::CalcStringAABB(StringInfo & si,
+StringRenderer::StringAABB StringRenderer::CalcStringAABB(const UnicodeString & str, int x, int y,
 	const UsedGlyphCache * gc)
-{	
-	//if there are no new lines, we dont need new line offset
-	int maxNewLineOffset = (si.linesCount < 1) ? 0 : this->fb->GetMaxNewLineOffset() + this->nlOffsetPx;
+{		
+	StringAABB aabb;
+	aabb.totalLineOffset = 0;
+	aabb.lastLineOffset = 0;
+	aabb.maxNewLineOffset = this->fb->GetMaxNewLineOffset() + this->nlOffsetPx;
+	aabb.lines.reserve(10); //reserve space for 10 lines
 
 	AbstractRenderer::AABB lineAabb;
-	std::vector<AABB> aabbs;	
-	aabbs.reserve(10); //reserve space for 10 lines
-
-	
-	int x = si.x;
-	int y = si.y;
+		
 
 	int startX = x;
 	int index = -1;
 
-	FOREACH_32_CHAR_ITERATION(c, si.str)
+	//new line offset has default value 0
+	//-> offset is calculated from glyphs
+	int newLineOffset = 0;
+
+	FOREACH_32_CHAR_ITERATION(c, str)
 	{
 		if (c == '\n')
 		{			
-			if (lineAabb.newLineOffset == 0)
-			{
-				lineAabb.newLineOffset = maxNewLineOffset;
+			if (newLineOffset == 0)
+			{		
+				//no offset was calculated. Use default maximal new line offset
+				newLineOffset = aabb.maxNewLineOffset;
 			}
 
 			x = startX;
-			y += lineAabb.newLineOffset;
-						
-			aabbs.push_back(lineAabb);
-			lineAabb = AbstractRenderer::AABB();
+			y += newLineOffset;
 			
+			aabb.lastLineOffset = newLineOffset;
+			aabb.totalLineOffset += newLineOffset;
+
+			aabb.lines.push_back(lineAabb);
+			lineAabb = AbstractRenderer::AABB();
+			newLineOffset = 0;
+
 			continue;
 		}
 
@@ -322,7 +312,7 @@ std::vector<AbstractRenderer::AABB> StringRenderer::CalcStringAABB(StringInfo & 
 				continue;
 			}
 			it = std::get<0>(r);
-			lineAabb.newLineOffset = std::max(lineAabb.newLineOffset, std::get<2>(r)->newLineOffset) + this->nlOffsetPx;
+			newLineOffset = std::max(newLineOffset, std::get<2>(r)->newLineOffset) + this->nlOffsetPx;
 		}
 		else
 		{
@@ -334,7 +324,7 @@ std::vector<AbstractRenderer::AABB> StringRenderer::CalcStringAABB(StringInfo & 
 				continue;
 			}
 
-			lineAabb.newLineOffset = std::max(lineAabb.newLineOffset, fi->newLineOffset) + this->nlOffsetPx;
+			newLineOffset = std::max(newLineOffset, fi->newLineOffset) + this->nlOffsetPx;
 		}
 
 		GlyphInfo & gi = *it->second;
@@ -356,21 +346,23 @@ std::vector<AbstractRenderer::AABB> StringRenderer::CalcStringAABB(StringInfo & 
 		x += (gi.adv >> 6);		
 	}
 
+	aabb.lastLineOffset = newLineOffset;
+	aabb.totalLineOffset += newLineOffset;
 
-	aabbs.push_back(lineAabb);
-	si.aabb = AbstractRenderer::AABB();
+	aabb.lines.push_back(lineAabb);
+	
 
-	for (auto & a : aabbs)
+	for (auto & a : aabb.lines)
 	{
-		if (a.minX < si.aabb.minX) si.aabb.minX = a.minX;
-		if (a.minY < si.aabb.minY) si.aabb.minY = a.minY;
+		if (a.minX < aabb.global.minX) aabb.global.minX = a.minX;
+		if (a.minY < aabb.global.minY) aabb.global.minY = a.minY;
 
-		if (a.maxX > si.aabb.maxX) si.aabb.maxX = a.maxX;
-		if (a.maxY > si.aabb.maxY) si.aabb.maxY = a.maxY;
+		if (a.maxX > aabb.global.maxX) aabb.global.maxX = a.maxX;
+		if (a.maxY > aabb.global.maxY) aabb.global.maxY = a.maxY;
 	}
 
 
-	return aabbs;
+	return aabb;
 }
 
 
@@ -378,15 +370,12 @@ std::vector<AbstractRenderer::AABB> StringRenderer::CalcStringAABB(StringInfo & 
 /// Calculate start position of text using anchors
 /// </summary>
 void StringRenderer::CalcAnchoredPosition()
-{
-	//Calculate anchored position of text
-	int newLineOffset = this->fb->GetMaxNewLineOffset() + this->nlOffsetPx;
-
+{	
 	int captionMarkAnchorY = 0;
 
 	for (StringInfo & si : this->strs)
 	{		
-		if (si.linesAABB.size() != 0)
+		if (si.aabb.lines.empty() == false)
 		{
 			//position already computed - linesAABB filled
 			continue;
@@ -394,41 +383,27 @@ void StringRenderer::CalcAnchoredPosition()
 
 		StringRenderer::UsedGlyphCache gc = this->ExtractGlyphs(si.str);
 
+		si.aabb = this->CalcStringAABB(si.str, si.x, si.y, &gc);
+
 		if (si.anchor == TextAnchor::LEFT_TOP)
 		{
 			//to do newLines
 			si.anchorX = si.x;
-			si.anchorY = si.y;
-			si.anchorY += newLineOffset; //y position is "line letter start" - move it to letter height
+			si.anchorY = si.y + si.aabb.maxNewLineOffset; //y position is "line letter start" - move it to letter height
 		}
 		else if (si.anchor == TextAnchor::CENTER)
-		{
-			if (si.linesAABB.empty())
-			{
-				si.linesAABB = this->CalcStringAABB(si, &gc);
-			}
-
-			int totalLineOffset = 0;
-			int lastLineOffset = 0;
-			for (auto & aabb : si.linesAABB)
-			{
-				lastLineOffset = aabb.newLineOffset;
-				totalLineOffset += lastLineOffset;
-			}
-
-			si.anchorX = si.x - (si.aabb.maxX - si.aabb.minX) / 2;
-
-			si.anchorY = si.y;
-			si.anchorY -= (totalLineOffset - lastLineOffset) / 2; //calc center from all lines and move TOP_LEFT down
+		{						
+			si.anchorX = si.x - (si.aabb.global.maxX - si.aabb.global.minX) / 2;			
+			si.anchorY = si.y - (si.aabb.totalLineOffset - si.aabb.lastLineOffset) / 2; //calc center from all lines and move TOP_LEFT down
 
 		}
 		else if (si.anchor == TextAnchor::LEFT_DOWN)
 		{
 			//to do newLines
 			si.anchorX = si.x;
-			si.anchorY = si.y;
-			si.anchorY -= (si.linesCount - 1) * newLineOffset; //move down - default Y is at (TOP_LEFT - newLineOffset)
+			si.anchorY = si.y - (si.aabb.lines.size() - 1) * si.aabb.maxNewLineOffset; //move down - default Y is at (TOP_LEFT - newLineOffset)
 		}
+
 
 		if (si.type == TextType::CAPTION)
 		{	
@@ -438,10 +413,8 @@ void StringRenderer::CalcAnchoredPosition()
 				auto it = this->fb->GetGlyph(ci.mark[0], exist);
 				if (exist)
 				{										
-					si.anchorY += (it->second->bmpH);
-					//si.anchorY += ci.offset;
-					
-					captionMarkAnchorY = si.anchorY + (it->second->bmpH);
+					si.anchorY += (it->second->bmpH);										
+					captionMarkAnchorY = si.anchorY + (it->second->bmpH);					
 				}			
 				else
 				{
@@ -454,10 +427,7 @@ void StringRenderer::CalcAnchoredPosition()
 				si.anchorY -= (captionMarkAnchorY - si.anchorY);				
 			}
 			
-		}
-		
-		si.linesAABB = this->CalcStringAABB(si, &gc);
-
+		}				
 	}
 }
 
@@ -472,10 +442,10 @@ void StringRenderer::CalcLineAlign(const StringInfo & si, int lineId, int & x, i
 {	
 	if (si.align == TextAlign::ALIGN_CENTER)
 	{
-		int blockCenterX = (si.aabb.maxX - si.aabb.minX) / 2;
+		int blockCenterX = (si.aabb.global.maxX - si.aabb.global.minX) / 2;
 		//int blockCenterY = (si.aabb.maxY - si.aabb.minY) / 2;
 
-		int lineCenterX = (si.linesAABB[lineId].maxX - si.linesAABB[lineId].minX) / 2;
+		int lineCenterX = (si.aabb.lines[lineId].maxX - si.aabb.lines[lineId].minX) / 2;
 		//int lineCenterY = (si.linesAABB[lineId].maxY - si.linesAABB[lineId].minY) / 2;
 
 		x = x + (blockCenterX - lineCenterX);
@@ -584,14 +554,15 @@ bool StringRenderer::GenerateGeometry()
 	//Build geometry
 	
     AbstractRenderer::Clear();
-
-	int lastNewLineOffset = this->fb->GetMaxNewLineOffset();
-	int newLineOffset = 0;// this->fb->GetMaxNewLineOffset();
-
+	
 	this->geom.reserve(this->strs.size() * 80);
 
 	for (const StringInfo & si : this->strs)
 	{
+
+		int lastNewLineOffset = si.aabb.maxNewLineOffset - this->nlOffsetPx;
+		int newLineOffset = 0;
+
 		int lineId = 0;
 		int x = si.anchorX;
 		int y = si.anchorY;

@@ -43,6 +43,17 @@ protected:
 
 	typedef std::vector<std::tuple<FontInfo::UsedGlyphIterator, bool, FontInfo *>> UsedGlyphCache;
 	
+	typedef struct StringAABB
+	{
+		std::vector<AABB> lines;
+		AABB global;
+
+		int maxNewLineOffset;
+		int lastLineOffset;
+		int totalLineOffset;
+
+	} StringAABB;
+
 	typedef struct StringInfo
 	{
 		UnicodeString str;
@@ -53,18 +64,15 @@ protected:
 		TextAlign align;
 		TextType type;
 
-		int linesCount;
 		int anchorX;
 		int anchorY;
-		std::vector<AABB> linesAABB;
-		AABB aabb;
+		StringAABB aabb;
 
 		StringInfo(UnicodeString & str, int x, int y, 
 			Color c, TextAnchor anchor, 
-			TextAlign align, TextType type,
-			int linesCount) : 
+			TextAlign align, TextType type) : 
 		str(str), x(x), y(y), color(c), anchor(anchor), align(align),
-		type(type), linesCount(linesCount), anchorX(x), anchorY(y) {}
+		type(type), anchorX(x), anchorY(y) {}
                
 	} StringInfo;
 
@@ -86,9 +94,8 @@ protected:
 	bool GenerateGeometry() override;
 
 	AABB EstimateStringAABB(const UnicodeString & str, int x, int y);
-	std::vector<AABB> CalcStringAABB(StringInfo & si, const UsedGlyphCache * gc);
+	StringAABB CalcStringAABB(const UnicodeString & str, int x, int y, const UsedGlyphCache * gc);
 
-	int CalcStringLines(const UnicodeString & str) const;
 	void CalcAnchoredPosition();
 	void CalcLineAlign(const StringInfo & si, int lineId, int & x, int & y) const;
 

@@ -78,6 +78,7 @@ NumberRenderer::NumberRenderer(const std::vector<Font> & fs, RenderSettings r, i
 		
 	this->SetDecimalPrecission(2);
 
+	this->newLineOffset = this->fb->GetMaxNewLineOffset();
 }
 
 /// <summary>
@@ -251,15 +252,15 @@ void NumberRenderer::AddNumber(NumberInfo & n, int x, int y, Color color,
 
 	//test if entire string is outside visible area
 
-	if (anchor == TextAnchor::CENTER)
-	{
-		int w2 = (aabb.maxX - aabb.minX) / 2;
-		int h2 = (aabb.maxY - aabb.minY) / 2;
+	int w = (aabb.maxX - aabb.minX);
+	int h = (aabb.maxY - aabb.minY);
 
-		aabb.minX -= w2;
-		aabb.maxX -= w2;
-		aabb.minY -= h2;
-		aabb.maxY -= h2;
+	if (anchor == TextAnchor::CENTER)
+	{		
+		aabb.minX -= (w / 2);
+		aabb.maxX -= (w / 2);
+		aabb.minY -= (h / 2);
+		aabb.maxY -= (h / 2);
 	}
 
 	if (aabb.maxX <= 0) return;
@@ -281,7 +282,8 @@ void NumberRenderer::AddNumber(NumberInfo & n, int x, int y, Color color,
 	n.type = type;
 	n.anchorX = x;
 	n.anchorY = y;
-	n.aabb = aabb;
+	n.w = w;
+	n.h = h;
 
 	this->nmbrs.push_back(n);
 }
@@ -453,24 +455,19 @@ AbstractRenderer::AABB NumberRenderer::CalcNumberAABB(double val, int x, int y,
 /// </summary>
 void NumberRenderer::CalcAnchoredPosition()
 {
-	//Calculate anchored position of text
-	int newLineOffset = this->fb->GetMaxNewLineOffset();
-
+	//Calculate anchored position of text	
 	for (auto & si : this->nmbrs)
 	{		
 		if (si.anchor == TextAnchor::LEFT_TOP)
 		{
 			si.anchorX = si.x;
-			si.anchorY = si.y;
-			si.anchorY += newLineOffset; //y position is "line letter start" - move it to letter height
+			si.anchorY = si.y + this->newLineOffset; //y position is "line letter start" - move it to letter height
 		}
 		else if (si.anchor == TextAnchor::CENTER)
 		{			
-			si.anchorX = si.x - (si.aabb.maxX - si.aabb.minX) / 2;
-
-			si.anchorY = si.y;
-			si.anchorY += (newLineOffset / 2); //move top position to TOP_LEFT
-											   //and calc center from all lines and move TOP_LEFT down
+			si.anchorX = si.x - si.w / 2;
+			si.anchorY = si.y + (this->newLineOffset / 2); //move top position to TOP_LEFT
+													//and calc center from all lines and move TOP_LEFT down
 		}
 		else if (si.anchor == TextAnchor::LEFT_DOWN)
 		{
@@ -479,16 +476,10 @@ void NumberRenderer::CalcAnchoredPosition()
 		}
 
 		if (si.type == TextType::CAPTION)
-		{						
-			int h = (si.aabb.maxY - si.aabb.minY);
-			si.anchorY -= (h / 2 + ci.offset);	
-
+		{									
+			si.anchorY -= (si.h / 2 + ci.offset);	
 			si.anchorY -= 2 * (this->captionMark.bmpH);
-		}
-		
-		si.aabb = this->CalcNumberAABB(si.val, si.anchorX, si.anchorY, 
-			si.negative, si.intPart, si.fractPartReverse);
-
+		}				
 	}
 }
 

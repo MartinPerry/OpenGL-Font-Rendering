@@ -78,11 +78,13 @@ protected:
 		
 		int anchorX;
 		int anchorY;		
-		AABB aabb;
+		int w;
+		int h;
 		
 	} StringInfo;
 
 	bool checkIfExist;
+	int newLineOffset;
 
 	int decimalPlaces;
 	double decimalMult;

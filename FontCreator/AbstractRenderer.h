@@ -87,14 +87,11 @@ protected:
 
 		int minY;
 		int maxY;
-
-		int newLineOffset;
 		
 		AABB() : minX(std::numeric_limits<int>::max()),
 			minY(std::numeric_limits<int>::max()),
 			maxX(std::numeric_limits<int>::min()),
-			maxY(std::numeric_limits<int>::min()),
-			newLineOffset(0) 
+			maxY(std::numeric_limits<int>::min())
 		{}
 
 	} AABB;
