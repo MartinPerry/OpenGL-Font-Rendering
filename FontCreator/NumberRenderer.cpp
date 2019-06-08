@@ -79,6 +79,8 @@ NumberRenderer::NumberRenderer(const std::vector<Font> & fs, RenderSettings r, i
 	this->SetDecimalPrecission(2);
 
 	this->newLineOffset = this->fb->GetMaxNewLineOffset();
+
+	this->Precompute();
 }
 
 /// <summary>
@@ -86,6 +88,34 @@ NumberRenderer::NumberRenderer(const std::vector<Font> & fs, RenderSettings r, i
 /// </summary>
 NumberRenderer::~NumberRenderer()
 {
+}
+
+/// <summary>
+/// Precompute array of double-digits glyphs
+/// </summary>
+void NumberRenderer::Precompute()
+{
+	for (int i = 0; i < 100; i++)
+	{
+		int lastDigit = 0;
+		int intPart = i;
+
+		do
+		{
+			digits[lastDigit] = (intPart % 10);
+			lastDigit++;
+			intPart /= 10;
+		} while (intPart);
+
+		this->precompGi[i][0] = &this->gi['0'];
+		this->precompGi[i][1] = this->precompGi[i][0];
+
+		while (lastDigit > 0)
+		{
+			lastDigit--;			
+			this->precompGi[i][lastDigit] = &this->gi[digits[lastDigit] + '0'];			
+		}
+	}
 }
 
 /// <summary>
@@ -395,13 +425,13 @@ AbstractRenderer::AABB NumberRenderer::CalcNumberAABB(double val, int x, int y,
 	do
 	{
 		digits[lastDigit] = (intPart % 10);
-		lastDigit++;
+		++lastDigit;
 		intPart /= 10;
 	} while (intPart);
 
 	while (lastDigit > 0)
 	{
-		lastDigit--;
+		--lastDigit;
 		const GlyphInfo & gi = this->gi[digits[lastDigit] + '0'];
 				
 		int fx = x + gi.bmpX;
@@ -550,7 +580,8 @@ bool NumberRenderer::GenerateGeometry()
 		
 		int lastDigit = 0;
 
-		//split number to single digits
+		//split number to single digits				
+		/*
 		do
 		{			
 			digits[lastDigit] = (intPart % 10);
@@ -565,15 +596,47 @@ bool NumberRenderer::GenerateGeometry()
 
 			this->AddQuad(gi, x, y, si.color);
 
-			x += (gi.adv >> 6);
-			
+			x += (gi.adv >> 6);			
 		}
+		*/
+		
+		//==========================================================
+		//split number to double-digits
+		//optimized conversion from number to "string (glyphs)"
+		//first we use stack and fill it with double-digits
+		//and then pop stack and append double-digits to output
+		while (intPart > 9)
+		{
+			int tmp = intPart / 100;
+			digits[lastDigit] = intPart - 100 * tmp;
+			++lastDigit;
+			intPart = tmp;
+		};
+
+		if (intPart != 0)
+		{
+			const GlyphInfo & gi = this->gi[intPart + '0'];
+			this->AddQuad(gi, x, y, si.color);
+			x += (gi.adv >> 6);
+		}
+
+		while (lastDigit > 0)
+		{
+			--lastDigit;
+			GlyphInfo ** t = precompGi[digits[lastDigit]];
+
+			this->AddQuad(*t[1], x, y, si.color);
+			x += (t[1]->adv >> 6);
+
+			this->AddQuad(*t[0], x, y, si.color);
+			x += (t[0]->adv >> 6);
+		}
+		//==========================================================
 
 		if (fractPartReverse)
 		{
 			this->AddQuad(this->gi['.'], x, y, si.color);
 			x += (this->gi['.'].adv >> 6);
-
 			
 			while (fractPartReverse)
 			{

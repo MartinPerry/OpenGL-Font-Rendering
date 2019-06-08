@@ -159,7 +159,9 @@ void display() {
 	//fn->AddNumber(-45.27, 100, 100);
 	//fn->AddNumberCaption(-450.013, 100, 100, { 1, 1.0f, 1.0f, 1 });
 	//fn->AddNumberCaption(-897456, 100, 300, { 1, 1.0f, 1.0f, 1 });
-	fn->AddNumber(rand(), 0.5f, 0.5f, { 1,1,0,1 }, AbstractRenderer::TextAnchor::CENTER);
+	int nmbr = rand();
+	//printf("%d\n", nmbr);
+	fn->AddNumber(nmbr, 0.5f, 0.5f, { 1,1,0,1 }, AbstractRenderer::TextAnchor::CENTER);
 	fn->Render();
 
 	glutSwapBuffers();	

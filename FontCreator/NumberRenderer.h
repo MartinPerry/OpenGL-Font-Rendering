@@ -91,8 +91,11 @@ protected:
 	std::vector<NumberInfo> nmbrs;
 	GlyphInfo gi[65];
 	GlyphInfo captionMark;
+	GlyphInfo * precompGi[100][2];
 
 	char digits[20];
+
+	void Precompute();
 
 	void AddFloatNumberInternal(double value,
 		int x, int y, Color color = { 1,1,1,1 },
