@@ -116,7 +116,7 @@ void NumberRenderer::SetDecimalPrecission(int digits)
 /// Get precision for decimal part in digits count
 /// </summary>
 /// <returns></returns>
-int NumberRenderer::GetDecimalPrecission()
+int NumberRenderer::GetDecimalPrecission() const
 {
 	return this->decimalPlaces;
 }
@@ -135,6 +135,10 @@ size_t NumberRenderer::GetNumbersCount() const
 /// </summary>
 void NumberRenderer::Clear()
 {
+#ifdef THREAD_SAFETY
+	std::lock_guard<std::shared_timed_mutex> lk(m);
+#endif
+
 	AbstractRenderer::Clear();
 	this->nmbrs.clear();
 }
@@ -270,9 +274,7 @@ void NumberRenderer::AddNumber(NumberInfo & n, int x, int y, Color color,
 
 
 	//new visible number - add it
-
-	this->strChanged = true;
-
+	
 	//fill basic structure info
 
 	n.x = x;
@@ -285,33 +287,45 @@ void NumberRenderer::AddNumber(NumberInfo & n, int x, int y, Color color,
 	n.w = w;
 	n.h = h;
 
+#ifdef THREAD_SAFETY
+	std::lock_guard<std::shared_timed_mutex> lk(m);
+#endif
+
 	this->nmbrs.push_back(n);
+	this->strChanged = true;
 }
 
 /// <summary>
 /// Reverse fraction part
+/// of positive number
 /// </summary>
-/// <param name="val"></param>
-/// <param name="intPart"></param>
+/// <param name="val">entire number</param>
+/// <param name="intPart">integer part only</param>
 /// <returns></returns>
-unsigned long NumberRenderer::GetFractPartReversed(double val, unsigned long intPart)
+unsigned long NumberRenderer::GetFractPartReversed(double val, unsigned long intPart) const
 {
-	unsigned long fractPartReverse = this->ReversDigits((unsigned long)((val - intPart) * decimalMult));
+	double fractPart = val - intPart;
+
+	//reversed number is without leading zeroes
+	//eg: 0.0157 => will reverse to 751
+	//but we need one leading zero
+	unsigned long fractPartReverse = this->ReversDigits((unsigned long)(fractPart * decimalMult));
 	if (fractPartReverse == 0)
 	{
 		return fractPartReverse;
 	}
 
-	int fractLeadingZeros = 0;
-	double tmp = val - intPart;
-	while (tmp < 1)
+	//calculate number of leading zeroes
+	int fractLeadingZeros = 0;	
+	while (fractPart < 1)
 	{
 		fractLeadingZeros++;
-		tmp *= 10;
+		fractPart *= 10;
 	}
 	fractLeadingZeros--;
 
-	
+	//move reversed part 
+	//751 => 7510
 	while (fractLeadingZeros > 0)
 	{
 		fractPartReverse *= 10;
@@ -328,7 +342,7 @@ unsigned long NumberRenderer::GetFractPartReversed(double val, unsigned long int
 /// </summary>
 /// <param name="num"></param>
 /// <returns></returns>
-unsigned long NumberRenderer::ReversDigits(unsigned long num)
+unsigned long NumberRenderer::ReversDigits(unsigned long num) const
 {
 	if (num < 10) return num;
 
@@ -507,8 +521,7 @@ bool NumberRenderer::GenerateGeometry()
 	this->geom.reserve(400);
 	
 	for (const NumberRenderer::NumberInfo & si : this->nmbrs)
-	{
-		int lineId = 0;
+	{		
 		int x = si.anchorX;
 		int y = si.anchorY;
 
@@ -537,6 +550,7 @@ bool NumberRenderer::GenerateGeometry()
 		
 		int lastDigit = 0;
 
+		//split number to single digits
 		do
 		{			
 			digits[lastDigit] = (intPart % 10);

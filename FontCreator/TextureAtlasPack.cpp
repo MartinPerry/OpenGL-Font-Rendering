@@ -134,7 +134,8 @@ void TextureAtlasPack::Clear()
 /// <returns></returns>
 bool TextureAtlasPack::Pack()
 {
-	this->erased.clear();
+	//this->erased.clear();
+	this->RemoveUnusedGlyphsFromFontInfo();
 
 	bool res = false;
 	if (this->method == PACKING_METHOD::GRID)
@@ -369,9 +370,11 @@ void TextureAtlasPack::CopyDataToTexture()
 				g.bmpW + 2 * this->border, g.bmpH + 2 * this->border, BORDER_EMPTY_VALUE);
 
 			//copy letter data			
-			for (int y = py, gy = 0; y < py + g.bmpH; y++, gy++)
+			int yEnd = py + g.bmpH;
+			int xEnd = px + g.bmpW;
+			for (int y = py, gy = 0; y < yEnd; y++, gy++)
 			{
-				for (int x = px, gx = 0; x < px + g.bmpW; x++, gx++)
+				for (int x = px, gx = 0; x < xEnd; x++, gx++)
 				{
 					this->rawPackedData[x + y * w] = g.rawData[gx + gy * origW];
 

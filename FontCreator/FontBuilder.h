@@ -80,11 +80,11 @@ protected:
 	bool SetClosestFontSizeForBitmaps(FontInfo & f, int size);
 
 	void LoadGlyphInfo(CHAR_CODE c);
-	bool LoadGlyphInfo(CHAR_CODE c, FontInfo & fi);
+	bool FillGlyphInfo(CHAR_CODE c, FontInfo & fi) const;
 
 	
-	uint8_t * ResizeBitmap(FT_GlyphSlot glyph, FontInfo & fi);
-	uint8_t * ResizeBitmapHermite(FT_GlyphSlot glyph, FontInfo & fi);
+	uint8_t * ResizeBitmap(FT_GlyphSlot glyph, FontInfo & fi) const;
+	uint8_t * ResizeBitmapHermite(FT_GlyphSlot glyph, FontInfo & fi) const;
 
 };
 

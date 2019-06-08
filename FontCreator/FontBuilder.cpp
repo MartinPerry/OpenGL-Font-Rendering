@@ -675,9 +675,9 @@ bool FontBuilder::CreateFontAtlas()
 /// <param name="c"></param>
 void FontBuilder::LoadGlyphInfo(CHAR_CODE c)
 {	
-	for (auto & fi : this->fis)
+	for (FontInfo & fi : this->fis)
 	{
-		if (this->LoadGlyphInfo(c, fi))
+		if (this->FillGlyphInfo(c, fi))
 		{
 			return;
 		}
@@ -686,7 +686,14 @@ void FontBuilder::LoadGlyphInfo(CHAR_CODE c)
 	MY_LOG_ERROR("Character %lu not found", c);
 }
 
-bool FontBuilder::LoadGlyphInfo(CHAR_CODE c, FontInfo & fi)
+/// <summary>
+/// Load single glyph info
+/// and fill local fi
+/// </summary>
+/// <param name="c">glyph code</param>
+/// <param name="fi">structure to be filled</param>
+/// <returns></returns>
+bool FontBuilder::FillGlyphInfo(CHAR_CODE c, FontInfo & fi) const
 {
 	
 	if (fi.usedGlyphs.find(c) != fi.usedGlyphs.end())
@@ -793,7 +800,7 @@ bool FontBuilder::LoadGlyphInfo(CHAR_CODE c, FontInfo & fi)
 /// <param name="glyph"></param>
 /// <param name="fi"></param>
 /// <returns></returns>
-uint8_t * FontBuilder::ResizeBitmap(FT_GlyphSlot glyph, FontInfo & fi)
+uint8_t * FontBuilder::ResizeBitmap(FT_GlyphSlot glyph, FontInfo & fi) const
 {
 	size_t w = static_cast<size_t>(glyph->bitmap.width * fi.scaleFactor);
 	size_t h = static_cast<size_t>(glyph->bitmap.rows * fi.scaleFactor);
@@ -823,7 +830,7 @@ uint8_t * FontBuilder::ResizeBitmap(FT_GlyphSlot glyph, FontInfo & fi)
 /// <param name="glyph"></param>
 /// <param name="fi"></param>
 /// <returns></returns>
-uint8_t * FontBuilder::ResizeBitmapHermite(FT_GlyphSlot glyph, FontInfo & fi)
+uint8_t * FontBuilder::ResizeBitmapHermite(FT_GlyphSlot glyph, FontInfo & fi) const
 {
 
 	size_t width = static_cast<size_t>(glyph->bitmap.width * fi.scaleFactor);

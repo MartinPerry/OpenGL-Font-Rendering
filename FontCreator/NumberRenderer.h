@@ -24,7 +24,7 @@ public:
 	void SetExistenceCheck(bool val);
 	void SetDecimalPrecission(int digits);
 
-	int GetDecimalPrecission();
+	int GetDecimalPrecission() const;
 
 	void Clear();
 	size_t GetNumbersCount() const;
@@ -116,8 +116,8 @@ protected:
 	void CalcAnchoredPosition();
 	
 
-	unsigned long GetFractPartReversed(double val, unsigned long intPart);
-	unsigned long ReversDigits(unsigned long num);
+	unsigned long GetFractPartReversed(double val, unsigned long intPart) const;
+	unsigned long ReversDigits(unsigned long num) const;
 };
 
 

@@ -8,6 +8,7 @@ class IFontShaderManager;
 #include <list>
 #include <unordered_set>
 #include <functional>
+#include <shared_mutex>
 
 #include "./FontStructures.h"
 
@@ -122,6 +123,9 @@ protected:
 	std::vector<float> geom;
 		
 	bool strChanged;
+#ifdef THREAD_SAFETY
+	std::shared_timed_mutex m;
+#endif
 
 	GLuint vbo;
 	GLuint vao;

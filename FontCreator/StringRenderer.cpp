@@ -37,6 +37,10 @@ StringRenderer::~StringRenderer()
 /// </summary>
 void StringRenderer::Clear()
 {
+#ifdef THREAD_SAFETY
+	std::lock_guard<std::shared_timed_mutex> lk(m);
+#endif
+
 	AbstractRenderer::Clear();
 	this->strs.clear();
 }
@@ -164,13 +168,17 @@ bool StringRenderer::AddStringInternal(const UnicodeString & str,
 
 	//new visible string - add it
 		
-	this->strChanged = true;
-	
+#ifdef THREAD_SAFETY
+	std::lock_guard<std::shared_timed_mutex> lk(m);
+#endif
+		
 	this->fb->AddString(uniStr);
 
 	this->strs.emplace_back(uniStr, x, y, 
 		color, anchor, align, type);
-		    
+
+	this->strChanged = true;
+
     return true;
 }
 

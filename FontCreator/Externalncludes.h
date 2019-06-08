@@ -6,6 +6,8 @@
 
 #define USE_ICU_LIBRARY
 
+#define THREAD_SAFETY
+
 //Path to this can be changes - eg. if you are not using freeglut - include OpenGL here
 //if you want to move strings change dir here
 //the same goes if you want to move lodepng

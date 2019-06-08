@@ -3,6 +3,7 @@
 #include <limits>
 #include <algorithm>
 
+
 #include "./FontBuilder.h"
 #include "./FontShaderManager.h"
 
@@ -450,6 +451,10 @@ void AbstractRenderer::Render(std::function<void(GLuint)> preDrawCallback)
 	{
 		return;
 	}
+
+#ifdef THREAD_SAFETY
+	std::shared_lock<std::shared_timed_mutex> lk(m);
+#endif
 
 	bool vboChanged = this->GenerateGeometry();
 
