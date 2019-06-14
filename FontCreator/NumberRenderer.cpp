@@ -605,31 +605,43 @@ bool NumberRenderer::GenerateGeometry()
 		//optimized conversion from number to "string (glyphs)"
 		//first we use stack and fill it with double-digits
 		//and then pop stack and append double-digits to output
-		while (intPart > 9)
-		{
-			int tmp = intPart / 100;
-			digits[lastDigit] = intPart - 100 * tmp;
-			++lastDigit;
-			intPart = tmp;
-		};
 
-		if (intPart != 0)
+		if (intPart < 9)
 		{
+			//one difgit number
 			const GlyphInfo & gi = this->gi[intPart + '0'];
 			this->AddQuad(gi, x, y, si.color);
 			x += (gi.adv >> 6);
 		}
-
-		while (lastDigit > 0)
+		else
 		{
-			--lastDigit;
-			GlyphInfo ** t = precompGi[digits[lastDigit]];
+			//number is > 9 - it has at least two digist
+			while (intPart > 9)
+			{
+				int tmp = intPart / 100;
+				digits[lastDigit] = intPart - 100 * tmp;
+				++lastDigit;
+				intPart = tmp;
+			};
 
-			this->AddQuad(*t[1], x, y, si.color);
-			x += (t[1]->adv >> 6);
+			if (intPart != 0)
+			{
+				const GlyphInfo & gi = this->gi[intPart + '0'];
+				this->AddQuad(gi, x, y, si.color);
+				x += (gi.adv >> 6);
+			}
 
-			this->AddQuad(*t[0], x, y, si.color);
-			x += (t[0]->adv >> 6);
+			while (lastDigit > 0)
+			{
+				--lastDigit;
+				GlyphInfo ** t = precompGi[digits[lastDigit]];
+
+				this->AddQuad(*t[1], x, y, si.color);
+				x += (t[1]->adv >> 6);
+
+				this->AddQuad(*t[0], x, y, si.color);
+				x += (t[0]->adv >> 6);
+			}
 		}
 		//==========================================================
 
