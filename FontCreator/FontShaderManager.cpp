@@ -113,10 +113,22 @@ void DefaultFontShaderManager::FillVertexData(const AbstractRenderer::Vertex & m
 
 SingleColorFontShaderManager::SingleColorFontShaderManager() :
 	positionLocation(0),
-	texCoordLocation(0)
+	texCoordLocation(0),
+	colorUniform(0),
+	r(1.0f),
+	g(1.0f),
+	b(1.0f),
+	a(1.0f)
 {
 }
 
+void SingleColorFontShaderManager::SetColor(float r, float g, float b, float a)
+{
+	this->r = r;
+	this->g = g;
+	this->b = b;
+	this->a = a;
+}
 
 /// <summary>
 /// Get shader uniforms and attributes locations
@@ -125,6 +137,8 @@ void SingleColorFontShaderManager::GetAttributtesUniforms()
 {
 	GL_CHECK(positionLocation = glGetAttribLocation(shaderProgram, "POSITION"));
 	GL_CHECK(texCoordLocation = glGetAttribLocation(shaderProgram, "TEXCOORD0"));	
+
+	GL_CHECK(colorUniform = glGetUniformLocation(shaderProgram, "fontColor"));
 }
 
 void SingleColorFontShaderManager::BindVertexAtribs()
@@ -146,7 +160,11 @@ void SingleColorFontShaderManager::BindVertexAtribs()
 	GL_CHECK(glVertexAttribPointer(texCoordLocation, TEXCOORD_SIZE,
 		GL_FLOAT, GL_FALSE,
 		VERTEX_SIZE, (void*)(TEX_COORD_OFFSET)));
-	
+}
+
+void SingleColorFontShaderManager::PreRender()
+{
+	GL_CHECK(glUniform4f(colorUniform, r, g, b, a));
 }
 
 void SingleColorFontShaderManager::FillVertexData(const AbstractRenderer::Vertex & minVertex,

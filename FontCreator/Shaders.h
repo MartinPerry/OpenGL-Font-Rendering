@@ -60,11 +60,12 @@ static const char* SINGLE_COLOR_PIXEL_SHADER_SOURCE = {
 	precision highp float;\n\
     uniform sampler2D fontTex;\n\
     varying vec2 texCoord;\n\
+	uniform vec4 fontColor;\n\
 	\n\
     void main()\n\
     {\n\
         float distance = texture2D( fontTex, texCoord.xy ).x; \n\
-        gl_FragColor.rgba = [SINGLE_COLOR]; \n\
+        gl_FragColor.rgba = fontColor; \n\
         gl_FragColor.a *= distance;\n\
     }\n\
 " };
@@ -122,11 +123,12 @@ static const char* SINGLE_COLOR_PIXEL_SHADER_SOURCE = {
 	"\n\
     uniform sampler2D fontTex;\n\
     varying vec2 texCoord;\n\
+	uniform vec4 fontColor;\n\
 	\n\
     void main()\n\
     {\n\
         float distance = texture2D( fontTex, texCoord.xy ).x; \n\
-        gl_FragColor.rgba = [SINGLE_COLOR]; \n\
+        gl_FragColor.rgba = fontColor; \n\
         gl_FragColor.a *= distance;\n\
     }\n\
 " };

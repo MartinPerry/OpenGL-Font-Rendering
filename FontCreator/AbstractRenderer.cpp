@@ -412,6 +412,8 @@ void AbstractRenderer::Render(std::function<void(GLuint)> preDrawCallback)
 	FONT_BIND_VAO(this->vao);
 #endif		
 
+	this->sm->PreRender();
+
     if (preDrawCallback != nullptr)
     {
         preDrawCallback(shader.program);

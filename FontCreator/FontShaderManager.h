@@ -25,6 +25,8 @@ public:
                                 const AbstractRenderer::Color & color,
                                 std::vector<float> & vec) = 0;
 
+	virtual void PreRender() {	}
+
 protected:
     GLuint shaderProgram;
 };
@@ -44,7 +46,7 @@ public:
                         const AbstractRenderer::Vertex & maxVertex,
                         const AbstractRenderer::Color & color,
                         std::vector<float> & vec) override;
-    
+    	
 protected:
     GLuint positionLocation;
     GLuint texCoordLocation;
@@ -60,14 +62,21 @@ public:
 	void GetAttributtesUniforms() override;
 	void BindVertexAtribs() override;
 
+	void SetColor(float r, float g, float b, float a);
+
 	void FillVertexData(const AbstractRenderer::Vertex & minVertex,
 		const AbstractRenderer::Vertex & maxVertex,
 		const AbstractRenderer::Color & color,
 		std::vector<float> & vec) override;
 
+	void PreRender() override;
+
 protected:
 	GLuint positionLocation;
 	GLuint texCoordLocation;	
+	GLuint colorUniform;
+
+	float r, g, b, a;
 };
 
 #endif /* _FONT_SHADER_MANAGER_H_ */

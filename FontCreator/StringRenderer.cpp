@@ -20,23 +20,12 @@
 /// <returns></returns>
 StringRenderer * StringRenderer::CreateSingleColor(Color color, const std::vector<Font> & fs, RenderSettings r, int glVersion)
 {
-	std::string strColor = "vec4(";
-	strColor += std::to_string(color.r);
-	strColor += ",";
-	strColor += std::to_string(color.g);
-	strColor += ",";
-	strColor += std::to_string(color.b);
-	strColor += ",";
-	strColor += std::to_string(color.a);
-	strColor += ")";
-
-	std::string f = "[SINGLE_COLOR]";
-	std::string tmp = SINGLE_COLOR_PIXEL_SHADER_SOURCE;
-	tmp.replace(tmp.find(f), f.length(), strColor);
+	auto sm = std::make_shared<SingleColorFontShaderManager>();
+	sm->SetColor(color.r, color.g, color.b, color.a);
 
 	return new StringRenderer(fs, r, glVersion, 
-		SINGLE_COLOR_VERTEX_SHADER_SOURCE, tmp.c_str(), 
-		std::make_shared<SingleColorFontShaderManager>());
+		SINGLE_COLOR_VERTEX_SHADER_SOURCE, SINGLE_COLOR_PIXEL_SHADER_SOURCE,
+		sm);
 
 }
 
