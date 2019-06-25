@@ -763,20 +763,26 @@ bool FontBuilder::FillGlyphInfo(CHAR_CODE c, FontInfo & fi) const
 			size_t j = 0;
 			for (unsigned int y = 0; y < glyph->bitmap.rows; y++)
 			{
+				//because of pitch, we cannot directly copy
+				//glyph->bitmap.buffer to textureData
+				//for this to work, pitch have to be 1, which is not guaranteed
+				int yh = y * glyph->bitmap.pitch;
+				
+				std::copy(glyph->bitmap.buffer + yh,
+					glyph->bitmap.buffer + (glyph->bitmap.width + yh),
+					textureData + j);
+
+				j += glyph->bitmap.width;
+				
+				/*
 				for (unsigned int x = 0; x < glyph->bitmap.width; x++)
 				{
 					textureData[j] = glyph->bitmap.buffer[x + y * glyph->bitmap.pitch];
 					j++;
 				}
+				*/
 			}
-
-			//for (int j = 0; j < bitmapSize; j++)
-			//{
-				//textureData[j + 0] = glyph->bitmap.buffer[j];
-			//}
-			//---------------------
-
-
+			
 			gInfo.rawData = textureData;
 		}
 	}
@@ -812,11 +818,14 @@ uint8_t * FontBuilder::ResizeBitmap(FT_GlyphSlot glyph, FontInfo & fi) const
 	double px, py;
 	for (size_t i = 0; i < h; i++) 
 	{
+		py = floor(i * y_ratio);
+		int pyW = py * glyph->bitmap.pitch;
+		int iw = i * w;
+
 		for (size_t j = 0; j < w; j++)
 		{
-			px = floor(j * x_ratio);
-			py = floor(i * y_ratio);
-			textureData[(i*w) + j] = glyph->bitmap.buffer[static_cast<int>(px + py * glyph->bitmap.pitch)];			
+			px = floor(j * x_ratio);			
+			textureData[j + iw] = glyph->bitmap.buffer[static_cast<int>(px + pyW)];
 		}
 	}
 	return textureData;
@@ -846,6 +855,12 @@ uint8_t * FontBuilder::ResizeBitmapHermite(FT_GlyphSlot glyph, FontInfo & fi) co
 
 	for (size_t j = 0; j < height; j++) 
 	{		
+		double center_y = (j + 0.5) * ratio_h;
+
+		size_t yy_start = static_cast<size_t>(std::floor(j * ratio_h));
+		size_t yy_stop = static_cast<size_t>(std::ceil((j + 1) * ratio_h));
+		yy_stop = std::min(yy_stop, static_cast<size_t>(glyph->bitmap.rows));
+
 		for (size_t i = 0; i < width; i++) 
 		{
 			size_t x2 = (i + j * width); // *4;
@@ -856,19 +871,13 @@ uint8_t * FontBuilder::ResizeBitmapHermite(FT_GlyphSlot glyph, FontInfo & fi) co
 			double gx_r = 0;
 			//double gx_g = 0;
 			//double gx_b = 0;
-			//double gx_a = 0;
-			double center_y = (j + 0.5) * ratio_h;
+			//double gx_a = 0;			
 			double center_x = (i + 0.5) * ratio_w;
-			
-			size_t yy_start = static_cast<size_t>(std::floor(j * ratio_h));
-			size_t yy_stop = static_cast<size_t>(std::ceil((j + 1) * ratio_h));
-
+						
 			size_t xx_start = static_cast<size_t>(std::floor(i * ratio_w));
 			size_t xx_stop = static_cast<size_t>(std::ceil((i + 1) * ratio_w));
-
 			xx_stop = std::min(xx_stop, static_cast<size_t>(glyph->bitmap.width));
-			yy_stop = std::min(yy_stop, static_cast<size_t>(glyph->bitmap.rows));
-
+			
 			for (size_t yy = yy_start; yy < yy_stop; yy++) 
 			{
 				double dy = std::abs(center_y - (yy + 0.5)) / ratio_h_half;				
@@ -883,8 +892,10 @@ uint8_t * FontBuilder::ResizeBitmapHermite(FT_GlyphSlot glyph, FontInfo & fi) co
 						//pixel too far
 						continue;
 					}
+					double w2 = w * w;
+
 					//hermite filter
-					double weight = 2 * w * w * w - 3 * w * w + 1;
+					double weight = 2 * w2 * w - 3 * w2 + 1;
 					size_t pos_x = (xx + yy * glyph->bitmap.width); //* 4;
 					//alpha
 					//gx_a += weight * glyph->bitmap.buffer[pos_x + 3];

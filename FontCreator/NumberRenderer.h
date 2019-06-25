@@ -18,7 +18,12 @@ public:
 
 	static const std::string NUMBERS_STRING;
 
+	static NumberRenderer * CreateSingleColor(Color color, const std::vector<Font> & fs, RenderSettings r, int glVersion = 3);
+
+
 	NumberRenderer(const std::vector<Font> & fs, RenderSettings r, int glVersion = 3);
+	NumberRenderer(const std::vector<Font> & fs, RenderSettings r, int glVersion,
+		const char * vSource, const char * pSource, std::shared_ptr<IFontShaderManager> sm);
 	~NumberRenderer();
 
 	void SetExistenceCheck(bool val);
@@ -95,6 +100,7 @@ protected:
 
 	char digits[20];
 
+	void Init();
 	void Precompute();
 
 	void AddFloatNumberInternal(double value,

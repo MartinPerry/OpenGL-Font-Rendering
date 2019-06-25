@@ -22,7 +22,7 @@
     <ProjectGuid>{8132DA1D-25C1-4B5D-A96E-0E3B141A3D79}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
     <RootNamespace>FontCreator</RootNamespace>
-    <WindowsTargetPlatformVersion>10.0.15063.0</WindowsTargetPlatformVersion>
+    <WindowsTargetPlatformVersion>10.0.17763.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
@@ -170,6 +170,7 @@
     <ClInclude Include="FontStructures.h" />
     <ClInclude Include="lodepng.h" />
     <ClInclude Include="NumberRenderer.h" />
+    <ClInclude Include="Shaders.h" />
     <ClInclude Include="StringRenderer.h" />
     <ClInclude Include="TextureAtlasPack.h" />
     <ClInclude Include="Unicode\ICUUtils.h" />

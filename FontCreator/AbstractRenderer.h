@@ -70,10 +70,7 @@ public:
 
 	
 protected:
-	
-    static const char * DEFAULT_VERTEX_SHADER_SOURCE;
-    static const char * DEFAULT_PIXEL_SHADER_SOURCE;
-    
+	        
 	typedef struct CaptionInfo
 	{
 		UnicodeString mark;

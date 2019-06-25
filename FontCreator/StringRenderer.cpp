@@ -2,9 +2,43 @@
 
 #include <limits>
 
+#include "./Shaders.h"
 #include "./FontBuilder.h"
+#include "./FontShaderManager.h"
 
 #include "./Externalncludes.h"
+
+/// <summary>
+/// Create optimized String renderer that will use only one color for every string
+/// If we pass color parameter during AddString... method call,
+/// this parameter is ignored and string is rendered with color specified here
+/// </summary>
+/// <param name="color">color used for all string</param>
+/// <param name="fs"></param>
+/// <param name="r"></param>
+/// <param name="glVersion"></param>
+/// <returns></returns>
+StringRenderer * StringRenderer::CreateSingleColor(Color color, const std::vector<Font> & fs, RenderSettings r, int glVersion)
+{
+	std::string strColor = "vec4(";
+	strColor += std::to_string(color.r);
+	strColor += ",";
+	strColor += std::to_string(color.g);
+	strColor += ",";
+	strColor += std::to_string(color.b);
+	strColor += ",";
+	strColor += std::to_string(color.a);
+	strColor += ")";
+
+	std::string f = "[SINGLE_COLOR]";
+	std::string tmp = SINGLE_COLOR_PIXEL_SHADER_SOURCE;
+	tmp.replace(tmp.find(f), f.length(), strColor);
+
+	return new StringRenderer(fs, r, glVersion, 
+		SINGLE_COLOR_VERTEX_SHADER_SOURCE, tmp.c_str(), 
+		std::make_shared<SingleColorFontShaderManager>());
+
+}
 
 StringRenderer::StringRenderer(const std::vector<Font> & fs, RenderSettings r, int glVersion)
 	: AbstractRenderer(fs, r, glVersion), 

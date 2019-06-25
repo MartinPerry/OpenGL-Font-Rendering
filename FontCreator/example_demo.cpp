@@ -255,7 +255,8 @@ void initGL() {
 	r.screenScale = 1.0;
 
 	//fr = new StringRenderer({ f, f2, f3 }, r);
-	fr = new StringRenderer(fonts, r);
+	//fr = new StringRenderer(fonts, r);
+	fr = StringRenderer::CreateSingleColor({ 1,0,1,1 }, fonts, r);
 	//fr = new StringRenderer({ fNum }, r);
 	//fr = new StringRenderer({ f4 }, r);
 	fn = new NumberRenderer({ fArial }, r);

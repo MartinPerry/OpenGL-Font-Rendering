@@ -3,11 +3,44 @@
 #include <limits>
 #include <algorithm>
 
-
+#include "./Shaders.h"
 #include "./FontBuilder.h"
+#include "./FontShaderManager.h"
 
 
 const std::string NumberRenderer::NUMBERS_STRING = "0123456789,.-";
+
+/// <summary>
+/// Create optimized Number renderer that will use only one color for every number
+/// If we pass color parameter during AddNumber... method call,
+/// this parameter is ignored and number is rendered with color specified here
+/// </summary>
+/// <param name="color">color used for all numbers</param>
+/// <param name="fs"></param>
+/// <param name="r"></param>
+/// <param name="glVersion"></param>
+/// <returns></returns>
+NumberRenderer * NumberRenderer::CreateSingleColor(Color color, const std::vector<Font> & fs, RenderSettings r, int glVersion)
+{
+	std::string strColor = "vec4(";
+	strColor += std::to_string(color.r);
+	strColor += ",";
+	strColor += std::to_string(color.g);
+	strColor += ",";
+	strColor += std::to_string(color.b);
+	strColor += ",";
+	strColor += std::to_string(color.a);
+	strColor += ")";
+
+	std::string f = "[SINGLE_COLOR]";
+	std::string tmp = SINGLE_COLOR_PIXEL_SHADER_SOURCE;
+	tmp.replace(tmp.find(f), f.length(), strColor);
+
+	return new NumberRenderer(fs, r, glVersion,
+		SINGLE_COLOR_VERTEX_SHADER_SOURCE, tmp.c_str(),
+		std::make_shared<SingleColorFontShaderManager>());
+
+}
 
 /// <summary>
 /// ctor
@@ -17,13 +50,33 @@ const std::string NumberRenderer::NUMBERS_STRING = "0123456789,.-";
 /// <param name="glVersion"></param>
 NumberRenderer::NumberRenderer(const std::vector<Font> & fs, RenderSettings r, int glVersion)
 	: AbstractRenderer(fs, r, glVersion),
-	decimalPlaces(0), 
-	decimalMult(1)
+	decimalPlaces(0),
+	decimalMult(1),
+	checkIfExist(true)
 {
-	this->checkIfExist = true;
+	this->Init();
+}
 
-	//prepare numbers
-	
+NumberRenderer::NumberRenderer(const std::vector<Font> & fs, RenderSettings r, int glVersion,
+	const char * vSource, const char * pSource, std::shared_ptr<IFontShaderManager> sm)
+	: AbstractRenderer(fs, r, glVersion, vSource, pSource, sm),
+	decimalPlaces(0),
+	decimalMult(1),
+	checkIfExist(true)
+{
+	this->Init();
+}
+
+/// <summary>
+/// dtor
+/// </summary>
+NumberRenderer::~NumberRenderer()
+{
+}
+
+void NumberRenderer::Init()
+{	
+	//prepare numbers	
 	for (auto c : NUMBERS_STRING)
 	{
 		this->fb->AddString(c);
@@ -83,12 +136,6 @@ NumberRenderer::NumberRenderer(const std::vector<Font> & fs, RenderSettings r, i
 	this->Precompute();
 }
 
-/// <summary>
-/// dtor
-/// </summary>
-NumberRenderer::~NumberRenderer()
-{
-}
 
 /// <summary>
 /// Precompute array of double-digits glyphs
@@ -290,11 +337,14 @@ void NumberRenderer::AddNumber(NumberInfo & n, int x, int y, Color color,
 	int h = (aabb.maxY - aabb.minY);
 
 	if (anchor == TextAnchor::CENTER)
-	{		
-		aabb.minX -= (w / 2);
-		aabb.maxX -= (w / 2);
-		aabb.minY -= (h / 2);
-		aabb.maxY -= (h / 2);
+	{	
+		int wHalf = w / 2;
+		int hHalf = h / 2;
+
+		aabb.minX -= wHalf;
+		aabb.maxX -= wHalf;
+		aabb.minY -= hHalf;
+		aabb.maxY -= hHalf;
 	}
 
 	if (aabb.maxX <= 0) return;

@@ -23,7 +23,7 @@ TextureAtlasPack::TextureAtlasPack(int w, int h, int border) :
 	memset(this->rawPackedData, 0, sizeof(uint8_t) * w * h);
 
 		
-	this->freeSpace.push_back(Node(0, 0, w, h));
+	this->freeSpace.emplace_back(0, 0, w, h);
 }
 
 
@@ -123,7 +123,7 @@ void TextureAtlasPack::Clear()
 	this->freeSpace.clear();
 		
 
-	this->freeSpace.push_back(Node(0, 0, w, h));
+	this->freeSpace.emplace_back(0, 0, w, h);
 	
 	this->packedInfo.clear();
 }
@@ -374,12 +374,27 @@ void TextureAtlasPack::CopyDataToTexture()
 			int xEnd = px + g.bmpW;
 			for (int y = py, gy = 0; y < yEnd; y++, gy++)
 			{
+				int gyW = gy * origW;
+
+				
+				//copy line from g.rawData in range [0 - g.bmpW] to 
+				//rawPackedData to range [px - px + g.bmpW]
+				std::copy(g.rawData + gyW,
+					g.rawData + (g.bmpW + gyW),
+					this->rawPackedData + (px + y * w));
+
+				this->freePixels -= g.bmpW;
+				
+				
+				/*
 				for (int x = px, gx = 0; x < xEnd; x++, gx++)
 				{
-					this->rawPackedData[x + y * w] = g.rawData[gx + gy * origW];
+					this->rawPackedData[x + y * w] = g.rawData[gx + gyW];
 
 					this->freePixels--;
 				}
+				*/
+				
 			}
 
 			it->second.filled = true;
@@ -447,6 +462,7 @@ void TextureAtlasPack::DrawBorder(int px, int py, int pw, int ph, uint8_t border
 	}
 }
 
+/*
 /// <summary>
 /// Fill external buffer with current texture data
 /// </summary>
@@ -463,6 +479,7 @@ void TextureAtlasPack::FillBuffer(uint8_t ** memory)
 		}
 	}
 }
+*/
 
 /// <summary>
 /// Find empty space to fit texture in

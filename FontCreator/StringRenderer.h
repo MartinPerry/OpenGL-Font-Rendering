@@ -11,6 +11,8 @@ class StringRenderer : public AbstractRenderer
 {
 public:
 
+	static StringRenderer * CreateSingleColor(Color color, const std::vector<Font> & fs, RenderSettings r, int glVersion = 3);
+
 	StringRenderer(const std::vector<Font> & fs, RenderSettings r, int glVersion = 3);
     StringRenderer(const std::vector<Font> & fs, RenderSettings r, int glVersion,
                    const char * vSource, const char * pSource, std::shared_ptr<IFontShaderManager> sm);

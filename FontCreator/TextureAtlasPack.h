@@ -46,7 +46,7 @@ public:
 
 	void SaveToFile(const std::string & path);
 
-	void FillBuffer(uint8_t ** buf);
+	//void FillBuffer(uint8_t ** buf);
 	int GetTextureWidth() const;
 	int GetTextureHeight() const;
 	const uint8_t * GetTexture() const;

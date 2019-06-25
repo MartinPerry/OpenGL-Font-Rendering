@@ -1,5 +1,5 @@
-#ifndef _FONT_SHADER_MANAGER_H_
-#define _FONT_SHADER_MANAGER_H_
+#ifndef FONT_SHADER_MANAGER_H
+#define FONT_SHADER_MANAGER_H
 
 #include <vector>
 
@@ -35,7 +35,7 @@ class DefaultFontShaderManager : public IFontShaderManager
 {
 public:
     DefaultFontShaderManager();
-    virtual ~DefaultFontShaderManager();
+	virtual ~DefaultFontShaderManager() = default;
     
     void GetAttributtesUniforms() override;
     void BindVertexAtribs() override;
@@ -48,9 +48,26 @@ public:
 protected:
     GLuint positionLocation;
     GLuint texCoordLocation;
-    GLuint colorLocation;
-    
-    
+    GLuint colorLocation;        
+};
+
+class SingleColorFontShaderManager : public IFontShaderManager
+{
+public:
+	SingleColorFontShaderManager();
+	virtual ~SingleColorFontShaderManager() = default;
+
+	void GetAttributtesUniforms() override;
+	void BindVertexAtribs() override;
+
+	void FillVertexData(const AbstractRenderer::Vertex & minVertex,
+		const AbstractRenderer::Vertex & maxVertex,
+		const AbstractRenderer::Color & color,
+		std::vector<float> & vec) override;
+
+protected:
+	GLuint positionLocation;
+	GLuint texCoordLocation;	
 };
 
 #endif /* _FONT_SHADER_MANAGER_H_ */
