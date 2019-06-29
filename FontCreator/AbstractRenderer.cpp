@@ -352,6 +352,11 @@ int AbstractRenderer::GetCanvasHeight() const
 	return this->rs.deviceH;
 }
 
+std::shared_ptr<IFontShaderManager> AbstractRenderer::GetShaderManager() const
+{
+	return this->sm;
+}
+
 /// <summary>
 /// Remove all added strings
 /// </summary>

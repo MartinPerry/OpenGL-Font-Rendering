@@ -57,6 +57,8 @@ public:
 	int GetCanvasWidth() const;
 	int GetCanvasHeight() const;
 
+	std::shared_ptr<IFontShaderManager> GetShaderManager() const;
+
 	void SwapCanvasWidthHeight();
 
 	void Clear();
