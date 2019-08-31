@@ -110,6 +110,13 @@ AbstractRenderer::AbstractRenderer(const std::vector<Font> & fs, RenderSettings 
     this->SetCaption(UTF8_TEXT(u8"\u2022"), 10);
          
     this->InitGL();
+
+	this->psW = 1.0f / static_cast<float>(rs.deviceW); //pixel size in width
+	this->psH = 1.0f / static_cast<float>(rs.deviceH); //pixel size in height
+
+	this->tW = 1.0f / static_cast<float>(this->fb->GetTextureWidth());  //pixel size in width
+	this->tH = 1.0f / static_cast<float>(this->fb->GetTextureHeight()); //pixel size in height
+
 }
 
 AbstractRenderer::~AbstractRenderer()
@@ -212,9 +219,6 @@ void AbstractRenderer::CreateVAO()
 	FONT_UNBIND_ARRAY_BUFFER;
 
 	FONT_UNBIND_VAO;
-
-
-
 }
 
 /// <summary>
@@ -460,20 +464,10 @@ void AbstractRenderer::FillTexture()
 /// <param name="x"></param>
 /// <param name="y"></param>
 void AbstractRenderer::AddQuad(const GlyphInfo & gi, int x, int y, const Color & col)
-{
-    float psW = 1.0f / static_cast<float>(rs.deviceW); //pixel size in width
-    float psH = 1.0f / static_cast<float>(rs.deviceH); //pixel size in height
-    
-    float tW = 1.0f / static_cast<float>(this->fb->GetTextureWidth());  //pixel size in width
-    float tH = 1.0f / static_cast<float>(this->fb->GetTextureHeight()); //pixel size in height
-    
-    
-    
+{    
     int fx = x + gi.bmpX;
     int fy = y - gi.bmpY;
-    
-	
-
+    	
     //build geometry
     Vertex min, max;
     
@@ -489,7 +483,7 @@ void AbstractRenderer::AddQuad(const GlyphInfo & gi, int x, int y, const Color &
     
     this->sm->FillVertexData(min, max, col, this->geom);
     
-    quadsCount++;
+    this->quadsCount++;
 }
 
 

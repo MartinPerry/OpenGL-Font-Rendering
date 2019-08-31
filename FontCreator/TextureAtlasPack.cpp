@@ -383,18 +383,7 @@ void TextureAtlasPack::CopyDataToTexture()
 					g.rawData + (g.bmpW + gyW),
 					this->rawPackedData + (px + y * w));
 
-				this->freePixels -= g.bmpW;
-				
-				
-				/*
-				for (int x = px, gx = 0; x < xEnd; x++, gx++)
-				{
-					this->rawPackedData[x + y * w] = g.rawData[gx + gyW];
-
-					this->freePixels--;
-				}
-				*/
-				
+				this->freePixels -= g.bmpW;												
 			}
 
 			it->second.filled = true;

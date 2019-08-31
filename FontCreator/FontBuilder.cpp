@@ -760,27 +760,28 @@ bool FontBuilder::FillGlyphInfo(CHAR_CODE c, FontInfo & fi) const
 			int bitmapSize = glyph->bitmap.width * glyph->bitmap.rows;
 			uint8_t * textureData = new uint8_t[bitmapSize];
 
-			size_t j = 0;
-			for (unsigned int y = 0; y < glyph->bitmap.rows; y++)
+			if (glyph->bitmap.pitch == 1)
+			{
+				std::copy(glyph->bitmap.buffer,
+					glyph->bitmap.buffer + bitmapSize,
+					textureData);
+			}
+			else
 			{
 				//because of pitch, we cannot directly copy
 				//glyph->bitmap.buffer to textureData
-				//for this to work, pitch have to be 1, which is not guaranteed
-				int yh = y * glyph->bitmap.pitch;
 				
-				std::copy(glyph->bitmap.buffer + yh,
-					glyph->bitmap.buffer + (glyph->bitmap.width + yh),
-					textureData + j);
+				size_t j = 0;
+				for (unsigned int y = 0; y < glyph->bitmap.rows; y++)
+				{					
+					int yh = y * glyph->bitmap.pitch;
 
-				j += glyph->bitmap.width;
-				
-				/*
-				for (unsigned int x = 0; x < glyph->bitmap.width; x++)
-				{
-					textureData[j] = glyph->bitmap.buffer[x + y * glyph->bitmap.pitch];
-					j++;
+					std::copy(glyph->bitmap.buffer + yh,
+						glyph->bitmap.buffer + (glyph->bitmap.width + yh),
+						textureData + j);
+
+					j += glyph->bitmap.width;
 				}
-				*/
 			}
 			
 			gInfo.rawData = textureData;
@@ -819,8 +820,8 @@ uint8_t * FontBuilder::ResizeBitmap(FT_GlyphSlot glyph, FontInfo & fi) const
 	for (size_t i = 0; i < h; i++) 
 	{
 		py = floor(i * y_ratio);
-		int pyW = py * glyph->bitmap.pitch;
-		int iw = i * w;
+		double pyW = py * glyph->bitmap.pitch;
+		size_t iw = i * w;
 
 		for (size_t j = 0; j < w; j++)
 		{

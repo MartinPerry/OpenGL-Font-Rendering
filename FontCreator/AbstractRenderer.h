@@ -120,7 +120,14 @@ protected:
 
     int quadsCount;
 	std::vector<float> geom;
-		
+	
+	float psW; //pixel size in width
+	float psH; //pixel size in height
+
+	float tW ;  //pixel size in width
+	float tH; //pixel size in height
+
+
 	bool strChanged;
 #ifdef THREAD_SAFETY
 	std::shared_timed_mutex m;

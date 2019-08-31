@@ -659,7 +659,7 @@ bool NumberRenderer::GenerateGeometry()
 			while (intPart > 9)
 			{
 				int tmp = intPart / 100;
-				digits[lastDigit] = intPart - 100 * tmp;
+				digits[lastDigit] = static_cast<char>(intPart - 100 * tmp);
 				++lastDigit;
 				intPart = tmp;
 			};
