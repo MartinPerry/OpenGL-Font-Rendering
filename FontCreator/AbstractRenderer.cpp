@@ -316,12 +316,18 @@ void AbstractRenderer::SetCanvasSize(int w, int h)
 	this->rs.deviceW = w;
 	this->rs.deviceH = h;
 
+	this->psW = 1.0f / static_cast<float>(rs.deviceW); //pixel size in width
+	this->psH = 1.0f / static_cast<float>(rs.deviceH); //pixel size in height
+
 	this->strChanged = true;
 }
 
 void AbstractRenderer::SwapCanvasWidthHeight()
 {
 	std::swap(this->rs.deviceW, this->rs.deviceH);
+
+	this->psW = 1.0f / static_cast<float>(rs.deviceW); //pixel size in width
+	this->psH = 1.0f / static_cast<float>(rs.deviceH); //pixel size in height
 
 	this->strChanged = true;
 }
