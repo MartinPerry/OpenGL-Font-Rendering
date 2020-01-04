@@ -25,18 +25,18 @@ public:
 
 	void SetBidiEnabled(bool val);
 
-	void AddStringCaption(const UnicodeString & str,
+	bool AddStringCaption(const UnicodeString & str,
 		double x, double y, Color color = DEFAULT_COLOR);
 
-	void AddStringCaption(const UnicodeString & str,
+	bool AddStringCaption(const UnicodeString & str,
 		int x, int y, Color color = DEFAULT_COLOR);
 
-	void AddString(const UnicodeString & str,
+	bool AddString(const UnicodeString & str,
 		double x, double y, Color color = DEFAULT_COLOR,
 		TextAnchor anchor = TextAnchor::LEFT_TOP,
 		TextAlign align = TextAlign::ALIGN_LEFT);
 
-	void AddString(const UnicodeString & str,
+	bool AddString(const UnicodeString & str,
 		int x, int y, Color color = DEFAULT_COLOR,
 		TextAnchor anchor = TextAnchor::LEFT_TOP,
 		TextAlign align = TextAlign::ALIGN_LEFT);

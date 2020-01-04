@@ -221,7 +221,7 @@ void NumberRenderer::Clear()
 /// <param name="color"></param>
 /// <param name="anchor"></param>
 /// <param name="type"></param>
-void NumberRenderer::AddIntegralNumberInternal(long val,
+bool NumberRenderer::AddIntegralNumberInternal(long val,
 	int x, int y, Color color,
 	TextAnchor anchor, TextType type)
 {
@@ -241,7 +241,7 @@ void NumberRenderer::AddIntegralNumberInternal(long val,
 				{
 					//same number on the same position and with same align
 					//already exist - do not add it again
-					return;
+					return false;
 				}
 			}
 		}
@@ -256,7 +256,7 @@ void NumberRenderer::AddIntegralNumberInternal(long val,
 	i.fractPartReverse = 0;
 
 
-	this->AddNumber(i, x, y, color, anchor, type);	
+	return this->AddNumber(i, x, y, color, anchor, type);	
 }
 
 /// <summary>
@@ -269,7 +269,7 @@ void NumberRenderer::AddIntegralNumberInternal(long val,
 /// <param name="color"></param>
 /// <param name="anchor"></param>
 /// <param name="type"></param>
-void NumberRenderer::AddFloatNumberInternal(double val,
+bool NumberRenderer::AddFloatNumberInternal(double val,
 	int x, int y, Color color,
 	TextAnchor anchor, TextType type)
 {
@@ -289,7 +289,7 @@ void NumberRenderer::AddFloatNumberInternal(double val,
 				{
 					//same number on the same position and with same align
 					//already exist - do not add it again
-					return;
+					return false;
 				}
 			}
 		}
@@ -304,7 +304,7 @@ void NumberRenderer::AddFloatNumberInternal(double val,
 	i.fractPartReverse = this->GetFractPartReversed(val, i.intPart);
 
 
-	this->AddNumber(i, x, y, color, anchor, type);
+	return this->AddNumber(i, x, y, color, anchor, type);
 }
 
 /// <summary>
@@ -316,7 +316,7 @@ void NumberRenderer::AddFloatNumberInternal(double val,
 /// <param name="color"></param>
 /// <param name="anchor"></param>
 /// <param name="type"></param>
-void NumberRenderer::AddNumber(NumberInfo & n, int x, int y, Color color,
+bool NumberRenderer::AddNumber(NumberInfo & n, int x, int y, Color color,
 	TextAnchor anchor, TextType type)
 {
 	AbstractRenderer::AABB aabb = this->CalcNumberAABB(n.val, x, y, n.negative, n.intPart, n.fractPartReverse);
@@ -337,10 +337,10 @@ void NumberRenderer::AddNumber(NumberInfo & n, int x, int y, Color color,
 		aabb.maxY -= hHalf;
 	}
 
-	if (aabb.maxX <= 0) return;
-	if (aabb.maxY <= 0) return;
-	if (aabb.minX > this->rs.deviceW) return;
-	if (aabb.minY > this->rs.deviceH) return;
+	if (aabb.maxX <= 0) return false;
+	if (aabb.maxY <= 0) return false;
+	if (aabb.minX > this->rs.deviceW) return false;
+	if (aabb.minY > this->rs.deviceH) return false;
 
 
 	//new visible number - add it
@@ -363,6 +363,8 @@ void NumberRenderer::AddNumber(NumberInfo & n, int x, int y, Color color,
 
 	this->nmbrs.push_back(n);
 	this->strChanged = true;
+
+	return true;
 }
 
 /// <summary>

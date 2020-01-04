@@ -321,26 +321,27 @@ int main(int argc, char ** argv)
 #endif
 		
 	//Normalize();
-	/*
+	
 	//CharacterExtractor cr({ "arial.ttf" }, "arial_out.ttf");
 	//CharacterExtractor cr(std::vector<std::string>({ "arial.ttf" }), "arial_out.ttf");
 	CharacterExtractor cr({ "../ii_v3/noto_max_priority/", "../ii_v3/noto/", "../ii_v3/noto-otf/", "../ii_v3/emoji/"  }, "merged_out");
 	//CharacterExtractor cr({ "../ii/noto_max_priority/", "../ii/noto/" }, "merged_out");
 	//CharacterExtractor cr({ "../ii/noto_max_priority/" }, "merged_out");
 	
-	cr.SetOutputDir("../ii_v3/");
+	cr.SetOutputDir("../ii_v5/");
 	cr.AddText(UTF8_TEXT(u8"P¯Ìliö\nûluùouËk˝\nk˘Ú")); //CZ accents	
 	cr.AddText(UTF8_TEXT(u8"\u2022")); //mark in number renderer
 	cr.AddText(UTF8_TEXT(u8"0123456789")); //all numbers
 	cr.AddText(UTF8_TEXT(u8" !/*-+,.=")); //basic math operators	
 	cr.AddText(UTF8_TEXT(u8"\U0001F300")); //CYCLONE "icon"
-	cr.AddDirectory("D:\\Martin\\Programming\\test\\Ventusky\\VentuskyWin\\_bundle_dir_\\DATA\\cities\\");	
+	//cr.AddDirectory("D:\\Martin\\Programming\\test\\Ventusky\\VentuskyWin\\_bundle_dir_\\DATA\\cities\\");	
+	cr.AddDirectory("d:/Martin/Programming/test/Ventusky/Ventusky_v11/Preprocessing/CitiesTilesGenerator/cities/");
 	//cr.RemoveChar(utf8_string(u8"P")[0]);
 	allChars = cr.GetAllCharacters();
 	
 	cr.GenerateScript("run.sh");
 	cr.Release();
-	*/
+	
 
 	/*		
 	rrr = generateRandomString();

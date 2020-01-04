@@ -83,20 +83,20 @@ void StringRenderer::SetBidiEnabled(bool val)
 	this->isBidiEnabled = val;
 }
 
-void StringRenderer::AddStringCaption(const UnicodeString & str,
+bool StringRenderer::AddStringCaption(const UnicodeString & str,
 	double x, double y, Color color)
 {
 	int xx = static_cast<int>(x * this->rs.deviceW);
 	int yy = static_cast<int>(y * this->rs.deviceH);
 
-	this->AddStringCaption(str, xx, yy, color);
+	return this->AddStringCaption(str, xx, yy, color);
 }
 
-void StringRenderer::AddStringCaption(const UnicodeString & str,
+bool StringRenderer::AddStringCaption(const UnicodeString & str,
 	int x, int y, Color color)
 {
     this->AddStringInternal(ci.mark, x, y, color, TextAnchor::CENTER, TextAlign::ALIGN_CENTER, TextType::CAPTION);
-    this->AddStringInternal(str, x, y, color, TextAnchor::CENTER, TextAlign::ALIGN_CENTER, TextType::CAPTION);
+    return this->AddStringInternal(str, x, y, color, TextAnchor::CENTER, TextAlign::ALIGN_CENTER, TextType::CAPTION);
 }
 
 /// <summary>
@@ -108,14 +108,14 @@ void StringRenderer::AddStringCaption(const UnicodeString & str,
 /// <param name="strUTF8"></param>
 /// <param name="x"></param>
 /// <param name="y"></param>
-void StringRenderer::AddString(const UnicodeString & str,
+bool StringRenderer::AddString(const UnicodeString & str,
 	double x, double y, Color color,
 	TextAnchor anchor, TextAlign align)
 {
 	int xx = static_cast<int>(x * this->rs.deviceW);
 	int yy = static_cast<int>(y * this->rs.deviceH);
 
-	this->AddStringInternal(str, xx, yy, color, anchor, align, TextType::TEXT);
+	return this->AddStringInternal(str, xx, yy, color, anchor, align, TextType::TEXT);
 }
 
 /// <summary>
@@ -126,11 +126,11 @@ void StringRenderer::AddString(const UnicodeString & str,
 /// <param name="strUTF8"></param>
 /// <param name="x"></param>
 /// <param name="y"></param>
-void StringRenderer::AddString(const UnicodeString & str,
+bool StringRenderer::AddString(const UnicodeString & str,
 	int x, int y, Color color,
 	TextAnchor anchor, TextAlign align)
 {
-	this->AddStringInternal(str, x, y, color, anchor, align, TextType::TEXT);
+	return this->AddStringInternal(str, x, y, color, anchor, align, TextType::TEXT);
 }
 
 

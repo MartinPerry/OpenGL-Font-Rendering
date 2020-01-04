@@ -9,8 +9,8 @@
 
 #include "./FontStructures.h"
 
-#define IS_FLOAT typename std::enable_if<std::is_floating_point<T>::value, void>::type
-#define IS_INTEGRAL typename std::enable_if<std::is_integral<T>::value, void>::type
+#define IS_FLOAT typename std::enable_if<std::is_floating_point<T>::value, bool>::type
+#define IS_INTEGRAL typename std::enable_if<std::is_integral<T>::value, bool>::type
 
 class NumberRenderer : public AbstractRenderer
 {
@@ -103,17 +103,17 @@ protected:
 	void Init();
 	void Precompute();
 
-	void AddFloatNumberInternal(double value,
+	bool AddFloatNumberInternal(double value,
 		int x, int y, Color color = { 1,1,1,1 },
 		TextAnchor anchor = TextAnchor::LEFT_TOP,		
 		TextType type = TextType::TEXT);
 
-	void AddIntegralNumberInternal(long value,
+	bool AddIntegralNumberInternal(long value,
 		int x, int y, Color color = { 1,1,1,1 },
 		TextAnchor anchor = TextAnchor::LEFT_TOP,
 		TextType type = TextType::TEXT);
 
-	void AddNumber(NumberInfo & n, int x, int y, Color color,
+	bool AddNumber(NumberInfo & n, int x, int y, Color color,
 		TextAnchor anchor, TextType type);
 
 	bool GenerateGeometry() override;
@@ -142,7 +142,7 @@ IS_FLOAT NumberRenderer::AddNumberCaption(T val,
 	int x, int y, Color color)
 {
 	//this->AddNumberInternal(ci.mark, x, y, color, TextAnchor::CENTER, TextAlign::ALIGN_CENTER, TextType::CAPTION);
-	this->AddFloatNumberInternal(val, x, y, color, TextAnchor::CENTER, TextType::CAPTION);
+	return this->AddFloatNumberInternal(val, x, y, color, TextAnchor::CENTER, TextType::CAPTION);
 }
 
 /// <summary>
@@ -163,7 +163,7 @@ IS_FLOAT NumberRenderer::AddNumber(T val,
 	int xx = static_cast<int>(x * this->rs.deviceW);
 	int yy = static_cast<int>(y * this->rs.deviceH);
 
-	this->AddFloatNumberInternal(val, xx, yy, color, anchor, TextType::TEXT);
+	return this->AddFloatNumberInternal(val, xx, yy, color, anchor, TextType::TEXT);
 }
 
 /// <summary>
@@ -179,7 +179,7 @@ IS_FLOAT NumberRenderer::AddNumber(T val,
 	int x, int y, Color color,
 	TextAnchor anchor)
 {
-	this->AddFloatNumberInternal(val, x, y, color, anchor, TextType::TEXT);
+	return this->AddFloatNumberInternal(val, x, y, color, anchor, TextType::TEXT);
 }
 
 
@@ -197,7 +197,7 @@ IS_INTEGRAL NumberRenderer::AddNumberCaption(T val,
 	int x, int y, Color color)
 {
 	//this->AddNumberInternal(ci.mark, x, y, color, TextAnchor::CENTER, TextAlign::ALIGN_CENTER, TextType::CAPTION);
-	this->AddIntegralNumberInternal(static_cast<long>(val), x, y, color, TextAnchor::CENTER, TextType::CAPTION);
+	return this->AddIntegralNumberInternal(static_cast<long>(val), x, y, color, TextAnchor::CENTER, TextType::CAPTION);
 }
 
 /// <summary>
@@ -218,7 +218,7 @@ IS_INTEGRAL NumberRenderer::AddNumber(T val,
 	int xx = static_cast<int>(x * this->rs.deviceW);
 	int yy = static_cast<int>(y * this->rs.deviceH);
 
-	this->AddIntegralNumberInternal(static_cast<long>(val), xx, yy, color, anchor, TextType::TEXT);
+	return this->AddIntegralNumberInternal(static_cast<long>(val), xx, yy, color, anchor, TextType::TEXT);
 }
 
 /// <summary>
@@ -234,7 +234,7 @@ IS_INTEGRAL NumberRenderer::AddNumber(T val,
 	int x, int y, Color color,
 	TextAnchor anchor)
 {
-	this->AddIntegralNumberInternal(static_cast<long>(val), x, y, color, anchor, TextType::TEXT);
+	return this->AddIntegralNumberInternal(static_cast<long>(val), x, y, color, anchor, TextType::TEXT);
 }
 
 
