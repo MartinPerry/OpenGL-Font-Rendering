@@ -1,5 +1,5 @@
-#ifndef _EXTERNAL_INCLUDES_H_
-#define _EXTERNAL_INCLUDES_H_
+#ifndef EXTERNAL_INCLUDES_H
+#define EXTERNAL_INCLUDES_H
 
 //=====================================================================================
 //additional preprocessor directives
@@ -48,12 +48,12 @@
 #endif
 
 #ifndef MY_LOG_ERROR
-#define MY_LOG_ERROR(...) printf(__VA_ARGS__)
+#define MY_LOG_ERROR(...) printf(__VA_ARGS__); printf("\n");
 #endif
 
 
 #ifndef MY_LOG_INFO
-#define MY_LOG_INFO(...) printf(__VA_ARGS__)
+#define MY_LOG_INFO(...) printf(__VA_ARGS__); printf("\n");
 #endif
 
 //=====================================================================================

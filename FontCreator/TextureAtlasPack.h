@@ -13,7 +13,7 @@
 class TextureAtlasPack
 {
 public:
-	typedef enum PACKING_METHOD { TIGHT, GRID } PACKING_METHOD;
+	enum class PACKING_METHOD { TIGHT, GRID };
 
 	typedef struct PackedInfo
 	{
@@ -25,21 +25,16 @@ public:
 
 	} PackedInfo;
 
-	typedef struct ErasedInfo 
-	{
-		FontInfo::UsedGlyphIterator gi;
-		int fontIndex;		
-	} ErasedInfo;
-
+	
 	TextureAtlasPack(int w, int h, int border);
 	~TextureAtlasPack();
 
 
 	std::unordered_map<CHAR_CODE, PackedInfo> & GetPackedInfos();
 
-	void SetAllGlyphs(std::vector<FontInfo> * fontInfos);
-	void SetUnusedGlyphs(std::list<UnusedGlyphInfo> * unused);
-	const std::unordered_map<CHAR_CODE, TextureAtlasPack::ErasedInfo> & GetErasedGlyphs();
+	void SetAllFontInfos(std::vector<FontInfo> * fontInfos);
+	void SetUnusedGlyphs(std::list<FontInfo::GlyphLutIterator> * unused);
+	const std::unordered_map<CHAR_CODE, FontInfo::GlyphLutIterator> & GetErasedGlyphs();
 
 	void SetTightPacking();
 	void SetGridPacking(int binW, int binH);
@@ -53,7 +48,7 @@ public:
 	
 	bool Pack();
 
-	void RemoveUnusedGlyphsFromFontInfo();
+	void RemoveErasedGlyphsFromFontInfo();
 
 private:
 	
@@ -88,8 +83,8 @@ private:
 		
 	//std::list<GlyphInfo> * glyphs;
 	std::vector<FontInfo> * fontInfos;
-	std::list<UnusedGlyphInfo> * unused;	
-	std::unordered_map<CHAR_CODE, ErasedInfo> erased;
+	std::list<FontInfo::GlyphLutIterator> * unused;
+	std::unordered_map<CHAR_CODE, FontInfo::GlyphLutIterator> erased;
 	
 	int gridBinW;
 	int gridBinH;
@@ -104,8 +99,9 @@ private:
 	std::unordered_map<CHAR_CODE, PackedInfo> packedInfo;
 	
 	void Clear();
-	void EraseAllUnused();
-	
+	void EraseAllUnused();	
+	void AddToErased(int fontIndex, CHAR_CODE c);
+
 	bool FindEmptySpace(int spaceWidth, int spaceHeight, int * px, int * py);
 	void DivideNode(const Node & empty, int spaceWidth, int spaceHeight);
 	

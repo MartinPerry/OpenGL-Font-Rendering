@@ -83,17 +83,17 @@ void TextureAtlasPack::SetGridPacking(int binW, int binH)
 
 //======================== Add textures to atlas ===========================================
 
-void TextureAtlasPack::SetAllGlyphs(std::vector<FontInfo> * fontInfos)
+void TextureAtlasPack::SetAllFontInfos(std::vector<FontInfo> * fontInfos)
 {
 	this->fontInfos = fontInfos;
 }
 
-void TextureAtlasPack::SetUnusedGlyphs(std::list<UnusedGlyphInfo> * unused)
+void TextureAtlasPack::SetUnusedGlyphs(std::list<FontInfo::GlyphLutIterator> * unused)
 {
 	this->unused = unused;
 }
 
-const std::unordered_map<CHAR_CODE, TextureAtlasPack::ErasedInfo> & TextureAtlasPack::GetErasedGlyphs()
+const std::unordered_map<CHAR_CODE, FontInfo::GlyphLutIterator> & TextureAtlasPack::GetErasedGlyphs()
 {
 	return this->erased;
 }
@@ -133,9 +133,8 @@ void TextureAtlasPack::Clear()
 /// </summary>
 /// <returns></returns>
 bool TextureAtlasPack::Pack()
-{
-	//this->erased.clear();
-	this->RemoveUnusedGlyphsFromFontInfo();
+{	
+	this->RemoveErasedGlyphsFromFontInfo();
 
 	bool res = false;
 	if (this->method == PACKING_METHOD::GRID)
@@ -165,7 +164,7 @@ bool TextureAtlasPack::PackGrid()
 		//erase all
 		MY_LOG_INFO("Erasing all packed data...");
 		this->EraseAllUnused();
-		this->RemoveUnusedGlyphsFromFontInfo();
+		this->RemoveErasedGlyphsFromFontInfo();
 		this->Clear();
 		this->SetGridPacking(this->gridBinW, this->gridBinH);
 	}
@@ -175,12 +174,12 @@ bool TextureAtlasPack::PackGrid()
 	PackedInfo info;
 
 	for (auto & fi : *this->fontInfos)
-	{
+	{		
 		for (GlyphInfo & g : fi.glyphs)
 		{
 			if (g.code <= 32)
 			{
-				//do not add white-space "characters"
+				//do not add white-space "characters" to texture
 				continue;
 			}
 
@@ -192,10 +191,12 @@ bool TextureAtlasPack::PackGrid()
 
 			if (this->freeSpace.empty())
 			{
-				if (this->unused->size() == this->erased.size())
-				{
+				if (this->unused->size() <= this->erased.size())
+				{					
 					//all unused characters are erased
 					//no more empty space
+					MY_LOG_INFO("Empty space in atlas not found and cannot be freed for glyph %lu", g.code);										
+					//this->AddToErased(g.fontIndex, g.code);
 					return false;
 				}
 
@@ -206,6 +207,7 @@ bool TextureAtlasPack::PackGrid()
 				if (this->FreeSpace(g.bmpW, g.bmpH, &removedCode) == false)
 				{
 					MY_LOG_INFO("Empty space in atlas not found and cannot be freed for glyph %lu", g.code);
+					//this->AddToErased(g.fontIndex, g.code);
 					return false;
 				}
 
@@ -652,15 +654,13 @@ bool TextureAtlasPack::FreeSpace(int spaceWidth, int spaceHeight, CHAR_CODE * c)
 	*c = 0;
 
 	int b = (2 * this->border);
-
-	ErasedInfo ei;
-		
+	
 	for (auto & it : *this->unused)	
-	{
-		if (it.gi->second->bmpW + b < spaceWidth) continue;
-		if (it.gi->second->bmpH + b < spaceHeight) continue;
+	{		
+		if (it->second->bmpW + b < spaceWidth) continue;
+		if (it->second->bmpH + b < spaceHeight) continue;
 				
-		*c = it.gi->first;
+		*c = it->first;
 
 		if (this->erased.find(*c) != this->erased.end())
 		{
@@ -668,14 +668,10 @@ bool TextureAtlasPack::FreeSpace(int spaceWidth, int spaceHeight, CHAR_CODE * c)
 			continue;
 		}
 
-		//space find
-		
-		
-		//add glyph to erased		
-		ei.gi = it.gi;
-		ei.fontIndex = it.fontIndex;
+		//space find				
+		//add glyph to erased				
 
-		this->erased[*c] = ei;
+		this->erased[*c] = it;
 								
 		return true;
 	}
@@ -684,30 +680,41 @@ bool TextureAtlasPack::FreeSpace(int spaceWidth, int spaceHeight, CHAR_CODE * c)
 }
 
 void TextureAtlasPack::EraseAllUnused()
-{
-	ErasedInfo ei;
+{	
 	for (auto & it : *this->unused)
 	{				
-		//add glyph to erased		
-		ei.gi = it.gi;
-		ei.fontIndex = it.fontIndex;
-
-		this->erased[it.gi->first] = ei;
+		//add glyph to erased				
+		this->erased[it->first] = it;
 	}
+
+	this->unused->clear();
 }
 
-void TextureAtlasPack::RemoveUnusedGlyphsFromFontInfo()
+void TextureAtlasPack::AddToErased(int fontIndex, CHAR_CODE c)
+{
+	FontInfo & fi = (*this->fontInfos)[fontIndex];
+	
+	auto it = fi.glyphsLut.find(c);
+	if (it != fi.glyphsLut.end())
+	{
+		this->erased[c] = it;
+	}			
+}
+
+void TextureAtlasPack::RemoveErasedGlyphsFromFontInfo()
 {	
 	//remove unused, that were removed from texture	
-	for (auto r : this->erased)
-	{
-		SAFE_DELETE_ARRAY(r.second.gi->second->rawData);
+	for (auto & r : this->erased)
+	{		
+		FontInfo::GlyphIterator gi = r.second->second;
+
+		SAFE_DELETE_ARRAY(gi->rawData);
 				
 
-		auto & fi = (*this->fontInfos)[r.second.fontIndex];
+		auto & fi = (*this->fontInfos)[gi->fontIndex];
 
-		fi.glyphs.erase(r.second.gi->second);
-		fi.usedGlyphs.erase(r.second.gi);
+		fi.glyphs.erase(gi);
+		fi.glyphsLut.erase(r.second);
 	}
 
 	this->erased.clear();

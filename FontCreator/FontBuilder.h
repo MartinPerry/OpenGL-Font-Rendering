@@ -44,8 +44,8 @@ public:
 
 	int GetMaxNewLineOffset() const;
 	int GetNewLineOffsetBasedOnGlyph(CHAR_CODE c);	
-	FontInfo::UsedGlyphIterator GetGlyph(CHAR_CODE c, bool & exist);
-	FontInfo::UsedGlyphIterator GetGlyph(CHAR_CODE c, bool & exist, FontInfo ** usedFi);
+	FontInfo::GlyphLutIterator GetGlyph(CHAR_CODE c, bool & exist);
+	FontInfo::GlyphLutIterator GetGlyph(CHAR_CODE c, bool & exist, FontInfo ** usedFi);
 
 	int GetTextureWidth() const;
 	int GetTextureHeight() const;

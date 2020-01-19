@@ -1,5 +1,5 @@
-#ifndef _ABSTRACT_RENDERER_H_
-#define _ABSTRACT_RENDERER_H_
+#ifndef ABSTRACT_RENDERER_H
+#define ABSTRACT_RENDERER_H
 
 class FontBuilder;
 class IFontShaderManager;
@@ -67,7 +67,7 @@ public:
 	bool IsEnabled() const;
 
 	void Render();
-    void Render(std::function<void(GLuint)> preDrawCallback);
+    void Render(std::function<void(GLuint)> preDrawCallback, std::function<void()> postDrawCallback);
 	
 
 	

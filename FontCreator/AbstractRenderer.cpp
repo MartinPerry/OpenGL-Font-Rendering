@@ -382,10 +382,10 @@ void AbstractRenderer::Clear()
 /// </summary>
 void AbstractRenderer::Render()
 {
-    this->Render(nullptr);
+	this->Render(nullptr, nullptr);
 }
 
-void AbstractRenderer::Render(std::function<void(GLuint)> preDrawCallback)
+void AbstractRenderer::Render(std::function<void(GLuint)> preDrawCallback, std::function<void()> postDrawCallback)
 {
 	if (this->renderEnabled == false)
 	{
@@ -435,6 +435,11 @@ void AbstractRenderer::Render(std::function<void(GLuint)> preDrawCallback)
     }
     
 	GL_CHECK(glDrawArrays(GL_TRIANGLES, 0, quadsCount * 6));
+
+	if (postDrawCallback != nullptr)
+	{
+		postDrawCallback();
+	}
 
 #ifdef __ANDROID_API__
 	if (glVersion != 2)

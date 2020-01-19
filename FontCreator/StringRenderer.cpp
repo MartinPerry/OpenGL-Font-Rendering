@@ -133,6 +133,63 @@ bool StringRenderer::AddString(const UnicodeString & str,
 	return this->AddStringInternal(str, x, y, color, anchor, align, TextType::TEXT);
 }
 
+/// <summary>
+/// test if string uniStr can be added to renderer
+/// </summary>
+/// <param name="uniStr"></param>
+/// <param name="x"></param>
+/// <param name="y"></param>
+/// <param name="color"></param>
+/// <param name="anchor"></param>
+/// <param name="align"></param>
+/// <param name="type"></param>
+/// <returns></returns>
+bool StringRenderer::CanAddString(const UnicodeString & uniStr,
+	int x, int y, Color color,
+	TextAnchor anchor, TextAlign align, TextType type) const
+{
+	for (const StringInfo & s : this->strs)
+	{
+		if ((s.x == x) && (s.y == y) &&
+			(s.align == align) && (s.anchor == anchor) && (s.type == type))
+		{
+
+			if (s.str == uniStr)
+			{
+				//same string on the same position and with same align
+				//already exist - do not add it again
+				return false;
+			}
+		}
+	}
+	
+	AbstractRenderer::AABB estimAABB = this->EstimateStringAABB(uniStr, x, y);
+
+	//test if entire string is outside visible area	
+	if (anchor == TextAnchor::CENTER)
+	{
+		int w = estimAABB.maxX - estimAABB.minX;
+		int h = estimAABB.maxY - estimAABB.minY;
+
+		estimAABB.minX -= (w / 2);
+		estimAABB.maxX -= (w / 2);
+		estimAABB.minY -= (h / 2);
+		estimAABB.maxY -= (h / 2);
+	}
+
+	if (uniStr != ci.mark)
+	{
+		if ((estimAABB.maxX <= 0) ||
+			(estimAABB.maxY <= 0) ||
+			(estimAABB.minX > this->rs.deviceW) ||
+			(estimAABB.minY > this->rs.deviceH))
+		{
+			return false;
+		}
+	}
+
+	return true;
+}
 
 bool StringRenderer::AddStringInternal(const UnicodeString & str,
 	int x, int y, Color color,
@@ -145,50 +202,11 @@ bool StringRenderer::AddStringInternal(const UnicodeString & str,
 
 	UnicodeString uniStr = (this->isBidiEnabled) ? BIDI(str) : str;
 	
-
-   for (StringInfo & s : this->strs)
-    {
-        if ((s.x == x) && (s.y == y) &&
-            (s.align == align) && (s.anchor == anchor) && (s.type == type))
-        {
-                        
-            if (s.str == uniStr)
-            {
-                //same string on the same position and with same align
-                //already exist - do not add it again
-                return false;
-            }
-        }
-    }
-   
-   //this->CalcStringAABB(uniStr, x, y, nullptr);
-
-	AbstractRenderer::AABB estimAABB = this->EstimateStringAABB(uniStr, x, y);
-
-	//test if entire string is outside visible area	
-
-	if (anchor == TextAnchor::CENTER)
+	if (this->CanAddString(uniStr, x, y, color, anchor, align, type) == false)
 	{
-		int w = estimAABB.maxX - estimAABB.minX;
-		int h = estimAABB.maxY - estimAABB.minY;
-
-		estimAABB.minX -= (w / 2);
-		estimAABB.maxX -= (w / 2);
-		estimAABB.minY -= (h / 2);
-		estimAABB.maxY -= (h / 2);
+		return false;
 	}
-
-	if (str != ci.mark)
-	{
-		if ((estimAABB.maxX <= 0) || 
-			(estimAABB.maxY <= 0) ||
-			(estimAABB.minX > this->rs.deviceW) || 
-			(estimAABB.minY > this->rs.deviceH))
-		{			
-			return false;
-		}		
-	}
-
+  
 	//new visible string - add it
 		
 #ifdef THREAD_SAFETY
@@ -214,7 +232,7 @@ bool StringRenderer::AddStringInternal(const UnicodeString & str,
 /// <param name="x"></param>
 /// <param name="y"></param>
 /// <returns></returns>
-AbstractRenderer::AABB StringRenderer::EstimateStringAABB(const UnicodeString & str, int x, int y)
+AbstractRenderer::AABB StringRenderer::EstimateStringAABB(const UnicodeString & str, int x, int y) const
 {
 	AbstractRenderer::AABB aabb;
 	
@@ -291,7 +309,7 @@ AbstractRenderer::AABB StringRenderer::EstimateStringAABB(const UnicodeString & 
 /// <param name="gc"></param>
 /// <returns></returns>
 StringRenderer::StringAABB StringRenderer::CalcStringAABB(const UnicodeString & str, int x, int y,
-	const UsedGlyphCache * gc)
+	const UsedGlyphCache * gc) const
 {		
 	StringAABB aabb;
 	aabb.totalLineOffset = 0;
@@ -334,7 +352,7 @@ StringRenderer::StringAABB StringRenderer::CalcStringAABB(const UnicodeString & 
 
 		index++;
 
-		FontInfo::UsedGlyphIterator it;
+		FontInfo::GlyphLutIterator it;
 		if (gc != nullptr)
 		{
 			auto r = (*gc)[index];

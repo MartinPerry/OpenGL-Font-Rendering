@@ -215,6 +215,9 @@ int FontBuilder::InitializeFont(const std::string & fontFacePath)
 	
 	this->fis.push_back(fi);
 
+	//after each change, reset font infos in texture packer	
+	this->texPacker->SetAllFontInfos(&this->fis);
+
 	return fi.index;
 
 }
@@ -406,9 +409,8 @@ int FontBuilder::GetNewLineOffsetBasedOnGlyph(CHAR_CODE c)
 	this->LoadGlyphInfo(c);
 
 	for (auto & fi : this->fis)
-	{		
-		auto it = fi.usedGlyphs.find(c);
-		if (it != fi.usedGlyphs.end())
+	{				
+		if (fi.glyphsLut.find(c) != fi.glyphsLut.end())
 		{
 			return fi.newLineOffset;
 		}		
@@ -425,21 +427,21 @@ int FontBuilder::GetNewLineOffsetBasedOnGlyph(CHAR_CODE c)
 /// <param name="c"></param>
 /// <param name="exist"></param>
 /// <returns></returns>
-FontInfo::UsedGlyphIterator FontBuilder::GetGlyph(CHAR_CODE c, bool & exist)
+FontInfo::GlyphLutIterator FontBuilder::GetGlyph(CHAR_CODE c, bool & exist)
 {
 	FontInfo * f = nullptr;
 	return this->GetGlyph(c, exist, &f);
 }
 
-FontInfo::UsedGlyphIterator FontBuilder::GetGlyph(CHAR_CODE c, bool & exist, FontInfo ** usedFi)
+FontInfo::GlyphLutIterator FontBuilder::GetGlyph(CHAR_CODE c, bool & exist, FontInfo ** usedFi)
 {
 	exist = false;
 
 	for (FontInfo & fi : this->fis)
 	{
 
-		auto it = fi.usedGlyphs.find(c);
-		if (it != fi.usedGlyphs.end())
+		auto it = fi.glyphsLut.find(c);
+		if (it != fi.glyphsLut.end())
 		{	
 			*usedFi = &fi;			
 			exist = true;
@@ -448,7 +450,7 @@ FontInfo::UsedGlyphIterator FontBuilder::GetGlyph(CHAR_CODE c, bool & exist, Fon
 	}
 
 	*usedFi = &this->fis[0];	
-	return this->fis[0].usedGlyphs.end();
+	return this->fis[0].glyphsLut.end();
 }
 
 /// <summary>
@@ -558,20 +560,17 @@ void FontBuilder::AddCharacter(CHAR_CODE c)
 	{
 		return;
 	}
-
+	
 	for (const FontInfo & fi : this->fis)
 	{
-		if (fi.usedGlyphs.find(c) != fi.usedGlyphs.end())
+		if (fi.glyphsLut.find(c) != fi.glyphsLut.end())
 		{
 			//character already exist
 			this->reused.insert(c);
+			return;
 		}
 		else
-		{
-			//new character
-			//can insert the same character again, set does not contain duplicities
-			this->newCodes.insert(c);
-
+		{			
 			//if (this->newCodes.find(c) == this->newCodes.end())
 			//{
 			//	this->newCodes.insert(c);
@@ -579,6 +578,9 @@ void FontBuilder::AddCharacter(CHAR_CODE c)
 		}
 	}
 
+	//new character
+	//can insert the same character again, set does not contain duplicities
+	this->newCodes.insert(c);
 }
 
 
@@ -587,7 +589,9 @@ bool FontBuilder::CreateFontAtlas()
 {		
 	if (this->newCodes.empty())
 	{
-		//all is reused - clear reused
+		//all is reused
+		//no need to generate new texture, all characters all already in it
+		//clear reused
 		this->reused.clear();
 
 		return false;
@@ -603,35 +607,31 @@ bool FontBuilder::CreateFontAtlas()
 
 	
 	//find unused glyphs, that can possibly be deleted
-	std::list<UnusedGlyphInfo> unused;
+	std::list<FontInfo::GlyphLutIterator> unused;
 	
-
-
-	int index = 0;
 	for (FontInfo & fi : this->fis)
 	{
-		for (FontInfo::UsedGlyphIterator it = fi.usedGlyphs.begin();
-			it != fi.usedGlyphs.end();
+		for (FontInfo::GlyphLutIterator it = fi.glyphsLut.begin();
+			it != fi.glyphsLut.end();
 			it++)
-		{
+		{			
 			if (this->reused.find(it->first) == this->reused.end())
 			{
-				UnusedGlyphInfo ugi;
-				ugi.gi = it;
-				ugi.fontIndex = index;
+				//loaded character from font is not found in reused fonts - 
+				//we can remove it from active texture
+				
+				//UnusedGlyphInfo ugi;
+				//ugi.gi = it;
+				//ugi.fontIndex = fi.index;
 
-				unused.push_back(ugi);				
+				unused.push_back(it);				
 			}
 		}
-		
-		index++;
 	}
-
-
 	
+	//try to add new codes to texture	
 
-	//try to add new codes to texture
-	this->texPacker->SetAllGlyphs(&this->fis);
+	//add unused space to texture - this can be reused
 	this->texPacker->SetUnusedGlyphs(&unused);
 
 
@@ -641,7 +641,7 @@ bool FontBuilder::CreateFontAtlas()
 #if defined(_WIN32) && defined(_DEBUG)
 		this->texPacker->SaveToFile("D://outofspace.png");
 #endif
-		MY_LOG_ERROR("Problem - no space, but we need all characters\n");
+		MY_LOG_ERROR("Problem - no space, but we need all characters");
 		
 		//here do something if packing failed
 
@@ -654,7 +654,7 @@ bool FontBuilder::CreateFontAtlas()
 	//this->texPacker->SaveToFile("D://packed_tex.png");
 #endif
 	
-	this->texPacker->RemoveUnusedGlyphsFromFontInfo();
+	this->texPacker->RemoveErasedGlyphsFromFontInfo();
 
 
 	//packing successfully finished
@@ -696,7 +696,7 @@ void FontBuilder::LoadGlyphInfo(CHAR_CODE c)
 bool FontBuilder::FillGlyphInfo(CHAR_CODE c, FontInfo & fi) const
 {
 	
-	if (fi.usedGlyphs.find(c) != fi.usedGlyphs.end())
+	if (fi.glyphsLut.find(c) != fi.glyphsLut.end())
 	{
 		//glyph already exist
 		return true;
@@ -740,6 +740,7 @@ bool FontBuilder::FillGlyphInfo(CHAR_CODE c, FontInfo & fi) const
 	
 	GlyphInfo gInfo;
 	gInfo.code = c;
+	gInfo.fontIndex = fi.index;
 	gInfo.bmpX = static_cast<int>(glyph->bitmap_left * fi.scaleFactor);
 	gInfo.bmpY = static_cast<int>(glyph->bitmap_top * fi.scaleFactor);
 	gInfo.bmpW = static_cast<int>(glyph->bitmap.width * fi.scaleFactor);
@@ -789,11 +790,8 @@ bool FontBuilder::FillGlyphInfo(CHAR_CODE c, FontInfo & fi) const
 	}
 
 
-	fi.glyphs.push_back(gInfo);
-
-	FontInfo::GlyphIterator lastIter = std::prev(fi.glyphs.end());
-
-	fi.usedGlyphs[gInfo.code] = lastIter;
+	fi.glyphs.push_back(gInfo);	
+	fi.glyphsLut[gInfo.code] = std::prev(fi.glyphs.end());
 
 	return true;
 

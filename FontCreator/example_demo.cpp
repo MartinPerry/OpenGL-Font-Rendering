@@ -59,6 +59,8 @@ std::string CreateRandomString(int len)
 		r += alphanum[rand() % (sizeof(alphanum) - 1)];
 	}
 
+	printf("%s\n", r.c_str());
+
 	return r;
 }
 
@@ -134,7 +136,7 @@ void display() {
 	//fr->AddStringCaption(UTF8_TEXT(u8"Velmi"), -0.05f, 0.5f, { 1,1,0,1 });
 	//fr->AddString(UTF8_TEXT(u8"Velmi \U0001F300"), 0.5f, 0.5f, { 1,1,0,1 });
 	//fr->AddStringCaption(UTF8_TEXT(u8"\U0001F300Pøíliš malý p\n(žluouèký)\nkùyòy"), 0.5f, 0.5f, { 1,1,0,1 });
-	fr->AddStringCaption(UTF8_TEXT(u8"Pøíliš malýp\n(žluouèký)\nkùyòy"), 0.5f, 0.5f, { 1,1,0,1 });
+	//fr->AddStringCaption(UTF8_TEXT(u8"Pøíliš malýp\n(žluouèký)\nkùyòy"), 0.5f, 0.5f, { 1,1,0,1 });
 	//fr->AddStringCaption(UTF8_TEXT(u8"ahoj \u4e3d xx \u0633\u0644\u0627\u0645"), 0.5f, 0.5f, { 1,1,0,1 });
 	//fr->AddStringCaption(UTF8_TEXT(u8"\u4e3d"), 0.8f, 0.5f, { 1,1,0,1 });
 	//fr->AddStringCaption(UTF8_TEXT(u8"\u103c"), 0.2f, 0.5f, { 1,1,0,1 });
@@ -149,20 +151,23 @@ void display() {
 	//fr->AddString(UTF8_TEXT(u8"\U0001F600"), 0.5f, 0.5f);
 	//fr->AddString(UTF8_TEXT(u8"x"), 0.5f, 0.5f);
 
-	//fr->AddStringCaption(generateRandomString(), 0.5, 0.8);
+	fr->AddString(UTF8_TEXT(CreateRandomString(5).c_str()), 0.5f, 0.5f, { 1,1,0,1 }, AbstractRenderer::TextAnchor::CENTER);
 	//fr->AddStringCaption(rrr, 0.5, 0.8);
 
 	//fr->AddString(u8"lll", 200, 300);
 	fr->Render();
 
+	/*
 	fn->Clear();
 	//fn->AddNumber(-45.27, 100, 100);
 	//fn->AddNumberCaption(-450.013, 100, 100, { 1, 1.0f, 1.0f, 1 });
 	//fn->AddNumberCaption(-897456, 100, 300, { 1, 1.0f, 1.0f, 1 });
 	int nmbr = rand();
-	//printf("%d\n", nmbr);
+	printf("%d\n", nmbr);
 	fn->AddNumber(nmbr, 0.5f, 0.5f, { 1,1,0,1 }, AbstractRenderer::TextAnchor::CENTER);
 	fn->Render();
+	*/
+	
 
 	glutSwapBuffers();	
 	//glutPostRedisplay();
@@ -248,8 +253,8 @@ void initGL() {
 
 	RenderSettings r;
 	r.screenDpi = 260;
-	r.textureW = 512;
-	r.textureH = 512;
+	r.textureW = 64;
+	r.textureH = 64;
 	r.deviceW = g_width;
 	r.deviceH = g_height;
 	r.screenScale = 1.0;
@@ -321,7 +326,7 @@ int main(int argc, char ** argv)
 #endif
 		
 	//Normalize();
-	
+	/*
 	//CharacterExtractor cr({ "arial.ttf" }, "arial_out.ttf");
 	//CharacterExtractor cr(std::vector<std::string>({ "arial.ttf" }), "arial_out.ttf");
 	CharacterExtractor cr({ "../ii_v3/noto_max_priority/", "../ii_v3/noto/", "../ii_v3/noto-otf/", "../ii_v3/emoji/"  }, "merged_out");
@@ -341,7 +346,7 @@ int main(int argc, char ** argv)
 	
 	cr.GenerateScript("run.sh");
 	cr.Release();
-	
+	*/
 
 	/*		
 	rrr = generateRandomString();

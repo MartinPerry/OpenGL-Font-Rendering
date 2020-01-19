@@ -1,5 +1,5 @@
-#ifndef _FONT_STRUCTURES_H_
-#define _FONT_STRUCTURES_H_
+#ifndef FONT_STRUCTURES_H
+#define FONT_STRUCTURES_H
 
 typedef struct FT_FaceRec_*  FT_Face;
 
@@ -19,6 +19,7 @@ typedef uint32_t CHAR_CODE;
 typedef struct GlyphInfo
 {
 	CHAR_CODE code;
+	int fontIndex;
 
 	//"glyph" texture size
 	int bmpW;
@@ -56,10 +57,9 @@ typedef struct GlyphInfo
 typedef struct FontInfo
 {
 	typedef std::list<GlyphInfo>::iterator GlyphIterator;
-	typedef std::unordered_map<CHAR_CODE, GlyphIterator>::iterator UsedGlyphIterator;
+	typedef std::unordered_map<CHAR_CODE, GlyphIterator>::iterator GlyphLutIterator;
 
 	std::string faceName;
-	//int fontSizePixels;
 	int maxPixelsWidth;
 	int maxPixelsHeight;
 
@@ -67,7 +67,7 @@ typedef struct FontInfo
 	int newLineOffset;
 
 	//FontTexture texture;
-	std::unordered_map<CHAR_CODE, GlyphIterator> usedGlyphs;
+	std::unordered_map<CHAR_CODE, GlyphIterator> glyphsLut;
 	std::list<GlyphInfo> glyphs;
 	
 
@@ -80,13 +80,14 @@ typedef struct FontInfo
 
 } FontInfo;
 
-
+/*
 typedef struct UnusedGlyphInfo
 {
 	FontInfo::UsedGlyphIterator gi;
 	int fontIndex;
 
 } UnusedGlyphInfo;
+*/
 
 /// <summary>
 /// Render settings for font renderer

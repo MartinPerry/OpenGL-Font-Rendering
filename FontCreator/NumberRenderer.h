@@ -1,5 +1,5 @@
-#ifndef _NUMBER_RENDERER_H_
-#define _NUMBER_RENDERER_H_
+#ifndef NUMBER_RENDERER_H
+#define NUMBER_RENDERER_H
 
 #include <type_traits>
 

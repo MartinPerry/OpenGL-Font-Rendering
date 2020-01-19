@@ -1,5 +1,5 @@
-#ifndef _STRING_RENDERER_H_
-#define _STRING_RENDERER_H_
+#ifndef STRING_RENDERER_H
+#define STRING_RENDERER_H
 
 class IFontShaderManager;
 
@@ -43,7 +43,7 @@ public:
 
 protected:
 
-	typedef std::vector<std::tuple<FontInfo::UsedGlyphIterator, bool, FontInfo *>> UsedGlyphCache;
+	typedef std::vector<std::tuple<FontInfo::GlyphLutIterator, bool, FontInfo *>> UsedGlyphCache;
 	
 	typedef struct StringAABB
 	{
@@ -87,6 +87,10 @@ protected:
 	long spaceSize;
 	long CalcSpaceSize();
 
+	bool CanAddString(const UnicodeString & uniStr,
+		int x, int y, Color color,
+		TextAnchor anchor, TextAlign align, TextType type) const;
+
 	bool AddStringInternal(const UnicodeString & str,
 		int x, int y, Color color = { 1,1,1,1 },
 		TextAnchor anchor = TextAnchor::LEFT_TOP,
@@ -95,8 +99,8 @@ protected:
 
 	bool GenerateGeometry() override;
 
-	AABB EstimateStringAABB(const UnicodeString & str, int x, int y);
-	StringAABB CalcStringAABB(const UnicodeString & str, int x, int y, const UsedGlyphCache * gc);
+	AABB EstimateStringAABB(const UnicodeString & str, int x, int y) const;
+	StringAABB CalcStringAABB(const UnicodeString & str, int x, int y, const UsedGlyphCache * gc) const;
 
 	void CalcAnchoredPosition();
 	void CalcLineAlign(const StringInfo & si, int lineId, int & x, int & y) const;
