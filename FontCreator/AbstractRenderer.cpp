@@ -13,7 +13,7 @@
 
 
 #if defined(_DEBUG) || defined(DEBUG)
-#define NV_REPORT_COMPILE_ERRORS
+#	define NV_REPORT_COMPILE_ERRORS
 #endif
 
 //=============================================================================

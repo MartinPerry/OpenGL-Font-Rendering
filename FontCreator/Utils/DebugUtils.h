@@ -1,5 +1,5 @@
-#ifndef _DEBUG_UTILS_H_
-#define _DEBUG_UTILS_H_
+#ifndef DEBUG_UTILS_H
+#define DEBUG_UTILS_H
 
 #include "../Externalncludes.h"
 

@@ -225,7 +225,7 @@ bool NumberRenderer::AddIntegralNumberInternal(long val,
 	int x, int y, Color color,
 	TextAnchor anchor, TextType type)
 {
-	if (this->axisYOrigin == AbstractRenderer::DOWN)
+	if (this->axisYOrigin == AbstractRenderer::AxisYOrigin::DOWN)
 	{
 		y = this->rs.deviceH - y;
 	}
@@ -273,7 +273,7 @@ bool NumberRenderer::AddFloatNumberInternal(double val,
 	int x, int y, Color color,
 	TextAnchor anchor, TextType type)
 {
-	if (this->axisYOrigin == AbstractRenderer::DOWN)
+	if (this->axisYOrigin == AbstractRenderer::AxisYOrigin::DOWN)
 	{
 		y = this->rs.deviceH - y;
 	}

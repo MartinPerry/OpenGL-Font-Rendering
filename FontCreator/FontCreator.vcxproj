@@ -161,6 +161,7 @@
     <ClCompile Include="Unicode\tinyutf8.cpp" />
     <ClCompile Include="Unicode\uninorms.cpp" />
     <ClCompile Include="Unicode\utf8.cpp" />
+    <ClCompile Include="Utils\cJSON_JS.c" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Externalncludes.h" />
@@ -178,6 +179,7 @@
     <ClInclude Include="Unicode\uninorms.h" />
     <ClInclude Include="Unicode\utf8.h" />
     <ClInclude Include="Utils\CharacterExtraxtor.h" />
+    <ClInclude Include="Utils\cJSON_JS.h" />
     <ClInclude Include="Utils\DebugUtils.h" />
     <ClInclude Include="Utils\win_dirent.h" />
   </ItemGroup>

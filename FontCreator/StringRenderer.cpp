@@ -83,6 +83,15 @@ void StringRenderer::SetBidiEnabled(bool val)
 	this->isBidiEnabled = val;
 }
 
+bool StringRenderer::AddStringCaption(const char * str,
+	double x, double y, Color color)
+{
+	int xx = static_cast<int>(x * this->rs.deviceW);
+	int yy = static_cast<int>(y * this->rs.deviceH);
+
+	return this->AddStringCaption(UTF8_TEXT(str), xx, yy, color);
+}
+
 bool StringRenderer::AddStringCaption(const UnicodeString & str,
 	double x, double y, Color color)
 {
@@ -92,11 +101,37 @@ bool StringRenderer::AddStringCaption(const UnicodeString & str,
 	return this->AddStringCaption(str, xx, yy, color);
 }
 
+bool StringRenderer::AddStringCaption(const char * str,
+	int x, int y, Color color)
+{
+	this->AddStringInternal(ci.mark, x, y, color, TextAnchor::CENTER, TextAlign::ALIGN_CENTER, TextType::CAPTION);
+	return this->AddStringInternal(UTF8_TEXT(str), x, y, color, TextAnchor::CENTER, TextAlign::ALIGN_CENTER, TextType::CAPTION);
+}
+
 bool StringRenderer::AddStringCaption(const UnicodeString & str,
 	int x, int y, Color color)
 {
     this->AddStringInternal(ci.mark, x, y, color, TextAnchor::CENTER, TextAlign::ALIGN_CENTER, TextType::CAPTION);
     return this->AddStringInternal(str, x, y, color, TextAnchor::CENTER, TextAlign::ALIGN_CENTER, TextType::CAPTION);
+}
+
+/// <summary>
+/// Add new string to be rendered - string coordinates
+/// are in percents
+/// If string already exist - do not add
+/// Existing string => same x, y, align, anchor, content
+/// </summary>
+/// <param name="strUTF8"></param>
+/// <param name="x"></param>
+/// <param name="y"></param>
+bool StringRenderer::AddString(const char * str,
+	double x, double y, Color color,
+	TextAnchor anchor, TextAlign align)
+{
+	int xx = static_cast<int>(x * this->rs.deviceW);
+	int yy = static_cast<int>(y * this->rs.deviceH);
+
+	return this->AddStringInternal(UTF8_TEXT(str), xx, yy, color, anchor, align, TextType::TEXT);
 }
 
 /// <summary>
@@ -116,6 +151,21 @@ bool StringRenderer::AddString(const UnicodeString & str,
 	int yy = static_cast<int>(y * this->rs.deviceH);
 
 	return this->AddStringInternal(str, xx, yy, color, anchor, align, TextType::TEXT);
+}
+
+/// <summary>
+/// Add new string to be rendered
+/// If string already exist - do not add
+/// Existing string => same x, y, align, anchor, content
+/// </summary>
+/// <param name="strUTF8"></param>
+/// <param name="x"></param>
+/// <param name="y"></param>
+bool StringRenderer::AddString(const char * str,
+	int x, int y, Color color,
+	TextAnchor anchor, TextAlign align)
+{
+	return this->AddStringInternal(UTF8_TEXT(str), x, y, color, anchor, align, TextType::TEXT);
 }
 
 /// <summary>
@@ -195,7 +245,7 @@ bool StringRenderer::AddStringInternal(const UnicodeString & str,
 	int x, int y, Color color,
 	TextAnchor anchor, TextAlign align, TextType type)
 {
-	if (this->axisYOrigin == AbstractRenderer::DOWN)
+	if (this->axisYOrigin == AbstractRenderer::AxisYOrigin::DOWN)
 	{
 		y = this->rs.deviceH - y;
 	}

@@ -18,10 +18,10 @@ class IFontShaderManager;
 class AbstractRenderer
 {
 public:
-	typedef enum TextAlign {ALIGN_LEFT, ALIGN_CENTER} TextAlign;
-	typedef enum TextAnchor { LEFT_TOP, CENTER, LEFT_DOWN } TextAnchor;
-	typedef enum TextType { TEXT, CAPTION } TextType;
-	typedef enum AxisYOrigin { TOP, DOWN } AxisYOrigin;
+	enum class TextAlign {ALIGN_LEFT, ALIGN_CENTER};
+	enum class TextAnchor { LEFT_TOP, CENTER, LEFT_DOWN };
+	enum class TextType { TEXT, CAPTION };
+	enum class AxisYOrigin { TOP, DOWN };
 
     typedef struct Vertex
     {

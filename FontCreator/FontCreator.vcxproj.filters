@@ -22,6 +22,9 @@
     <Filter Include="Header Files\Utils">
       <UniqueIdentifier>{e02d95dd-8801-4cdb-93d5-0ed0ec3c93d6}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source Files\Utils">
+      <UniqueIdentifier>{9fb30b4b-d9d6-4778-8ecd-4391c99eb52b}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="TextureAtlasPack.cpp">
@@ -56,6 +59,9 @@
     </ClCompile>
     <ClCompile Include="FontShaderManager.cpp">
       <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Utils\cJSON_JS.c">
+      <Filter>Source Files\Utils</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -109,6 +115,9 @@
     </ClInclude>
     <ClInclude Include="Shaders.h">
       <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Utils\cJSON_JS.h">
+      <Filter>Header Files\Utils</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

@@ -3,9 +3,9 @@
 
 
 #ifdef _WIN32
-#include "./win_dirent.h"
+#	include "./win_dirent.h"
 #else 
-#include <dirent.h>
+#	include <dirent.h>
 #endif
 
 #include <set>
@@ -18,12 +18,14 @@
 #include <streambuf>
 #include <sstream>
 #include <iomanip>
+#include <functional>
 
 #include <ft2build.h>
 #include FT_FREETYPE_H
 
 //#include "../Unicode/ICUUtils.h"
 #include "./Externalncludes.h"
+#include "./cJSON_JS.h"
 
 //#define USE_TEXT_FILE
 
@@ -46,6 +48,7 @@ public:
 	void SetOutputDir(const std::string & outputDir);
 	void AddText(const UnicodeString & strU);
 	void AddTextFromFile(const std::string & filePath);
+	void AddTextFromJsonFile(const std::string & filePath, std::function<void(cJSON * root, CharacterExtractor * ce)> parseCallback);
 	void AddDirectory(const std::string & dirPath);
 
 	void RemoveChar(int32_t c);
@@ -274,6 +277,31 @@ void CharacterExtractor::AddTextFromFile(const std::string & filePath)
 	std::string str((std::istreambuf_iterator<char>(t)), std::istreambuf_iterator<char>());
 	
 	this->AddText(UTF8_UNESCAPE(str));
+};
+
+/// <summary>
+/// Add content of JSON file
+/// Content is parsed via parseCallback
+/// </summary>
+/// <param name="filePath"></param>
+/// <param name="parseCallback"></param>
+void CharacterExtractor::AddTextFromJsonFile(const std::string & filePath, 
+	std::function<void(cJSON * root, CharacterExtractor * ce)> parseCallback)
+{
+	std::ifstream t(filePath);
+	std::string str((std::istreambuf_iterator<char>(t)), std::istreambuf_iterator<char>());
+
+	cJSON * root = cJSON_Parse(str.c_str());
+	if (root == nullptr)
+	{		
+		return;
+	}
+	
+	parseCallback(root, this);
+
+	//this->AddText(UTF8_UNESCAPE(str));
+
+	cJSON_Delete(root);
 };
 
 /// <summary>

@@ -333,7 +333,7 @@ int main(int argc, char ** argv)
 	//CharacterExtractor cr({ "../ii/noto_max_priority/", "../ii/noto/" }, "merged_out");
 	//CharacterExtractor cr({ "../ii/noto_max_priority/" }, "merged_out");
 	
-	cr.SetOutputDir("../ii_v5/");
+	cr.SetOutputDir("../ii_v6/");
 	cr.AddText(UTF8_TEXT(u8"Pøíliš\nžluouèký\nkùò")); //CZ accents	
 	cr.AddText(UTF8_TEXT(u8"\u2022")); //mark in number renderer
 	cr.AddText(UTF8_TEXT(u8"0123456789")); //all numbers
@@ -341,6 +341,11 @@ int main(int argc, char ** argv)
 	cr.AddText(UTF8_TEXT(u8"\U0001F300")); //CYCLONE "icon"
 	//cr.AddDirectory("D:\\Martin\\Programming\\test\\Ventusky\\VentuskyWin\\_bundle_dir_\\DATA\\cities\\");	
 	cr.AddDirectory("d:/Martin/Programming/test/Ventusky/Ventusky_v11/Preprocessing/CitiesTilesGenerator/cities/");
+	
+	cr.AddDirectory("d:/Martin/Programming/test/Ventusky/Ventusky_v11/_bundle_dir_/DATA/localization/");
+	cr.AddTextFromJsonFile("", [](cJSON * root, CharacterExtractor * ce) -> void {
+		
+	});
 	//cr.RemoveChar(utf8_string(u8"P")[0]);
 	allChars = cr.GetAllCharacters();
 	

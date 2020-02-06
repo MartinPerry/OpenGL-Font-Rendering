@@ -9,7 +9,7 @@
 #include "./Externalncludes.h"
 
 #ifdef USE_VFS
-#include "../../Utils/VFS/VFS.h"
+#	include "../../Utils/VFS/VFS.h"
 #endif
 
 //http://www.freetype.org/freetype2/documentation.html

@@ -25,11 +25,27 @@ public:
 
 	void SetBidiEnabled(bool val);
 
-	bool AddStringCaption(const UnicodeString & str,
+	bool AddStringCaption(const char * str,
 		double x, double y, Color color = DEFAULT_COLOR);
 
 	bool AddStringCaption(const UnicodeString & str,
+		double x, double y, Color color = DEFAULT_COLOR);
+
+	bool AddStringCaption(const char * str,
 		int x, int y, Color color = DEFAULT_COLOR);
+
+	bool AddStringCaption(const UnicodeString & str,
+		int x, int y, Color color = DEFAULT_COLOR);
+
+	bool AddString(const char * str,
+		double x, double y, Color color = DEFAULT_COLOR,
+		TextAnchor anchor = TextAnchor::LEFT_TOP,
+		TextAlign align = TextAlign::ALIGN_LEFT);
+
+	bool AddString(const char * str,
+		int x, int y, Color color = DEFAULT_COLOR,
+		TextAnchor anchor = TextAnchor::LEFT_TOP,
+		TextAlign align = TextAlign::ALIGN_LEFT);
 
 	bool AddString(const UnicodeString & str,
 		double x, double y, Color color = DEFAULT_COLOR,

@@ -31,29 +31,29 @@
 #include "./Unicode/ICUUtils.h"
 
 #ifdef _WIN32
-#include "./Utils/win_dirent.h"
+#	include "./Utils/win_dirent.h"
 #else 
-#include <dirent.h>
+#	include <dirent.h>
 #endif
 
 //=====================================================================================
 //Global macros
 
 #ifndef SAFE_DELETE
-#define SAFE_DELETE(a) {if (a != nullptr) { delete   a; a = nullptr; }};
+#	define SAFE_DELETE(a) {if (a != nullptr) { delete   a; a = nullptr; }};
 #endif
 
 #ifndef SAFE_DELETE_ARRAY
-#define SAFE_DELETE_ARRAY(a) {if (a != nullptr) { delete[] a; a = nullptr; }};
+#	define SAFE_DELETE_ARRAY(a) {if (a != nullptr) { delete[] a; a = nullptr; }};
 #endif
 
 #ifndef MY_LOG_ERROR
-#define MY_LOG_ERROR(...) printf(__VA_ARGS__); printf("\n");
+#	define MY_LOG_ERROR(...) printf(__VA_ARGS__); printf("\n");
 #endif
 
 
 #ifndef MY_LOG_INFO
-#define MY_LOG_INFO(...) printf(__VA_ARGS__); printf("\n");
+#	define MY_LOG_INFO(...) printf(__VA_ARGS__); printf("\n");
 #endif
 
 //=====================================================================================
@@ -86,14 +86,14 @@ static void CheckOpenGLError(const char* stmt, const char* fname, int line)
 }
 
 #ifndef GL_CHECK
-#if defined(_DEBUG) || defined(DEBUG)
-#define GL_CHECK(stmt) do { \
+#	if defined(_DEBUG) || defined(DEBUG)
+#		define GL_CHECK(stmt) do { \
                 stmt; \
                 CheckOpenGLError(#stmt, __FILE__, __LINE__); \
             } while (0);
-#else
-#define GL_CHECK(stmt) stmt
-#endif
+#	else
+#		define GL_CHECK(stmt) stmt
+#	endif
 #endif
 
 //=====================================================================================
@@ -112,9 +112,9 @@ static void CheckOpenGLError(const char* stmt, const char* fname, int line)
 
 
 #ifdef TARGET_COMPUTER
-#define TEXTURE_SINGLE_CHANNEL GL_RED
+#	define TEXTURE_SINGLE_CHANNEL GL_RED
 #else 
-#define TEXTURE_SINGLE_CHANNEL GL_LUMINANCE
+#	define TEXTURE_SINGLE_CHANNEL GL_LUMINANCE
 #endif
 
 //=====================================================================================
