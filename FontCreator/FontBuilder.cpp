@@ -847,7 +847,7 @@ uint8_t * FontBuilder::ResizeBitmapHermite(FT_GlyphSlot glyph, FontInfo & fi) co
 	uint8_t * textureData = new uint8_t[width * height];
 
 	double ratio_w = static_cast<double>(glyph->bitmap.width) / width;
-	double ratio_h = static_cast<double>(glyph->bitmap.width) / height;
+	double ratio_h = static_cast<double>(glyph->bitmap.height) / height;
 	double ratio_w_half = std::ceil(ratio_w / 2.0);
 	double ratio_h_half = std::ceil(ratio_h / 2.0);
 
