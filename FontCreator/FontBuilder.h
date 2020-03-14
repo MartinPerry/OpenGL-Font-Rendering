@@ -22,11 +22,14 @@ class TextureAtlasPack;
 class FontBuilder
 {
 public:
-	FontBuilder(const std::vector<Font> & fonts, RenderSettings r);
+	FontBuilder(const std::vector<Font> & fonts, const RenderSettings & r);
 	~FontBuilder();
 
 	void Release();
 	bool IsInited() const;
+
+	void SetFontSize(const std::string & fontName, const FontSize & fs, int defaultFontSizeInPx = 0);
+	void SetAllFontSize(const FontSize & fs, int defaultFontSizeInPx = 0);
 
 	void AddString(const UnicodeString & str);	
 	void AddCharacter(CHAR_CODE c);
@@ -61,7 +64,8 @@ protected:
 
 	static const int LETTER_BORDER_SIZE = 0;
 
-	
+	RenderSettings r;
+
 	FT_Library library;
 	
 
@@ -78,6 +82,7 @@ protected:
 	bool SetFontSizePixels(FontInfo & f, int size);
 	bool SetFontSizePts(FontInfo & f, int size, int dpi);
 	bool SetClosestFontSizeForBitmaps(FontInfo & f, int size);
+	void UpdateBitmapFontsSizes(int maxEmSize);
 
 	void LoadGlyphInfo(CHAR_CODE c);
 	bool FillGlyphInfo(CHAR_CODE c, FontInfo & fi) const;

@@ -50,6 +50,8 @@ public:
 
 	void RemoveErasedGlyphsFromFontInfo();
 
+	friend class FontBuilder;
+
 private:
 	
 	typedef struct Node

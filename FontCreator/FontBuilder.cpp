@@ -15,7 +15,14 @@
 //http://www.freetype.org/freetype2/documentation.html
 //http://en.wikibooks.org/wiki/OpenGL_Programming/Modern_OpenGL_Tutorial_Text_Rendering_01
 
-FontBuilder::FontBuilder(const std::vector<Font> & fonts, RenderSettings r)
+/// <summary>
+/// ctor
+/// Create fonts - each Font can have different size by default
+/// </summary>
+/// <param name="fonts"></param>
+/// <param name="r"></param>
+FontBuilder::FontBuilder(const std::vector<Font> & fonts, const RenderSettings & r) :
+	r(r)
 {
 	
 	this->texPacker = new TextureAtlasPack(r.textureW, r.textureH, LETTER_BORDER_SIZE);
@@ -55,20 +62,9 @@ FontBuilder::FontBuilder(const std::vector<Font> & fonts, RenderSettings r)
 			this->SetFontSizePts(this->fis[index], static_cast<int>(f.size), r.screenDpi);
 		}
 	}
-
 	
 	int maxEmSize = this->GetMaxEmSize();
-	for (auto & f : this->fis)
-	{		
-		if (f.onlyBitmapGlyphs)
-		{
-			f.scaleFactor = static_cast<double>(maxEmSize) / f.maxPixelsHeight;
-
-			f.maxPixelsHeight = static_cast<int>(std::round(f.maxPixelsHeight * f.scaleFactor));
-			f.maxPixelsWidth = static_cast<int>(std::round(f.maxPixelsWidth * f.scaleFactor));
-			f.newLineOffset = static_cast<int>(std::round(f.newLineOffset * f.scaleFactor));
-		}
-	}
+	this->UpdateBitmapFontsSizes(maxEmSize);
 
 }
 
@@ -340,7 +336,134 @@ bool FontBuilder::SetClosestFontSizeForBitmaps(FontInfo & f, int size)
 	return true;
 }
 
+void FontBuilder::UpdateBitmapFontsSizes(int maxEmSize)
+{	
+	for (auto & f : this->fis)
+	{
+		if (f.onlyBitmapGlyphs)
+		{
+			f.scaleFactor = static_cast<double>(maxEmSize) / f.maxPixelsHeight;
+
+			f.maxPixelsHeight = static_cast<int>(std::round(f.maxPixelsHeight * f.scaleFactor));
+			f.maxPixelsWidth = static_cast<int>(std::round(f.maxPixelsWidth * f.scaleFactor));
+			f.newLineOffset = static_cast<int>(std::round(f.newLineOffset * f.scaleFactor));
+		}
+	}
+}
+
 //================================================================
+
+/// <summary>
+/// Set size for font with name fonrName to fs
+/// defaultFontSizeInPx - used only if FontSize type is em
+/// as a base size that is multiplied by em
+/// </summary>
+/// <param name="fontName"></param>
+/// <param name="fs"></param>
+/// <param name="defaultFontSizeInPx"></param>
+void FontBuilder::SetFontSize(const std::string & fontName, const FontSize & fs, int defaultFontSizeInPx)
+{
+
+	for (FontInfo & f : this->fis)
+	{
+		for (GlyphInfo & c : f.glyphs)
+		{
+			SAFE_DELETE_ARRAY(c.rawData);
+		}
+		f.glyphs.clear();
+		f.glyphsLut.clear();
+	}
+
+	this->reused.clear();
+	this->newCodes.clear();
+	this->texPacker->Clear();
+
+
+	for (auto & f : this->fis)
+	{
+		if (f.faceName != fontName)
+		{
+			continue;
+		}
+
+		if (fs.sizeType == FontSize::SizeType::px)
+		{
+			this->SetFontSizePixels(f, static_cast<int>(fs.size));
+		}
+		else if (fs.sizeType == FontSize::SizeType::em)
+		{
+			int size = static_cast<int>(defaultFontSizeInPx * fs.size * r.screenScale);
+
+			this->SetFontSizePixels(f, size);
+		}
+		else
+		{
+			this->SetFontSizePts(f, static_cast<int>(fs.size), r.screenDpi);
+		}
+	}
+
+	int maxEmSize = this->GetMaxEmSize();
+
+	if (this->texPacker->method == TextureAtlasPack::PACKING_METHOD::GRID)
+	{
+		this->texPacker->SetGridPacking(maxEmSize, maxEmSize);
+	}
+
+	this->UpdateBitmapFontsSizes(maxEmSize);
+}
+
+/// <summary>
+/// Set size for all fonts to fs
+/// defaultFontSizeInPx - used only if FontSize type is em
+/// as a base size that is multiplied by em
+/// </summary>
+/// <param name="fs"></param>
+/// <param name="defaultFontSizeInPx"></param>
+void FontBuilder::SetAllFontSize(const FontSize & fs, int defaultFontSizeInPx)
+{
+	for (FontInfo & f : this->fis)
+	{
+		for (GlyphInfo & c : f.glyphs)
+		{
+			SAFE_DELETE_ARRAY(c.rawData);
+		}
+		f.glyphs.clear();
+		f.glyphsLut.clear();	
+	}
+
+	this->reused.clear();
+	this->newCodes.clear();
+	this->texPacker->Clear();
+	
+
+	for (auto & f : this->fis)
+	{
+		if (fs.sizeType == FontSize::SizeType::px)
+		{
+			this->SetFontSizePixels(f, static_cast<int>(fs.size));
+		}
+		else if (fs.sizeType == FontSize::SizeType::em)
+		{
+			int size = static_cast<int>(defaultFontSizeInPx * fs.size * r.screenScale);
+
+			this->SetFontSizePixels(f, size);
+		}
+		else
+		{
+			this->SetFontSizePts(f, static_cast<int>(fs.size), r.screenDpi);
+		}
+	}
+
+
+	int maxEmSize = this->GetMaxEmSize();
+
+	if (this->texPacker->method == TextureAtlasPack::PACKING_METHOD::GRID)
+	{		
+		this->texPacker->SetGridPacking(maxEmSize, maxEmSize);
+	}
+
+	this->UpdateBitmapFontsSizes(maxEmSize);
+}
 
 
 const std::vector<FontInfo> & FontBuilder::GetFontInfos() const
@@ -847,7 +970,7 @@ uint8_t * FontBuilder::ResizeBitmapHermite(FT_GlyphSlot glyph, FontInfo & fi) co
 	uint8_t * textureData = new uint8_t[width * height];
 
 	double ratio_w = static_cast<double>(glyph->bitmap.width) / width;
-	double ratio_h = static_cast<double>(glyph->bitmap.height) / height;
+	double ratio_h = static_cast<double>(glyph->bitmap.rows) / height;
 	double ratio_w_half = std::ceil(ratio_w / 2.0);
 	double ratio_h_half = std::ceil(ratio_h / 2.0);
 

@@ -126,7 +126,14 @@ void TextureAtlasPack::Clear()
 	this->freeSpace.emplace_back(0, 0, w, h);
 	
 	this->packedInfo.clear();
+
+	if (this->unused)
+	{
+		this->unused->clear();
+	}
+	this->erased.clear();
 }
+
 
 /// <summary>
 /// Pack glyphs to texture
@@ -681,6 +688,11 @@ bool TextureAtlasPack::FreeSpace(int spaceWidth, int spaceHeight, CHAR_CODE * c)
 
 void TextureAtlasPack::EraseAllUnused()
 {	
+	if (this->unused == nullptr)
+	{
+		return;
+	}
+
 	for (auto & it : *this->unused)
 	{				
 		//add glyph to erased				

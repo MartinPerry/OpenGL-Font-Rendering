@@ -44,10 +44,15 @@ NumberRenderer * fn;
 
 std::vector<int32_t> allChars;
 
+static int randInited = 0;
 
 std::string CreateRandomString(int len)
 {
-	srand(static_cast<unsigned int>(time(0)));
+	if (randInited == 0)
+	{
+		srand(static_cast<unsigned int>(time(0)));
+		randInited = 1;
+	}
 
 	static const char alphanum[] =
 		"0123456789"
@@ -150,11 +155,19 @@ void display() {
 	//fr->AddString(UTF8_TEXT(u8"MLQp\U0001F300x"), 0.5f, 0.5f, { 1,1,1,1 }, AbstractRenderer::TextAnchor::CENTER);
 	//fr->AddString(UTF8_TEXT(u8"\U0001F600"), 0.5f, 0.5f);
 	//fr->AddString(UTF8_TEXT(u8"x"), 0.5f, 0.5f);
+	FontSize f1(12_pt);
+	fr->GetFontBuilder()->SetAllFontSize(f1);
+	fr->AddString(UTF8_TEXT(CreateRandomString(5).c_str()), 0.2f, 0.5f, { 1,1,0,1 }, AbstractRenderer::TextAnchor::CENTER);
 
-	fr->AddString(UTF8_TEXT(CreateRandomString(5).c_str()), 0.5f, 0.5f, { 1,1,0,1 }, AbstractRenderer::TextAnchor::CENTER);
 	//fr->AddStringCaption(rrr, 0.5, 0.8);
 
 	//fr->AddString(u8"lll", 200, 300);
+	fr->Render();
+
+	fr->Clear();
+	FontSize f2(24_pt);
+	fr->GetFontBuilder()->SetAllFontSize(f2);
+	fr->AddString(UTF8_TEXT(CreateRandomString(5).c_str()), 0.7f, 0.5f, { 1,1,0,1 }, AbstractRenderer::TextAnchor::CENTER);
 	fr->Render();
 
 	/*
@@ -253,8 +266,8 @@ void initGL() {
 
 	RenderSettings r;
 	r.screenDpi = 260;
-	r.textureW = 64;
-	r.textureH = 64;
+	r.textureW = 512;
+	r.textureH = 512;
 	r.deviceW = g_width;
 	r.deviceH = g_height;
 	r.screenScale = 1.0;

@@ -125,7 +125,7 @@ typedef struct RenderSettings
 /// </summary>
 struct FontSize
 {
-	typedef enum SizeType { px, pt, em } SizeType;
+	enum class SizeType { px, pt, em };
 	
 	FontSize() : size(12), sizeType(SizeType::px) {};
 	FontSize(double value, SizeType type) : size(value), sizeType(type) {};
@@ -177,7 +177,7 @@ typedef struct Font
 {
 	std::string name;
 	FontSize size;
-	int defaultFontSizeInPx;
+	int defaultFontSizeInPx; //default size of font - used if FontSize is in em
 
 	Font(const std::string & name, FontSize size) : 
 		name(name), size(size), defaultFontSizeInPx(0)
