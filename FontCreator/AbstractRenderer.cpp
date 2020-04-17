@@ -20,6 +20,8 @@
 
 const AbstractRenderer::Color AbstractRenderer::DEFAULT_COLOR = { 1,1,1,1 };
 
+const AbstractRenderer::RenderParams AbstractRenderer::DEFAULT_PARAMS = { DEFAULT_COLOR, 1.0f };
+
 std::vector<std::string> AbstractRenderer::GetFontsInDirectory(const std::string & fontDir)
 {
 	std::vector<std::string> t;
@@ -187,8 +189,16 @@ void AbstractRenderer::InitGL()
 		this->fb->GetTextureWidth(), this->fb->GetTextureHeight(), 0,
 		TEXTURE_SINGLE_CHANNEL, GL_UNSIGNED_BYTE, nullptr));
 
-	GL_CHECK(glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST));
-	GL_CHECK(glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST));
+	if (this->rs.useTextureLinearFilter)
+	{
+		GL_CHECK(glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR));
+		GL_CHECK(glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR));
+	}
+	else
+	{
+		GL_CHECK(glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST));
+		GL_CHECK(glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST));
+	}	
 	GL_CHECK(glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE));
 	GL_CHECK(glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE));
 }
@@ -311,6 +321,26 @@ void AbstractRenderer::SetCaptionOffset(int offsetInPixels)
 	ci.offset = offsetInPixels;// static_cast<int>(this->fb->GetNewLineOffsetBasedOnGlyph(ci.mark[0]) * 0.5 * 1.2);	
 }
 
+void AbstractRenderer::SetFontTextureLinearFiler(bool val)
+{
+	this->rs.useTextureLinearFilter = val;	
+
+	FONT_BIND_TEXTURE_2D(this->fontTex);
+
+	if (this->rs.useTextureLinearFilter)
+	{
+		GL_CHECK(glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR));
+		GL_CHECK(glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR));
+	}
+	else
+	{
+		GL_CHECK(glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST));
+		GL_CHECK(glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST));
+	}
+
+	FONT_UNBIND_TEXTURE_2D;
+}
+
 void AbstractRenderer::SetCanvasSize(int w, int h)
 {
 	this->rs.deviceW = w;
@@ -408,6 +438,7 @@ void AbstractRenderer::Render(std::function<void(GLuint)> preDrawCallback, std::
 	GL_CHECK(glActiveTexture(GL_TEXTURE0));
 	FONT_BIND_TEXTURE_2D(this->fontTex);
 
+
 	//activate shader	
 	FONT_BIND_SHADER(shader.program);
 
@@ -474,25 +505,25 @@ void AbstractRenderer::FillTexture()
 /// <param name="gi"></param>
 /// <param name="x"></param>
 /// <param name="y"></param>
-void AbstractRenderer::AddQuad(const GlyphInfo & gi, int x, int y, const Color & col)
+void AbstractRenderer::AddQuad(const GlyphInfo & gi, float x, float y, const RenderParams & rp)
 {    
-    int fx = x + gi.bmpX;
-    int fy = y - gi.bmpY;
+    float fx = x + gi.bmpX * rp.scale;
+	float fy = y - gi.bmpY * rp.scale;
     	
     //build geometry
     Vertex min, max;
     
-    min.x = static_cast<float>(fx) * psW;
-    min.y = static_cast<float>(fy) * psH;
+    min.x = fx * psW;
+    min.y = fy * psH;
     min.u = static_cast<float>(gi.tx) * tW;
     min.v = static_cast<float>(gi.ty) * tH;
     
-    max.x = static_cast<float>(fx + gi.bmpW) * psW;
-    max.y = static_cast<float>(fy + gi.bmpH) * psH;
+    max.x = (fx + gi.bmpW * rp.scale) * psW;
+    max.y = (fy + gi.bmpH * rp.scale) * psH;
     max.u = static_cast<float>(gi.tx + gi.bmpW) * tW;
     max.v = static_cast<float>(gi.ty + gi.bmpH) * tH;
     
-    this->sm->FillVertexData(min, max, col, this->geom);
+    this->sm->FillVertexData(min, max, rp, this->geom);
     
     this->quadsCount++;
 }

@@ -100,6 +100,7 @@ typedef struct RenderSettings
 	int textureW;
 	int textureH;
 
+	bool useTextureLinearFilter = false;
 
 	int screenDpi = 0;
 
@@ -188,8 +189,6 @@ typedef struct Font
 	{}
 
 } Font;
-
-
 
 
 

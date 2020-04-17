@@ -22,7 +22,7 @@ public:
     
     virtual void FillVertexData(const AbstractRenderer::Vertex & minVertex,
                                 const AbstractRenderer::Vertex & maxVertex,
-                                const AbstractRenderer::Color & color,
+                                const AbstractRenderer::RenderParams & rp,
                                 std::vector<float> & vec) = 0;
 
 	virtual void PreRender() {	}
@@ -44,7 +44,7 @@ public:
     
     void FillVertexData(const AbstractRenderer::Vertex & minVertex,
                         const AbstractRenderer::Vertex & maxVertex,
-                        const AbstractRenderer::Color & color,
+                        const AbstractRenderer::RenderParams & rp,
                         std::vector<float> & vec) override;
     	
 protected:
@@ -65,9 +65,9 @@ public:
 	void SetColor(float r, float g, float b, float a);
 
 	void FillVertexData(const AbstractRenderer::Vertex & minVertex,
-		const AbstractRenderer::Vertex & maxVertex,
-		const AbstractRenderer::Color & color,
-		std::vector<float> & vec) override;
+						const AbstractRenderer::Vertex & maxVertex,
+						const AbstractRenderer::RenderParams & rp,
+						std::vector<float> & vec) override;
 
 	void PreRender() override;
 

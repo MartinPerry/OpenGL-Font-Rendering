@@ -53,7 +53,7 @@ void DefaultFontShaderManager::BindVertexAtribs()
 
 void DefaultFontShaderManager::FillVertexData(const AbstractRenderer::Vertex & minVertex,
                                               const AbstractRenderer::Vertex & maxVertex,
-                                              const AbstractRenderer::Color & color,
+                                              const AbstractRenderer::RenderParams & rp,
                                               std::vector<float> & vec)
 {
     
@@ -65,36 +65,36 @@ void DefaultFontShaderManager::FillVertexData(const AbstractRenderer::Vertex & m
     
     vec.push_back(minX); vec.push_back(minY);
     vec.push_back(minVertex.u); vec.push_back(minVertex.v);
-    vec.push_back(color.r); vec.push_back(color.g);
-    vec.push_back(color.b); vec.push_back(color.a);
+    vec.push_back(rp.color.r); vec.push_back(rp.color.g);
+    vec.push_back(rp.color.b); vec.push_back(rp.color.a);
     
     vec.push_back(maxX); vec.push_back(minY);
     vec.push_back(maxVertex.u); vec.push_back(minVertex.v);
-    vec.push_back(color.r); vec.push_back(color.g);
-    vec.push_back(color.b); vec.push_back(color.a);
+    vec.push_back(rp.color.r); vec.push_back(rp.color.g);
+    vec.push_back(rp.color.b); vec.push_back(rp.color.a);
     
     vec.push_back(minX); vec.push_back(maxY);
     vec.push_back(minVertex.u); vec.push_back(maxVertex.v);
-    vec.push_back(color.r); vec.push_back(color.g);
-    vec.push_back(color.b); vec.push_back(color.a);
+    vec.push_back(rp.color.r); vec.push_back(rp.color.g);
+    vec.push_back(rp.color.b); vec.push_back(rp.color.a);
     
     //========================================================
     //========================================================
     
     vec.push_back(maxX); vec.push_back(minY);
     vec.push_back(maxVertex.u); vec.push_back(minVertex.v);
-    vec.push_back(color.r); vec.push_back(color.g);
-    vec.push_back(color.b); vec.push_back(color.a);
+    vec.push_back(rp.color.r); vec.push_back(rp.color.g);
+    vec.push_back(rp.color.b); vec.push_back(rp.color.a);
     
     vec.push_back(maxX); vec.push_back(maxY);
     vec.push_back(maxVertex.u); vec.push_back(maxVertex.v);
-    vec.push_back(color.r); vec.push_back(color.g);
-    vec.push_back(color.b); vec.push_back(color.a);
+    vec.push_back(rp.color.r); vec.push_back(rp.color.g);
+    vec.push_back(rp.color.b); vec.push_back(rp.color.a);
     
     vec.push_back(minX); vec.push_back(maxY);
     vec.push_back(minVertex.u); vec.push_back(maxVertex.v);
-    vec.push_back(color.r); vec.push_back(color.g);
-    vec.push_back(color.b); vec.push_back(color.a);
+    vec.push_back(rp.color.r); vec.push_back(rp.color.g);
+    vec.push_back(rp.color.b); vec.push_back(rp.color.a);
     
     /*
     v[0] = a;
@@ -169,7 +169,7 @@ void SingleColorFontShaderManager::PreRender()
 
 void SingleColorFontShaderManager::FillVertexData(const AbstractRenderer::Vertex & minVertex,
 	const AbstractRenderer::Vertex & maxVertex,
-	const AbstractRenderer::Color & color,
+	const AbstractRenderer::RenderParams & rp,
 	std::vector<float> & vec)
 {
 

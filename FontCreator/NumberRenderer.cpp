@@ -222,7 +222,7 @@ void NumberRenderer::Clear()
 /// <param name="anchor"></param>
 /// <param name="type"></param>
 bool NumberRenderer::AddIntegralNumberInternal(long val,
-	int x, int y, Color color,
+	int x, int y, const RenderParams & rp,
 	TextAnchor anchor, TextType type)
 {
 	if (this->axisYOrigin == AbstractRenderer::AxisYOrigin::DOWN)
@@ -256,7 +256,7 @@ bool NumberRenderer::AddIntegralNumberInternal(long val,
 	i.fractPartReverse = 0;
 
 
-	return this->AddNumber(i, x, y, color, anchor, type);	
+	return this->AddNumber(i, x, y, rp, anchor, type);	
 }
 
 /// <summary>
@@ -270,7 +270,7 @@ bool NumberRenderer::AddIntegralNumberInternal(long val,
 /// <param name="anchor"></param>
 /// <param name="type"></param>
 bool NumberRenderer::AddFloatNumberInternal(double val,
-	int x, int y, Color color,
+	int x, int y, const RenderParams & rp,
 	TextAnchor anchor, TextType type)
 {
 	if (this->axisYOrigin == AbstractRenderer::AxisYOrigin::DOWN)
@@ -304,7 +304,7 @@ bool NumberRenderer::AddFloatNumberInternal(double val,
 	i.fractPartReverse = this->GetFractPartReversed(val, i.intPart);
 
 
-	return this->AddNumber(i, x, y, color, anchor, type);
+	return this->AddNumber(i, x, y, rp, anchor, type);
 }
 
 /// <summary>
@@ -316,7 +316,7 @@ bool NumberRenderer::AddFloatNumberInternal(double val,
 /// <param name="color"></param>
 /// <param name="anchor"></param>
 /// <param name="type"></param>
-bool NumberRenderer::AddNumber(NumberInfo & n, int x, int y, Color color,
+bool NumberRenderer::AddNumber(NumberInfo & n, int x, int y, const RenderParams & rp,
 	TextAnchor anchor, TextType type)
 {
 	AbstractRenderer::AABB aabb = this->CalcNumberAABB(n.val, x, y, n.negative, n.intPart, n.fractPartReverse);
@@ -349,11 +349,9 @@ bool NumberRenderer::AddNumber(NumberInfo & n, int x, int y, Color color,
 
 	n.x = x;
 	n.y = y;
-	n.color = color;	
+	n.renderParams = rp;
 	n.anchor = anchor;
-	n.type = type;
-	n.anchorX = x;
-	n.anchorY = y;
+	n.type = type;	
 	n.w = w;
 	n.h = h;
 
@@ -539,33 +537,29 @@ AbstractRenderer::AABB NumberRenderer::CalcNumberAABB(double val, int x, int y,
 /// <summary>
 /// Calculate start position of text using anchors
 /// </summary>
-void NumberRenderer::CalcAnchoredPosition()
+void NumberRenderer::GetAnchoredPosition(const NumberRenderer::NumberInfo & si, 
+	int & x, int & y)
 {
-	//Calculate anchored position of text	
-	for (auto & si : this->nmbrs)
-	{		
-		if (si.anchor == TextAnchor::LEFT_TOP)
-		{
-			si.anchorX = si.x;
-			si.anchorY = si.y + this->newLineOffset; //y position is "line letter start" - move it to letter height
-		}
-		else if (si.anchor == TextAnchor::CENTER)
-		{			
-			si.anchorX = si.x - si.w / 2;
-			si.anchorY = si.y + (this->newLineOffset / 2); //move top position to TOP_LEFT
-													//and calc center from all lines and move TOP_LEFT down
-		}
-		else if (si.anchor == TextAnchor::LEFT_DOWN)
-		{
-			si.anchorX = si.x;
-			si.anchorY = si.y;			
-		}
+	//default for TextAnchor::LEFT_DOWN
+	x = si.x;
+	y = si.y;
 
-		if (si.type == TextType::CAPTION)
-		{									
-			si.anchorY -= (si.h / 2 + ci.offset);	
-			si.anchorY -= 2 * (this->captionMark.bmpH);
-		}				
+	//Calculate anchored position of text	
+	if (si.anchor == TextAnchor::LEFT_TOP)
+	{		
+		y = si.y + this->newLineOffset; //y position is "line letter start" - move it to letter height
+	}
+	else if (si.anchor == TextAnchor::CENTER)
+	{			
+		x = si.x - si.w / 2;
+		y = si.y + (this->newLineOffset / 2); //move top position to TOP_LEFT
+											//and calc center from all lines and move TOP_LEFT down
+	}
+	
+	if (si.type == TextType::CAPTION)
+	{				
+		y -= (si.h / 2 + ci.offset);	
+		y -= 2 * (this->captionMark.bmpH);					
 	}
 }
 
@@ -582,11 +576,7 @@ bool NumberRenderer::GenerateGeometry()
 		return false;
 	}
 
-		
-	//calculate anchored position
-	this->CalcAnchoredPosition();
-
-
+			
 	//Build geometry
 	
     AbstractRenderer::Clear();
@@ -594,8 +584,9 @@ bool NumberRenderer::GenerateGeometry()
 	
 	for (const NumberRenderer::NumberInfo & si : this->nmbrs)
 	{		
-		int x = si.anchorX;
-		int y = si.anchorY;
+		int x, y;
+
+		this->GetAnchoredPosition(si, x, y);
 
 
 		unsigned long intPart = si.intPart;
@@ -608,14 +599,14 @@ bool NumberRenderer::GenerateGeometry()
 			int yy = si.y + (this->captionMark.bmpH);
 			
 
-			this->AddQuad(this->captionMark, xx, yy, si.color);
+			this->AddQuad(this->captionMark, xx, yy, si.renderParams);
 		}
 
 
 
 		if (si.negative)
 		{
-			this->AddQuad(this->gi['-'], x, y, si.color);
+			this->AddQuad(this->gi['-'], x, y, si.renderParams);
 			x += (this->gi['-'].adv >> 6);
 		}
 
@@ -652,7 +643,7 @@ bool NumberRenderer::GenerateGeometry()
 		{
 			//one difgit number
 			const GlyphInfo & gi = this->gi[intPart + '0'];
-			this->AddQuad(gi, x, y, si.color);
+			this->AddQuad(gi, x, y, si.renderParams);
 			x += (gi.adv >> 6);
 		}
 		else
@@ -669,7 +660,7 @@ bool NumberRenderer::GenerateGeometry()
 			if (intPart != 0)
 			{
 				const GlyphInfo & gi = this->gi[intPart + '0'];
-				this->AddQuad(gi, x, y, si.color);
+				this->AddQuad(gi, x, y, si.renderParams);
 				x += (gi.adv >> 6);
 			}
 
@@ -678,10 +669,10 @@ bool NumberRenderer::GenerateGeometry()
 				--lastDigit;
 				GlyphInfo ** t = precompGi[digits[lastDigit]];
 
-				this->AddQuad(*t[1], x, y, si.color);
+				this->AddQuad(*t[1], x, y, si.renderParams);
 				x += (t[1]->adv >> 6);
 
-				this->AddQuad(*t[0], x, y, si.color);
+				this->AddQuad(*t[0], x, y, si.renderParams);
 				x += (t[0]->adv >> 6);
 			}
 		}
@@ -689,7 +680,7 @@ bool NumberRenderer::GenerateGeometry()
 
 		if (fractPartReverse)
 		{
-			this->AddQuad(this->gi['.'], x, y, si.color);
+			this->AddQuad(this->gi['.'], x, y, si.renderParams);
 			x += (this->gi['.'].adv >> 6);
 			
 			while (fractPartReverse)
@@ -698,7 +689,7 @@ bool NumberRenderer::GenerateGeometry()
 				fractPartReverse /= 10;
 				const GlyphInfo & gi = this->gi[cc + '0'];
 
-				this->AddQuad(gi, x, y, si.color);
+				this->AddQuad(gi, x, y, si.renderParams);
 
 				x += (gi.adv >> 6);
 			}

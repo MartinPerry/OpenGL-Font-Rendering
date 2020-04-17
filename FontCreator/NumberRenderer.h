@@ -36,31 +36,31 @@ public:
 
 	template <typename T>
 	IS_FLOAT AddNumberCaption(T val,
-		int x, int y, Color color = DEFAULT_COLOR);
+		int x, int y, const RenderParams & rp = DEFAULT_PARAMS);
 
 	template <typename T>
 	IS_FLOAT AddNumber(T val,
-		double x, double y, Color color = DEFAULT_COLOR,
+		double x, double y, const RenderParams & rp = DEFAULT_PARAMS,
 		TextAnchor anchor = TextAnchor::LEFT_TOP);
 
 	template <typename T>
 	IS_FLOAT AddNumber(T val,
-		int x, int y, Color color = DEFAULT_COLOR,
+		int x, int y, const RenderParams & rp = DEFAULT_PARAMS,
 		TextAnchor anchor = TextAnchor::LEFT_TOP);
 
 
 	template <typename T>
 	IS_INTEGRAL AddNumberCaption(T val,
-		int x, int y, Color color = DEFAULT_COLOR);
+		int x, int y, const RenderParams & rp = DEFAULT_PARAMS);
 
 	template <typename T>
 	IS_INTEGRAL AddNumber(T val,
-		double x, double y, Color color = DEFAULT_COLOR,
+		double x, double y, const RenderParams & rp = DEFAULT_PARAMS,
 		TextAnchor anchor = TextAnchor::LEFT_TOP);
 
 	template <typename T>
 	IS_INTEGRAL AddNumber(T val,
-		int x, int y, Color color = DEFAULT_COLOR,
+		int x, int y, const RenderParams & rp = DEFAULT_PARAMS,
 		TextAnchor anchor = TextAnchor::LEFT_TOP);
 
 			
@@ -76,17 +76,15 @@ protected:
 			
 		int x;
 		int y;
-		Color color;
+		RenderParams renderParams;
 		bool isDefaultColor;
 		TextAnchor anchor;		
 		TextType type;
-		
-		int anchorX;
-		int anchorY;		
+			
 		int w;
 		int h;
 		
-	} StringInfo;
+	} NumberInfo;
 
 	bool checkIfExist;
 	int newLineOffset;
@@ -104,16 +102,16 @@ protected:
 	void Precompute();
 
 	bool AddFloatNumberInternal(double value,
-		int x, int y, Color color = { 1,1,1,1 },
+		int x, int y, const RenderParams & rp,
 		TextAnchor anchor = TextAnchor::LEFT_TOP,		
 		TextType type = TextType::TEXT);
 
 	bool AddIntegralNumberInternal(long value,
-		int x, int y, Color color = { 1,1,1,1 },
+		int x, int y, const RenderParams & rp,
 		TextAnchor anchor = TextAnchor::LEFT_TOP,
 		TextType type = TextType::TEXT);
 
-	bool AddNumber(NumberInfo & n, int x, int y, Color color,
+	bool AddNumber(NumberInfo & n, int x, int y, const RenderParams & rp,
 		TextAnchor anchor, TextType type);
 
 	bool GenerateGeometry() override;
@@ -122,7 +120,7 @@ protected:
 		bool negative, unsigned long intPart, unsigned long fractPartReversed);
 
 	
-	void CalcAnchoredPosition();
+	void GetAnchoredPosition(const NumberRenderer::NumberInfo & si, int & x, int & y);
 	
 
 	unsigned long GetFractPartReversed(double val, unsigned long intPart) const;
@@ -139,10 +137,10 @@ protected:
 /// <param name="color"></param>
 template <typename T>
 IS_FLOAT NumberRenderer::AddNumberCaption(T val,
-	int x, int y, Color color)
+	int x, int y, const RenderParams & rp)
 {
 	//this->AddNumberInternal(ci.mark, x, y, color, TextAnchor::CENTER, TextAlign::ALIGN_CENTER, TextType::CAPTION);
-	return this->AddFloatNumberInternal(val, x, y, color, TextAnchor::CENTER, TextType::CAPTION);
+	return this->AddFloatNumberInternal(val, x, y, rp, TextAnchor::CENTER, TextType::CAPTION);
 }
 
 /// <summary>
@@ -157,13 +155,13 @@ IS_FLOAT NumberRenderer::AddNumberCaption(T val,
 /// <param name="anchor"></param>
 template <typename T>
 IS_FLOAT NumberRenderer::AddNumber(T val,
-	double x, double y, Color color,
+	double x, double y, const RenderParams & rp,
 	TextAnchor anchor)
 {
 	int xx = static_cast<int>(x * this->rs.deviceW);
 	int yy = static_cast<int>(y * this->rs.deviceH);
 
-	return this->AddFloatNumberInternal(val, xx, yy, color, anchor, TextType::TEXT);
+	return this->AddFloatNumberInternal(val, xx, yy, rp, anchor, TextType::TEXT);
 }
 
 /// <summary>
@@ -176,10 +174,10 @@ IS_FLOAT NumberRenderer::AddNumber(T val,
 /// <param name="y"></param>
 template <typename T>
 IS_FLOAT NumberRenderer::AddNumber(T val,
-	int x, int y, Color color,
+	int x, int y, const RenderParams & rp,
 	TextAnchor anchor)
 {
-	return this->AddFloatNumberInternal(val, x, y, color, anchor, TextType::TEXT);
+	return this->AddFloatNumberInternal(val, x, y, rp, anchor, TextType::TEXT);
 }
 
 
@@ -194,10 +192,10 @@ IS_FLOAT NumberRenderer::AddNumber(T val,
 /// <param name="color"></param>
 template <typename T>
 IS_INTEGRAL NumberRenderer::AddNumberCaption(T val,
-	int x, int y, Color color)
+	int x, int y, const RenderParams & rp)
 {
 	//this->AddNumberInternal(ci.mark, x, y, color, TextAnchor::CENTER, TextAlign::ALIGN_CENTER, TextType::CAPTION);
-	return this->AddIntegralNumberInternal(static_cast<long>(val), x, y, color, TextAnchor::CENTER, TextType::CAPTION);
+	return this->AddIntegralNumberInternal(static_cast<long>(val), x, y, rp, TextAnchor::CENTER, TextType::CAPTION);
 }
 
 /// <summary>
@@ -212,13 +210,13 @@ IS_INTEGRAL NumberRenderer::AddNumberCaption(T val,
 /// <param name="anchor"></param>
 template <typename T>
 IS_INTEGRAL NumberRenderer::AddNumber(T val,
-	double x, double y, Color color,
+	double x, double y, const RenderParams & rp,
 	TextAnchor anchor)
 {
 	int xx = static_cast<int>(x * this->rs.deviceW);
 	int yy = static_cast<int>(y * this->rs.deviceH);
 
-	return this->AddIntegralNumberInternal(static_cast<long>(val), xx, yy, color, anchor, TextType::TEXT);
+	return this->AddIntegralNumberInternal(static_cast<long>(val), xx, yy, rp, anchor, TextType::TEXT);
 }
 
 /// <summary>
@@ -231,10 +229,10 @@ IS_INTEGRAL NumberRenderer::AddNumber(T val,
 /// <param name="y"></param>
 template <typename T>
 IS_INTEGRAL NumberRenderer::AddNumber(T val,
-	int x, int y, Color color,
+	int x, int y, const RenderParams & rp,
 	TextAnchor anchor)
 {
-	return this->AddIntegralNumberInternal(static_cast<long>(val), x, y, color, anchor, TextType::TEXT);
+	return this->AddIntegralNumberInternal(static_cast<long>(val), x, y, rp, anchor, TextType::TEXT);
 }
 
 

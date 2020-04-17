@@ -26,34 +26,34 @@ public:
 	void SetBidiEnabled(bool val);
 
 	bool AddStringCaption(const char * str,
-		double x, double y, Color color = DEFAULT_COLOR);
+		double x, double y, const RenderParams & rp = DEFAULT_PARAMS);
 
 	bool AddStringCaption(const UnicodeString & str,
-		double x, double y, Color color = DEFAULT_COLOR);
+		double x, double y, const RenderParams & rp = DEFAULT_PARAMS);
 
 	bool AddStringCaption(const char * str,
-		int x, int y, Color color = DEFAULT_COLOR);
+		int x, int y, const RenderParams & rp = DEFAULT_PARAMS);
 
 	bool AddStringCaption(const UnicodeString & str,
-		int x, int y, Color color = DEFAULT_COLOR);
+		int x, int y, const RenderParams & rp = DEFAULT_PARAMS);
 
 	bool AddString(const char * str,
-		double x, double y, Color color = DEFAULT_COLOR,
+		double x, double y, const RenderParams & rp = DEFAULT_PARAMS,
 		TextAnchor anchor = TextAnchor::LEFT_TOP,
 		TextAlign align = TextAlign::ALIGN_LEFT);
 
 	bool AddString(const char * str,
-		int x, int y, Color color = DEFAULT_COLOR,
+		int x, int y, const RenderParams & rp = DEFAULT_PARAMS,
 		TextAnchor anchor = TextAnchor::LEFT_TOP,
 		TextAlign align = TextAlign::ALIGN_LEFT);
 
 	bool AddString(const UnicodeString & str,
-		double x, double y, Color color = DEFAULT_COLOR,
+		double x, double y, const RenderParams & rp = DEFAULT_PARAMS,
 		TextAnchor anchor = TextAnchor::LEFT_TOP,
 		TextAlign align = TextAlign::ALIGN_LEFT);
 
 	bool AddString(const UnicodeString & str,
-		int x, int y, Color color = DEFAULT_COLOR,
+		int x, int y, const RenderParams & rp = DEFAULT_PARAMS,
 		TextAnchor anchor = TextAnchor::LEFT_TOP,
 		TextAlign align = TextAlign::ALIGN_LEFT);
 
@@ -66,10 +66,8 @@ protected:
 		std::vector<AABB> lines;
 		AABB global;
 
-		int maxNewLineOffset;
-		int lastLineOffset;
-		int totalLineOffset;
-
+		float maxNewLineOffset;
+		
 	} StringAABB;
 
 	typedef struct StringInfo
@@ -77,20 +75,27 @@ protected:
 		UnicodeString str;
 		int x;
 		int y;
-		Color color;
+		RenderParams renderParams;
 		TextAnchor anchor;
 		TextAlign align;
 		TextType type;
 
-		int anchorX;
-		int anchorY;
+		float anchorX;
+		float anchorY;
 		StringAABB aabb;
 
 		StringInfo(UnicodeString & str, int x, int y, 
-			Color c, TextAnchor anchor, 
+			RenderParams rp, TextAnchor anchor,
 			TextAlign align, TextType type) : 
-		str(str), x(x), y(y), color(c), anchor(anchor), align(align),
-		type(type), anchorX(x), anchorY(y) {}
+			str(str), 
+			x(x), 
+			y(y), 
+			renderParams(rp), 
+			anchor(anchor), 
+			align(align),
+			type(type),
+			anchorX(static_cast<float>(x)), 
+			anchorY(static_cast<float>(y)) {}
                
 	} StringInfo;
 
@@ -104,22 +109,22 @@ protected:
 	long CalcSpaceSize();
 
 	bool CanAddString(const UnicodeString & uniStr,
-		int x, int y, Color color,
+		int x, int y, const RenderParams & rp,
 		TextAnchor anchor, TextAlign align, TextType type) const;
 
 	bool AddStringInternal(const UnicodeString & str,
-		int x, int y, Color color = { 1,1,1,1 },
+		int x, int y, const RenderParams & rp,
 		TextAnchor anchor = TextAnchor::LEFT_TOP,
 		TextAlign align = TextAlign::ALIGN_LEFT,
 		TextType type = TextType::TEXT);
 
 	bool GenerateGeometry() override;
 
-	AABB EstimateStringAABB(const UnicodeString & str, int x, int y) const;
-	StringAABB CalcStringAABB(const UnicodeString & str, int x, int y, const UsedGlyphCache * gc) const;
+	AABB EstimateStringAABB(const UnicodeString & str, float x, float y, float scale) const;
+	StringAABB CalcStringAABB(const UnicodeString & str, float s, const UsedGlyphCache * gc) const;
 
 	void CalcAnchoredPosition();
-	void CalcLineAlign(const StringInfo & si, int lineId, int & x, int & y) const;
+	void CalcLineAlign(const StringInfo & si, int lineId, float & x, float & y) const;
 
 	UsedGlyphCache ExtractGlyphs(const UnicodeString & str);
 };

@@ -155,20 +155,62 @@ void display() {
 	//fr->AddString(UTF8_TEXT(u8"MLQp\U0001F300x"), 0.5f, 0.5f, { 1,1,1,1 }, AbstractRenderer::TextAnchor::CENTER);
 	//fr->AddString(UTF8_TEXT(u8"\U0001F600"), 0.5f, 0.5f);
 	//fr->AddString(UTF8_TEXT(u8"x"), 0.5f, 0.5f);
+	fr->SetFontTextureLinearFiler(true);
+	
 	FontSize f1(12_pt);
 	fr->GetFontBuilder()->SetAllFontSize(f1);
-	fr->AddString(UTF8_TEXT(CreateRandomString(5).c_str()), 0.2f, 0.5f, { 1,1,0,1 }, AbstractRenderer::TextAnchor::CENTER);
+	fr->AddString(//UTF8_TEXT(CreateRandomString(5).c_str()), 
+		UTF8_TEXT("Ahoj\nsvete\nsvetg"),
+		0.0f, 1.0f, 
+		{ 1,1,0,1, 1.0 }, 
+		AbstractRenderer::TextAnchor::LEFT_DOWN);
+		
+
+	fr->AddString(//UTF8_TEXT(CreateRandomString(5).c_str()), 
+		UTF8_TEXT("Ahoj\nsvete\nsvetg"),
+		0.0f, 0.0f,
+		{ 1,1,0,1, 2.0 },
+		AbstractRenderer::TextAnchor::LEFT_TOP);
+
+	//fr->AddString(//UTF8_TEXT(CreateRandomString(5).c_str()), 
+	//	UTF8_TEXT("Ahoj\nsvete\nsvetg"),
+	//	0.5f, 0.5f,
+	//	{ 1,1,0,1, 1.0 },
+	//	AbstractRenderer::TextAnchor::CENTER,
+	//	AbstractRenderer::TextAlign::ALIGN_CENTER);
+
+	fr->AddStringCaption(//UTF8_TEXT(CreateRandomString(5).c_str()), 
+		UTF8_TEXT("Ahoj\nsvete\nsvetg"),
+		0.5f, 0.5f,
+		{ 1,1,0,1, 1.0 });
 
 	//fr->AddStringCaption(rrr, 0.5, 0.8);
 
 	//fr->AddString(u8"lll", 200, 300);
 	fr->Render();
 
+	/*
+	fr->Clear();
+	//FontSize f2(24_pt);
+	//fr->GetFontBuilder()->SetAllFontSize(f2);
+	fr->AddString(//UTF8_TEXT(CreateRandomString(5).c_str()), 
+		UTF8_TEXT("Ahoj\nsvete"),
+		0.7f, 0.3f, 
+		{ 1,1,0,1, 2.0 }, 
+		AbstractRenderer::TextAnchor::CENTER);
+	fr->Render();
+
+
 	fr->Clear();
 	FontSize f2(24_pt);
 	fr->GetFontBuilder()->SetAllFontSize(f2);
-	fr->AddString(UTF8_TEXT(CreateRandomString(5).c_str()), 0.7f, 0.5f, { 1,1,0,1 }, AbstractRenderer::TextAnchor::CENTER);
+	fr->AddString(//UTF8_TEXT(CreateRandomString(5).c_str()), 
+		UTF8_TEXT("Ahoj\nsvete"),
+		0.7f, 0.7f,
+		{ 1,1,0,1, 1.0 },
+		AbstractRenderer::TextAnchor::CENTER);
 	fr->Render();
+	*/
 
 	/*
 	fn->Clear();

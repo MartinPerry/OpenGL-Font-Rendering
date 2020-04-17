@@ -37,8 +37,15 @@ public:
             (c.b == b) && (c.a == a); }
     } Color;
 	
+	typedef struct RenderParams
+	{
+		Color color;
+		float scale = 1.0f;
+
+	} RenderParams;
 
 	static const Color DEFAULT_COLOR;
+	static const RenderParams DEFAULT_PARAMS;
 
 	static std::vector<std::string> GetFontsInDirectory(const std::string & fontDir);
 
@@ -50,6 +57,7 @@ public:
 
 	FontBuilder * GetFontBuilder();
 	void SetCanvasSize(int w, int h);
+	void SetFontTextureLinearFiler(bool val);
 	void SetAxisYOrigin(AxisYOrigin axisY);
 	void SetCaption(const UnicodeString & mark, int offsetInPixels);
 	void SetCaptionOffset(int offsetInPixels);
@@ -82,16 +90,16 @@ protected:
 
 	typedef struct AABB
 	{
-		int minX;
-		int maxX;
+		float minX;
+		float maxX;
 
-		int minY;
-		int maxY;
+		float minY;
+		float maxY;
 		
-		AABB() : minX(std::numeric_limits<int>::max()),
-			minY(std::numeric_limits<int>::max()),
-			maxX(std::numeric_limits<int>::min()),
-			maxY(std::numeric_limits<int>::min())
+		AABB() : minX(static_cast<float>(std::numeric_limits<int>::max())),
+			minY(static_cast<float>(std::numeric_limits<int>::max())),
+			maxX(static_cast<float>(std::numeric_limits<int>::min())),
+			maxY(static_cast<float>(std::numeric_limits<int>::min()))
 		{}
 
 	} AABB;
@@ -124,7 +132,7 @@ protected:
 	float psW; //pixel size in width
 	float psH; //pixel size in height
 
-	float tW ;  //pixel size in width
+	float tW; //pixel size in width
 	float tH; //pixel size in height
 
 
@@ -149,7 +157,7 @@ protected:
 	GLuint CompileGLSLShader(GLenum target, const char* shader);
 	GLuint LinkGLSLProgram(GLuint vertexShader, GLuint fragmentShader);
 
-    void AddQuad(const GlyphInfo & gi, int x, int y, const Color & col);
+    void AddQuad(const GlyphInfo & gi, float x, float y, const RenderParams & rp);
 	void FillTexture();
 	void FillVB();
 };
