@@ -157,6 +157,7 @@ void display() {
 	//fr->AddString(UTF8_TEXT(u8"x"), 0.5f, 0.5f);
 	fr->SetFontTextureLinearFiler(true);
 	
+	/*
 	FontSize f1(12_pt);
 	fr->GetFontBuilder()->SetAllFontSize(f1);
 	fr->AddString(//UTF8_TEXT(CreateRandomString(5).c_str()), 
@@ -171,6 +172,7 @@ void display() {
 		0.0f, 0.0f,
 		{ 1,1,0,1, 2.0 },
 		AbstractRenderer::TextAnchor::LEFT_TOP);
+	*/
 
 	//fr->AddString(//UTF8_TEXT(CreateRandomString(5).c_str()), 
 	//	UTF8_TEXT("Ahoj\nsvete\nsvetg"),
@@ -212,7 +214,7 @@ void display() {
 	fr->Render();
 	*/
 
-	/*
+	
 	fn->Clear();
 	//fn->AddNumber(-45.27, 100, 100);
 	//fn->AddNumberCaption(-450.013, 100, 100, { 1, 1.0f, 1.0f, 1 });
@@ -221,7 +223,7 @@ void display() {
 	printf("%d\n", nmbr);
 	fn->AddNumber(nmbr, 0.5f, 0.5f, { 1,1,0,1 }, AbstractRenderer::TextAnchor::CENTER);
 	fn->Render();
-	*/
+	
 	
 
 	glutSwapBuffers();	
@@ -322,7 +324,8 @@ void initGL() {
 	fn = new NumberRenderer({ fArial }, r);
 
 	
-	
+	fr->SetCaption(UTF8_TEXT(u8"\U0001F300"), 10);
+	fr->SetCaption(UTF8_TEXT(u8"\U00002b55"), 0);
 	
 	//fr->AddStringCaption(u8"Pøíliš\nžluouèký\nkùò", 0.5f, 0.5f, { 1,1,0,1 });
 	//fr->AddStringCaption(u8"AbBd", 0.5f, 0.5f, { 1,1,0,1 });
@@ -388,14 +391,15 @@ int main(int argc, char ** argv)
 	//CharacterExtractor cr({ "../ii/noto_max_priority/", "../ii/noto/" }, "merged_out");
 	//CharacterExtractor cr({ "../ii/noto_max_priority/" }, "merged_out");
 	
-	cr.SetOutputDir("../ii_v6/");
+	cr.SetOutputDir("../ii_v7/");
 	cr.AddText(UTF8_TEXT(u8"Pøíliš\nžluouèký\nkùò")); //CZ accents	
 	cr.AddText(UTF8_TEXT(u8"\u2022")); //mark in number renderer
 	cr.AddText(UTF8_TEXT(u8"0123456789")); //all numbers
 	cr.AddText(UTF8_TEXT(u8" !/*-+,.=")); //basic math operators	
 	cr.AddText(UTF8_TEXT(u8"\U0001F300")); //CYCLONE "icon"
+	cr.AddText(UTF8_TEXT(u8"\U00002B55")); //Donut "icon" (https://www.compart.com/en/unicode/U+2B55)
 	//cr.AddDirectory("D:\\Martin\\Programming\\test\\Ventusky\\VentuskyWin\\_bundle_dir_\\DATA\\cities\\");	
-	cr.AddDirectory("d:/Martin/Programming/test/Ventusky/Ventusky_v11/Preprocessing/CitiesTilesGenerator/cities/");
+	cr.AddDirectory("d:/Martin/Programming/test/Ventusky/Ventusky_v11/Preprocessing/GeneratedCities/cities/");
 	
 	cr.AddDirectory("d:/Martin/Programming/test/Ventusky/Ventusky_v11/_bundle_dir_/DATA/localization/");
 	cr.AddTextFromJsonFile("", [](cJSON * root, CharacterExtractor * ce) -> void {

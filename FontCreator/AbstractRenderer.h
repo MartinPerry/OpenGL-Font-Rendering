@@ -102,6 +102,14 @@ protected:
 			maxY(static_cast<float>(std::numeric_limits<int>::min()))
 		{}
 
+		void Update(float x, float y, float w, float h)
+		{
+			if (x < minX) minX = x;
+			if (y < minY) minY = y;
+			if (x + w > maxX) maxX = x + w;
+			if (y + h > maxY) maxY = y + h;
+		}
+
 	} AABB;
 
 	

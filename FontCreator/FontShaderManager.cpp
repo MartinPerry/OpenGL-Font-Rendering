@@ -173,11 +173,11 @@ void SingleColorFontShaderManager::FillVertexData(const AbstractRenderer::Vertex
 	std::vector<float> & vec)
 {
 
-	float minX = 2.0f * minVertex.x - 1.0f;
-	float minY = -(2.0f * minVertex.y - 1.0f);
+	const float minX = 2.0f * minVertex.x - 1.0f;
+	const float minY = -(2.0f * minVertex.y - 1.0f);
 
-	float maxX = 2.0f * maxVertex.x - 1.0f;
-	float maxY = -(2.0f * maxVertex.y - 1.0f);
+	const float maxX = 2.0f * maxVertex.x - 1.0f;
+	const float maxY = -(2.0f * maxVertex.y - 1.0f);
 
 	vec.push_back(minX); vec.push_back(minY);
 	vec.push_back(minVertex.u); vec.push_back(minVertex.v);

@@ -119,6 +119,13 @@ cr.GenerateScript("run.sh"); //generate script and save it to run.sh
 	
 ````	
 
+For emojis:
+
+* Take SVG files of emojis you want (for example: https://github.com/googlefonts/noto-emoji - in svg directory).
+* Upload them to https://icomoon.io/app/
+* Generate ttf font from uploaded SVGs and download
+* You can see the content of file online on https://fontdrop.info/
+
 
 References
 ------------------------------------------

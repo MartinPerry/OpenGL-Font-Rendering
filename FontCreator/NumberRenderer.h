@@ -71,8 +71,9 @@ protected:
 	{
 		double val;
 		bool negative;
-		unsigned long intPart;
-		unsigned long fractPartReverse;
+		uint32_t intPartOrder;
+		uint32_t intPart;		
+		uint32_t fractPartReverse;
 			
 		int x;
 		int y;
@@ -95,9 +96,7 @@ protected:
 	GlyphInfo gi[65];
 	GlyphInfo captionMark;
 	GlyphInfo * precompGi[100][2];
-
-	char digits[20];
-
+	
 	void Init();
 	void Precompute();
 
@@ -117,14 +116,15 @@ protected:
 	bool GenerateGeometry() override;
 
 	AbstractRenderer::AABB CalcNumberAABB(double val, int x, int y, 
-		bool negative, unsigned long intPart, unsigned long fractPartReversed);
+		bool negative, uint32_t intPart, uint32_t intPartOrder, uint32_t fractPartReversed);
 
 	
 	void GetAnchoredPosition(const NumberRenderer::NumberInfo & si, int & x, int & y);
 	
 
-	unsigned long GetFractPartReversed(double val, unsigned long intPart) const;
-	unsigned long ReversDigits(unsigned long num) const;
+	uint32_t GetFractPartReversed(double val, uint32_t intPart) const;
+	uint32_t ReversDigits(uint32_t num) const;
+	uint32_t GetIntDivisor(const uint32_t x) const;
 };
 
 

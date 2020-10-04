@@ -112,7 +112,7 @@ bool StringRenderer::AddStringCaption(const UnicodeString & str,
 	int x, int y, const RenderParams & rp)
 {
     this->AddStringInternal(ci.mark, x, y, rp, TextAnchor::CENTER, TextAlign::ALIGN_CENTER, TextType::CAPTION);
-    return this->AddStringInternal(str, x, y, rp, TextAnchor::CENTER, TextAlign::ALIGN_CENTER, TextType::CAPTION);
+    return this->AddStringInternal(str, x, y, rp, TextAnchor::CENTER, TextAlign::ALIGN_CENTER, TextType::CAPTION);	
 }
 
 /// <summary>
@@ -323,7 +323,7 @@ AbstractRenderer::AABB StringRenderer::EstimateStringAABB(const UnicodeString & 
 		auto it = this->fb->GetGlyph(c, exist, &fi);
 		if (exist)
 		{					
-			GlyphInfo & gi = *it->second;
+			const GlyphInfo & gi = *it->second;
 			w = gi.bmpW * scale;
 			h = gi.bmpH * scale;
 			adv = (gi.adv >> 6) * scale;
@@ -339,14 +339,8 @@ AbstractRenderer::AABB StringRenderer::EstimateStringAABB(const UnicodeString & 
 
 		float fx = x + w;
 		float fy = y - h;
-			   		
-		if (fx < aabb.minX) aabb.minX = fx;
-		if (fy < aabb.minY) aabb.minY = fy;
+		aabb.Update(fx, fy, w, h);
 
-
-		if (fx + w > aabb.maxX) aabb.maxX = fx + w;
-		if (fy + h > aabb.maxY) aabb.maxY = fy + h;
-		
 
 		x += adv;
 	}
@@ -430,17 +424,12 @@ StringRenderer::StringAABB StringRenderer::CalcStringAABB(const UnicodeString & 
 			newLineOffset = std::max(newLineOffset, static_cast<float>(fi->newLineOffset + this->nlOffsetPx));
 		}
 				
-		GlyphInfo & gi = *it->second;
+		const GlyphInfo & gi = *it->second;
 
 		float fx = x + gi.bmpX;
-		float fy = y - gi.bmpY;
-			   		
-		if (fx < lineAabb.minX) lineAabb.minX = fx;
-		if (fy < lineAabb.minY) lineAabb.minY = fy;
+		float fy = y - gi.bmpY;			   		
+		lineAabb.Update(fx, fy, gi.bmpW, gi.bmpH);
 
-		if (fx + gi.bmpW > lineAabb.maxX) lineAabb.maxX = fx + gi.bmpW;
-		if (fy + gi.bmpH > lineAabb.maxY) lineAabb.maxY = fy + gi.bmpH;
-		
 		x += (gi.adv >> 6);
 	}
 
@@ -511,7 +500,7 @@ void StringRenderer::CalcAnchoredPosition()
 				auto it = this->fb->GetGlyph(ci.mark[0], exist);
 				if (exist)
 				{										
-					si.anchorY += (it->second->bmpH);										
+					//si.anchorY += (it->second->bmpH);										
 					captionMarkAnchorY = si.anchorY + (it->second->bmpH);					
 				}			
 				else
@@ -524,6 +513,7 @@ void StringRenderer::CalcAnchoredPosition()
 			{								
 				si.anchorY -= (captionMarkAnchorY - si.anchorY);				
 			}
+			
 			
 		}				
 	}
@@ -591,7 +581,7 @@ long StringRenderer::CalcSpaceSize()
 	auto it = this->fb->GetGlyph(' ', spaceSizeExist);
 	if (spaceSizeExist)
 	{
-		GlyphInfo & gi = *it->second;
+		const GlyphInfo & gi = *it->second;
 		spaceSize = (gi.adv >> 6);
 	}
 	else
@@ -601,7 +591,7 @@ long StringRenderer::CalcSpaceSize()
 		auto tmp = this->fb->GetGlyph('a', tmpExist);
 		if (tmpExist)
 		{
-			GlyphInfo & gi = *tmp->second;
+			const GlyphInfo & gi = *tmp->second;
 			spaceSize = (gi.adv >> 6);
 		}
 		else
@@ -704,7 +694,7 @@ bool StringRenderer::GenerateGeometry()
 			newLineOffset = std::max(newLineOffset, fi->newLineOffset * si.renderParams.scale);
 			
 			
-			GlyphInfo & gi = *it->second;
+			const GlyphInfo & gi = *it->second;
 			
             this->AddQuad(gi, x, y, si.renderParams);
             
