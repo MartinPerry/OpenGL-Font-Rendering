@@ -32,9 +32,11 @@ public:
     typedef struct Color
     {
         float r, g, b, a;
-        bool IsSame(const Color & c) {
+        bool IsSame(const Color & c) const noexcept 
+		{
             return (c.r == r) && (c.g == g) &&
-            (c.b == b) && (c.a == a); }
+				   (c.b == b) && (c.a == a); 
+		}
     } Color;
 	
 	typedef struct RenderParams
@@ -96,19 +98,21 @@ protected:
 		float minY;
 		float maxY;
 		
-		AABB() : minX(static_cast<float>(std::numeric_limits<int>::max())),
+		AABB() noexcept : 
+			minX(static_cast<float>(std::numeric_limits<int>::max())),
 			minY(static_cast<float>(std::numeric_limits<int>::max())),
 			maxX(static_cast<float>(std::numeric_limits<int>::min())),
 			maxY(static_cast<float>(std::numeric_limits<int>::min()))
 		{}
 
-		void Update(float x, float y, float w, float h)
+		void Update(float x, float y, float w, float h) noexcept
 		{
 			if (x < minX) minX = x;
 			if (y < minY) minY = y;
 			if (x + w > maxX) maxX = x + w;
 			if (y + h > maxY) maxY = y + h;
 		}
+		
 
 	} AABB;
 

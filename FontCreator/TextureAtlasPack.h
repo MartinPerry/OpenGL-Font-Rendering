@@ -66,11 +66,11 @@ private:
 		std::list<Node>::iterator same;
 		bool hasOthers;
 
-		Node(int x, int y, int w, int h) :
+		Node(int x, int y, int w, int h) noexcept :
 			x(x), y(y), w(w), h(h), hasOthers(false)
 		{};
 
-		Node() :
+		Node() noexcept :
 			x(0), y(0), w(0), h(0), hasOthers(false)
 		{};
 

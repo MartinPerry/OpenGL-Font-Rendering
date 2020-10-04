@@ -26,13 +26,13 @@ public:
 		const char * vSource, const char * pSource, std::shared_ptr<IFontShaderManager> sm);
 	~NumberRenderer();
 
-	void SetExistenceCheck(bool val);
-	void SetDecimalPrecission(int digits);
+	void SetExistenceCheck(bool val) noexcept;
+	void SetDecimalPrecission(int digits) noexcept;
 
-	int GetDecimalPrecission() const;
+	int GetDecimalPrecission() const noexcept;
 
 	void Clear();
-	size_t GetNumbersCount() const;
+	size_t GetNumbersCount() const noexcept;
 
 	template <typename T>
 	IS_FLOAT AddNumberCaption(T val,
@@ -122,9 +122,9 @@ protected:
 	void GetAnchoredPosition(const NumberRenderer::NumberInfo & si, int & x, int & y);
 	
 
-	uint32_t GetFractPartReversed(double val, uint32_t intPart) const;
-	uint32_t ReversDigits(uint32_t num) const;
-	uint32_t GetIntDivisor(const uint32_t x) const;
+	uint32_t GetFractPartReversed(double val, uint32_t intPart) const noexcept;
+	uint32_t ReversDigits(uint32_t num) const noexcept;
+	uint32_t GetIntDivisor(const uint32_t x) const noexcept;
 };
 
 

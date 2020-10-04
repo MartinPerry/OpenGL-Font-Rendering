@@ -221,7 +221,7 @@ void display() {
 	//fn->AddNumberCaption(-897456, 100, 300, { 1, 1.0f, 1.0f, 1 });
 	int nmbr = rand();
 	printf("%d\n", nmbr);
-	fn->AddNumber(nmbr, 0.5f, 0.5f, { 1,1,0,1 }, AbstractRenderer::TextAnchor::CENTER);
+	fn->AddNumber(600000, 0.5f, 0.5f, { 1,1,0,1 }, AbstractRenderer::TextAnchor::CENTER);
 	fn->Render();
 	
 	

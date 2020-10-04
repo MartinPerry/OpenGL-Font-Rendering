@@ -128,42 +128,42 @@ struct FontSize
 {
 	enum class SizeType { px, pt, em };
 	
-	FontSize() : size(12), sizeType(SizeType::px) {};
-	FontSize(double value, SizeType type) : size(value), sizeType(type) {};
+	FontSize() noexcept : size(12), sizeType(SizeType::px) {};
+	FontSize(double value, SizeType type) noexcept  : size(value), sizeType(type) {};
 			
-	operator int() const { return static_cast<int>(size); };
-	operator double() const { return size; };
+	operator int() const noexcept { return static_cast<int>(size); };
+	operator double() const noexcept { return size; };
 
 	double size;
 	SizeType sizeType;
 };
 
-inline FontSize operator "" _px(long double value)
+inline FontSize operator "" _px(long double value) noexcept
 {
 	return FontSize(value, FontSize::SizeType::px);
 };
 
-inline FontSize operator "" _px(unsigned long long value)
+inline FontSize operator "" _px(unsigned long long value) noexcept
 {
 	return FontSize(static_cast<double>(value), FontSize::SizeType::px);
 };
 
-inline FontSize operator "" _pt(long double value)
+inline FontSize operator "" _pt(long double value) noexcept
 {
 	return FontSize(value, FontSize::SizeType::pt);
 };
 
-inline FontSize operator "" _pt(unsigned long long value)
+inline FontSize operator "" _pt(unsigned long long value) noexcept
 {
 	return FontSize(static_cast<double>(value), FontSize::SizeType::pt);
 };
 
-inline FontSize operator "" _em(long double value)
+inline FontSize operator "" _em(long double value) noexcept
 {
 	return FontSize(value, FontSize::SizeType::em);
 };
 
-inline FontSize operator "" _em(unsigned long long value)
+inline FontSize operator "" _em(unsigned long long value) noexcept
 {
 	return FontSize(static_cast<double>(value), FontSize::SizeType::em);
 };

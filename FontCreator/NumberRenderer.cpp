@@ -160,7 +160,7 @@ void NumberRenderer::Precompute()
 /// Set whether we want to check if added number already exist
 /// </summary>
 /// <param name="val"></param>
-void NumberRenderer::SetExistenceCheck(bool val)
+void NumberRenderer::SetExistenceCheck(bool val) noexcept
 {
 	this->checkIfExist = val;
 }
@@ -169,7 +169,7 @@ void NumberRenderer::SetExistenceCheck(bool val)
 /// Set precision for decimal part in digits count
 /// </summary>
 /// <param name="digits"></param>
-void NumberRenderer::SetDecimalPrecission(int digits)
+void NumberRenderer::SetDecimalPrecission(int digits) noexcept
 {
     if (this->decimalPlaces == digits)
     {
@@ -184,7 +184,7 @@ void NumberRenderer::SetDecimalPrecission(int digits)
 /// Get precision for decimal part in digits count
 /// </summary>
 /// <returns></returns>
-int NumberRenderer::GetDecimalPrecission() const
+int NumberRenderer::GetDecimalPrecission() const noexcept
 {
 	return this->decimalPlaces;
 }
@@ -193,7 +193,7 @@ int NumberRenderer::GetDecimalPrecission() const
 /// Get number of numbers
 /// </summary>
 /// <returns></returns>
-size_t NumberRenderer::GetNumbersCount() const
+size_t NumberRenderer::GetNumbersCount() const noexcept
 {
 	return this->nmbrs.size();
 }
@@ -305,6 +305,11 @@ bool NumberRenderer::AddFloatNumberInternal(double val,
 	i.intPartOrder = this->GetIntDivisor(i.intPart);
 	i.fractPartReverse = this->GetFractPartReversed(val, i.intPart);
 
+	//remove negative zero
+	if ((i.negative) && (i.fractPartReverse == 0) && (i.intPart == 0))
+	{
+		i.negative = false;
+	}
 
 	return this->AddNumber(i, x, y, rp, anchor, type);
 }
@@ -326,13 +331,13 @@ bool NumberRenderer::AddNumber(NumberInfo & n, int x, int y, const RenderParams 
 
 	//test if entire string is outside visible area
 
-	const int w = (aabb.maxX - aabb.minX);
-	const int h = (aabb.maxY - aabb.minY);
+	const float w = (aabb.maxX - aabb.minX);
+	const float h = (aabb.maxY - aabb.minY);
 
 	if (anchor == TextAnchor::CENTER)
 	{	
-		const int wHalf = w / 2;
-		const int hHalf = h / 2;
+		const float wHalf = w / 2.0f;
+		const float hHalf = h / 2.0f;
 
 		aabb.minX -= wHalf;
 		aabb.maxX -= wHalf;
@@ -375,7 +380,7 @@ bool NumberRenderer::AddNumber(NumberInfo & n, int x, int y, const RenderParams 
 /// <param name="val">entire number</param>
 /// <param name="intPart">integer part only</param>
 /// <returns></returns>
-uint32_t NumberRenderer::GetFractPartReversed(double val, uint32_t intPart) const
+uint32_t NumberRenderer::GetFractPartReversed(double val, uint32_t intPart) const noexcept
 {
 	double fractPart = val - intPart;
 
@@ -415,7 +420,7 @@ uint32_t NumberRenderer::GetFractPartReversed(double val, uint32_t intPart) cons
 /// </summary>
 /// <param name="num"></param>
 /// <returns></returns>
-uint32_t NumberRenderer::ReversDigits(uint32_t num) const
+uint32_t NumberRenderer::ReversDigits(uint32_t num) const noexcept
 {
 	if (num < 10) return num;
 
@@ -434,28 +439,28 @@ uint32_t NumberRenderer::ReversDigits(uint32_t num) const
 /// </summary>
 /// <param name="x"></param>
 /// <returns></returns>
-uint32_t NumberRenderer::GetIntDivisor(const uint32_t x) const
+uint32_t NumberRenderer::GetIntDivisor(const uint32_t x) const noexcept
 {
 	if (x >= 10000U) {
 		if (x >= 10000000U) {
 			if (x >= 100000000U) {
-				if (x >= 1000000000U) return 100000000U;
-				return 10000000U;
+				if (x >= 1000000000U) return 10000000000U;
+				return 1000000000U;
 			}
-			return 1000000U;
+			return 100000000U;
 		}
 		if (x >= 100000U) {
-			if (x >= 1000000U) return 100000U;
-			return 10000U;
+			if (x >= 1000000U) return 10000000U;
+			return 1000000U;
 		}
-		return 1000U;
+		return 100000U;
 	}
 	if (x >= 100U) {
-		if (x >= 1000U) return 100U;
-		return 10U;
+		if (x >= 1000U) return 10000U;
+		return 1000U;
 	}
-	if (x >= 10U) return 1U;
-	return 0U;
+	if (x >= 10U) return 100U;
+	return 1U;
 }
 
 /// <summary>
@@ -485,30 +490,9 @@ AbstractRenderer::AABB NumberRenderer::CalcNumberAABB(double val, int x, int y,
 		x += (gi.adv >> 6);
 	}
 
-	int divisor = intPartOrder;
-
-	while (divisor >= 1)
+	if (intPart < 9)
 	{
-		const int tmp = intPart / divisor;
-		GlyphInfo ** t = precompGi[tmp];
-
-		for (int i = 0; i < 2; i++)
-		{
-			const GlyphInfo & gi = *t[1];
-			const int fx = x + gi.bmpX;
-			const int fy = y - gi.bmpY;
-			aabb.Update(fx, fy, gi.bmpW, gi.bmpH);
-
-			x += (gi.adv >> 6);
-		}
-		
-		intPart = intPart - tmp * divisor;
-		divisor /= 100;
-	};
-
-	if (intPart != 0)
-	{
-		//one digit remaining number
+		//one digit number
 		const GlyphInfo & gi = this->gi[intPart + '0'];
 		
 		const int fx = x + gi.bmpX;
@@ -516,6 +500,41 @@ AbstractRenderer::AABB NumberRenderer::CalcNumberAABB(double val, int x, int y,
 		aabb.Update(fx, fy, gi.bmpW, gi.bmpH);
 
 		x += (gi.adv >> 6);
+	}
+	else
+	{
+		int divisor = intPartOrder;
+		do
+		{
+			divisor /= 100;
+			const int tmp = intPart / divisor;
+			GlyphInfo ** t = precompGi[tmp];
+
+			for (int i = 0; i < 2; i++)
+			{
+				const GlyphInfo & gi = *t[1];
+				const int fx = x + gi.bmpX;
+				const int fy = y - gi.bmpY;
+				aabb.Update(fx, fy, gi.bmpW, gi.bmpH);
+
+				x += (gi.adv >> 6);
+			}
+
+			intPart = intPart - tmp * divisor;			
+
+		} while (divisor > 10);
+
+		if (divisor >= 10)
+		{
+			//one digit remaining number
+			const GlyphInfo & gi = this->gi[intPart + '0'];
+
+			const int fx = x + gi.bmpX;
+			const int fy = y - gi.bmpY;
+			aabb.Update(fx, fy, gi.bmpW, gi.bmpH);
+
+			x += (gi.adv >> 6);
+		}
 	}
 
 	/*
@@ -648,32 +667,44 @@ bool NumberRenderer::GenerateGeometry()
 		//split number to double-digits
 		//optimized conversion from number to "string (glyphs)"
 		
-		uint32_t intPart = si.intPart;
-		uint32_t fractPartReverse = si.fractPartReverse;
-
-		int divisor = si.intPartOrder;
-
-		while (divisor >= 1)
+		uint32_t intPart = si.intPart;	
+		
+		if (intPart < 9)
 		{
-			const int tmp = intPart / divisor;
-			GlyphInfo ** t = precompGi[tmp];
-
-			this->AddQuad(*t[1], x, y, si.renderParams);
-			x += (t[1]->adv >> 6);
-
-			this->AddQuad(*t[0], x, y, si.renderParams);
-			x += (t[0]->adv >> 6);
-
-			intPart = intPart - tmp * divisor;
-			divisor /= 100;
-		};
-
-		if (intPart != 0)
-		{
-			//one digit remaining number
+			//one digit number
 			const GlyphInfo & gi = this->gi[intPart + '0'];
 			this->AddQuad(gi, x, y, si.renderParams);
 			x += (gi.adv >> 6);
+		}
+		else				
+		{	
+			//at least two digits number
+			int divisor = si.intPartOrder;
+
+			do
+			{
+				divisor /= 100;
+
+				const int tmp = intPart / divisor;
+				GlyphInfo ** t = precompGi[tmp];
+
+				this->AddQuad(*t[1], x, y, si.renderParams);
+				x += (t[1]->adv >> 6);
+
+				this->AddQuad(*t[0], x, y, si.renderParams);
+				x += (t[0]->adv >> 6);
+
+				intPart = intPart - tmp * divisor;
+				
+			} while (divisor > 10);
+
+			if (divisor >= 10)
+			{
+				//one digit remaining number
+				const GlyphInfo & gi = this->gi[intPart + '0'];
+				this->AddQuad(gi, x, y, si.renderParams);
+				x += (gi.adv >> 6);
+			}
 		}
 
 		/*
@@ -726,6 +757,7 @@ bool NumberRenderer::GenerateGeometry()
 		*/
 		//==========================================================
 
+		uint32_t fractPartReverse = si.fractPartReverse;
 		if (fractPartReverse)
 		{
 			this->AddQuad(this->gi['.'], x, y, si.renderParams);
