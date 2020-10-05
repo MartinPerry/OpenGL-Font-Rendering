@@ -696,7 +696,21 @@ bool StringRenderer::GenerateGeometry()
 			
 			const GlyphInfo & gi = *it->second;
 			
-            this->AddQuad(gi, x, y, si.renderParams);
+			/*
+			//test for single scaled chars
+			if (cc == 'A')
+			{
+				auto pp = si.renderParams;
+				pp.scale = 5.0;
+				this->AddQuad(gi, x, y, pp);
+			}
+			else
+			{
+				this->AddQuad(gi, x, y, si.renderParams);
+			}
+			*/
+
+			this->AddQuad(gi, x, y, si.renderParams);
             
 			x += (gi.adv >> 6) * si.renderParams.scale;
 		}

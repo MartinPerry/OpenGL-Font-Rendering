@@ -9,6 +9,7 @@ class IFontShaderManager;
 #include <unordered_set>
 #include <functional>
 #include <shared_mutex>
+#include <algorithm>
 
 #include "./FontStructures.h"
 
@@ -98,6 +99,7 @@ protected:
 		float minY;
 		float maxY;
 		
+
 		AABB() noexcept : 
 			minX(static_cast<float>(std::numeric_limits<int>::max())),
 			minY(static_cast<float>(std::numeric_limits<int>::max())),
@@ -111,6 +113,15 @@ protected:
 			if (y < minY) minY = y;
 			if (x + w > maxX) maxX = x + w;
 			if (y + h > maxY) maxY = y + h;
+		}
+
+		void UnionWithOffset(const AABB & b, float xOffset) noexcept
+		{
+			minX = std::min(minX, b.minX + xOffset);
+			minY = std::min(minY, b.minY);
+
+			maxX = std::max(maxX, b.maxX + xOffset);
+			maxY = std::max(maxY, b.maxY);
 		}
 		
 

@@ -17,7 +17,7 @@
 #ifdef _WIN32
 #include <windows.h>
 #ifdef _DEBUG
-#include <vld.h>
+//#include <vld.h>
 #endif
 #endif
 
@@ -220,8 +220,9 @@ void display() {
 	//fn->AddNumberCaption(-450.013, 100, 100, { 1, 1.0f, 1.0f, 1 });
 	//fn->AddNumberCaption(-897456, 100, 300, { 1, 1.0f, 1.0f, 1 });
 	int nmbr = rand();
-	printf("%d\n", nmbr);
-	fn->AddNumber(600000, 0.5f, 0.5f, { 1,1,0,1 }, AbstractRenderer::TextAnchor::CENTER);
+	//printf("%d\n", nmbr);
+	//fn->AddNumber((double)(nmbr + nmbr / 100.0), 0.5f, 0.5f, { 1,1,0,1 }, AbstractRenderer::TextAnchor::CENTER);
+	fn->AddNumber(600010, 0.5f, 0.5f, { 1,1,0,1 }, AbstractRenderer::TextAnchor::CENTER);
 	fn->Render();
 	
 	
@@ -326,6 +327,7 @@ void initGL() {
 	
 	fr->SetCaption(UTF8_TEXT(u8"\U0001F300"), 10);
 	fr->SetCaption(UTF8_TEXT(u8"\U00002b55"), 0);
+	fr->SetCaption(UTF8_TEXT(u8"*"), 0);
 	
 	//fr->AddStringCaption(u8"Pøíliš\nžluouèký\nkùò", 0.5f, 0.5f, { 1,1,0,1 });
 	//fr->AddStringCaption(u8"AbBd", 0.5f, 0.5f, { 1,1,0,1 });
@@ -379,7 +381,7 @@ int main(int argc, char ** argv)
 {
 #ifdef _WIN32 
 #ifdef _DEBUG
-	VLDSetReportOptions(VLD_OPT_REPORT_TO_DEBUGGER | VLD_OPT_REPORT_TO_FILE, L"leaks.txt");
+	//VLDSetReportOptions(VLD_OPT_REPORT_TO_DEBUGGER | VLD_OPT_REPORT_TO_FILE, L"leaks.txt");
 #endif
 #endif
 		

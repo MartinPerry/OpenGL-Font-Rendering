@@ -145,29 +145,26 @@ void NumberRenderer::Precompute()
 			intPart /= 10;
 		} while (intPart);
 
-		this->precompGi[i][0] = &this->gi['0'];
-		this->precompGi[i][1] = this->precompGi[i][0];
+		this->precomputed[i].gi[0] = &this->gi['0'];
+		this->precomputed[i].gi[1] = this->precomputed[i].gi[0];
 
 		while (lastDigit > 0)
 		{
 			lastDigit--;			
-			this->precompGi[i][lastDigit] = &this->gi[digits[lastDigit] + '0'];			
+			this->precomputed[i].gi[lastDigit] = &this->gi[digits[lastDigit] + '0'];
 		}
 
-		/*
-		int x = 0;
-		int y = 0;
+		
+		//precompute AABBs for double numbers
+		int x = 0;		
 		for (int j = 0; j < 2; j++)
 		{
-			int x = 0;
-			const GlyphInfo * gi = this->precompGi[i][j];
-			const int fx = x + gi->bmpX;
-			const int fy = y - gi->bmpY;
-			precompAabb[i].Update(fx, fy, gi->bmpW, gi->bmpH);
-
+			const GlyphInfo * gi = this->precomputed[i].gi[j];
+			this->precomputed[i].aabb.Update(x + gi->bmpX, -gi->bmpY, gi->bmpW, gi->bmpH);			
 			x += (gi->adv >> 6);
 		}
-		*/
+		this->precomputed[i].xOffset = x;
+
 	}
 }
 
@@ -248,7 +245,7 @@ bool NumberRenderer::AddIntegralNumberInternal(long val,
 
 	if (this->checkIfExist)
 	{
-		for (NumberInfo & s : this->nmbrs)
+		for (const NumberInfo & s : this->nmbrs)
 		{
 			if ((s.x == x) && (s.y == y) &&
 				(s.anchor == anchor) && (s.type == type))
@@ -265,12 +262,14 @@ bool NumberRenderer::AddIntegralNumberInternal(long val,
 
 	NumberInfo i;
 	i.val = val;
-	i.negative = val < 0;
-
-	if (i.negative) val *= -1;
+	if (val < 0)
+	{
+		i.negative = true;
+		val *= -1;
+	}
+	
 	i.intPart = static_cast<unsigned long>(val);
-	i.intPartOrder = this->GetIntDivisor(i.intPart);
-	i.fractPartReverse = 0;
+	i.intPartOrder = this->GetIntDivisor(i.intPart);	
 
 	return this->AddNumber(i, x, y, rp, anchor, type);	
 }
@@ -296,7 +295,7 @@ bool NumberRenderer::AddFloatNumberInternal(double val,
 
 	if (this->checkIfExist)
 	{
-		for (NumberInfo & s : this->nmbrs)
+		for (const NumberInfo & s : this->nmbrs)
 		{
 			if ((s.x == x) && (s.y == y) &&
 				(s.anchor == anchor) && (s.type == type))
@@ -313,9 +312,12 @@ bool NumberRenderer::AddFloatNumberInternal(double val,
 
 	NumberInfo i;
 	i.val = val;
-	i.negative = val < 0;
-
-	if (i.negative) val *= -1;
+	if (val < 0)
+	{
+		i.negative = true;
+		val *= -1;
+	}	
+	
 	i.intPart = static_cast<uint32_t>(val);
 	i.intPartOrder = this->GetIntDivisor(i.intPart);
 	i.fractPartReverse = this->GetFractPartReversed(val, i.intPart);
@@ -369,12 +371,12 @@ bool NumberRenderer::AddNumber(NumberInfo & n, int x, int y, const RenderParams 
 	//new visible number - add it
 	
 	//fill basic structure info
-
-	n.x = x;
-	n.y = y;
+	
 	n.renderParams = rp;
 	n.anchor = anchor;
 	n.type = type;	
+	n.x = x;
+	n.y = y;
 	n.w = w;
 	n.h = h;
 
@@ -490,31 +492,32 @@ uint32_t NumberRenderer::GetIntDivisor(const uint32_t x) const noexcept
 /// <returns></returns>
 AbstractRenderer::AABB NumberRenderer::CalcNumberAABB(double val, int x, int y,
 	bool negative, uint32_t intPart, uint32_t intPartOrder, uint32_t fractPartReversed)
-{
+{	
+	//store offsets
+	int xOffset = x;
+	int yOffset = y;
+
+	//reset position to count form zero
+	y = 0; //not used
+	x = 0;
 
 	AbstractRenderer::AABB aabb;
-
+	
 	if (negative)
 	{
-		GlyphInfo & gi = this->gi['-'];
-
-		const int fx = x + gi.bmpX;
-		const int fy = y - gi.bmpY;
-		aabb.Update(fx, fy, gi.bmpW, gi.bmpH);		
+		const GlyphInfo & gi = this->gi['-'];
 		
-		x += (gi.adv >> 6);
+		aabb.Update(x + gi.bmpX, -gi.bmpY, gi.bmpW, gi.bmpH);		
+		x += (gi.adv >> 6);		
 	}
 
 	if (intPart <= 9)
 	{
 		//one digit number
 		const GlyphInfo & gi = this->gi[intPart + '0'];
-		
-		const int fx = x + gi.bmpX;
-		const int fy = y - gi.bmpY;
-		aabb.Update(fx, fy, gi.bmpW, gi.bmpH);
 
-		x += (gi.adv >> 6);
+		aabb.Update(x + gi.bmpX, -gi.bmpY, gi.bmpW, gi.bmpH);
+		x += (gi.adv >> 6);		
 	}
 	else
 	{
@@ -523,17 +526,10 @@ AbstractRenderer::AABB NumberRenderer::CalcNumberAABB(double val, int x, int y,
 		{
 			divisor /= 100;
 			const int tmp = intPart / divisor;
-			GlyphInfo ** t = precompGi[tmp];
-
-			for (int i = 0; i < 2; i++)
-			{
-				const GlyphInfo & gi = *t[1];
-				const int fx = x + gi.bmpX;
-				const int fy = y - gi.bmpY;
-				aabb.Update(fx, fy, gi.bmpW, gi.bmpH);
-
-				x += (gi.adv >> 6);
-			}
+			const Precomputed & t = precomputed[tmp];
+			
+			aabb.UnionWithOffset(t.aabb, x);
+			x += t.xOffset;
 
 			intPart = intPart - tmp * divisor;			
 
@@ -543,76 +539,38 @@ AbstractRenderer::AABB NumberRenderer::CalcNumberAABB(double val, int x, int y,
 		{
 			//one digit remaining number
 			const GlyphInfo & gi = this->gi[intPart + '0'];
-
-			const int fx = x + gi.bmpX;
-			const int fy = y - gi.bmpY;
-			aabb.Update(fx, fy, gi.bmpW, gi.bmpH);
-
+			
+			aabb.Update(x + gi.bmpX, -gi.bmpY, gi.bmpW, gi.bmpH);
 			x += (gi.adv >> 6);
 		}
-
-
-
 	}
 
-	/*
-
-	int lastDigit = 0;
-
-	do
-	{
-		digits[lastDigit] = (intPart % 10);
-		++lastDigit;
-		intPart /= 10;
-	} while (intPart);
-
-	while (lastDigit > 0)
-	{
-		--lastDigit;
-		const GlyphInfo & gi = this->gi[digits[lastDigit] + '0'];
-				
-		int fx = x + gi.bmpX;
-		int fy = y - gi.bmpY;
-
-
-		if (fx < aabb.minX) aabb.minX = fx;
-		if (fy < aabb.minY) aabb.minY = fy;
-
-
-		if (fx + gi.bmpW > aabb.maxX) aabb.maxX = fx + gi.bmpW;
-		if (fy + gi.bmpH > aabb.maxY) aabb.maxY = fy + gi.bmpH;
-
-		x += (gi.adv >> 6);
-	}
-	*/
-
-
-
+	
 	if (fractPartReversed)
 	{
-		GlyphInfo & gi = this->gi['.'];
-
-		const int fx = x + gi.bmpX;
-		const int fy = y - gi.bmpY;
-		aabb.Update(fx, fy, gi.bmpW, gi.bmpH);
+		const GlyphInfo & gi = this->gi['.'];
 		
+		aabb.Update(x + gi.bmpX, -gi.bmpY, gi.bmpW, gi.bmpH);
 		x += (gi.adv >> 6);
-
 		
 		while (fractPartReversed)
 		{			
-			int cc = (fractPartReversed % 10);
-			fractPartReversed /= 10;
+			const int cc = (fractPartReversed % 10);			
 			const GlyphInfo & gi = this->gi[cc + '0'];
+			
+			aabb.Update(x + gi.bmpX, -gi.bmpY, gi.bmpW, gi.bmpH);
+			x += (gi.adv >> 6);			
 
-			const int fx = x + gi.bmpX;
-			const int fy = y - gi.bmpY;
-			aabb.Update(fx, fy, gi.bmpW, gi.bmpH);
-
-			x += (gi.adv >> 6);
+			fractPartReversed /= 10;
 		}
 	}
 	
+	//translate bounding box to original position
+	aabb.minX += xOffset;
+	aabb.minY += yOffset;
+	aabb.maxX += xOffset;
+	aabb.maxY += yOffset;
+
 	return aabb;
 }
 
@@ -641,7 +599,7 @@ void NumberRenderer::GetAnchoredPosition(const NumberRenderer::NumberInfo & si,
 	if (si.type == TextType::CAPTION)
 	{				
 		y -= (si.h / 2 + ci.offset);	
-		y -= 2 * (this->captionMark.bmpH);					
+		y -= 2 * this->captionMark.bmpH;
 	}
 }
 
@@ -704,7 +662,7 @@ bool NumberRenderer::GenerateGeometry()
 				divisor /= 100;
 
 				const int tmp = intPart / divisor;
-				GlyphInfo ** t = precompGi[tmp];
+				const GlyphInfo * const * t = precomputed[tmp].gi;
 
 				this->AddQuad(*t[1], x, y, si.renderParams);
 				x += (t[1]->adv >> 6);
@@ -724,55 +682,7 @@ bool NumberRenderer::GenerateGeometry()
 				x += (gi.adv >> 6);
 			}
 		}
-
-		/*
-
-		int lastDigit = 0;
-
-		if (intPart < 9)
-		{
-			//one digit number
-			const GlyphInfo & gi = this->gi[intPart + '0'];
-			this->AddQuad(gi, x, y, si.renderParams);
-			x += (gi.adv >> 6);
-		}
-		else
-		{			
-			
-			char digits[20];
-
-			//number is > 9 - it has at least two digist
-			//numbers are put to "stack" digits as two digits numbers
-			while (intPart > 9)
-			{
-				int tmp = intPart / 100;
-				digits[lastDigit] = static_cast<char>(intPart - 100 * tmp);
-				++lastDigit;
-				intPart = tmp;
-			};
-
-			if (intPart != 0)
-			{
-				//one digit remaining number
-				const GlyphInfo & gi = this->gi[intPart + '0'];
-				this->AddQuad(gi, x, y, si.renderParams);
-				x += (gi.adv >> 6);
-			}
-
-			//iterate "stack" digits and append numbers
-			while (lastDigit > 0)
-			{
-				--lastDigit;
-				GlyphInfo ** t = precompGi[digits[lastDigit]];
-
-				this->AddQuad(*t[1], x, y, si.renderParams);
-				x += (t[1]->adv >> 6);
-
-				this->AddQuad(*t[0], x, y, si.renderParams);
-				x += (t[0]->adv >> 6);
-			}
-		}
-		*/
+		
 		//==========================================================
 
 		uint32_t fractPartReverse = si.fractPartReverse;
@@ -783,13 +693,13 @@ bool NumberRenderer::GenerateGeometry()
 			
 			while (fractPartReverse)
 			{
-				const int cc = (fractPartReverse % 10);
-				fractPartReverse /= 10;
+				const int cc = (fractPartReverse % 10);				
 				const GlyphInfo & gi = this->gi[cc + '0'];
 
 				this->AddQuad(gi, x, y, si.renderParams);
-
 				x += (gi.adv >> 6);
+
+				fractPartReverse /= 10;
 			}
 		}		
 	}

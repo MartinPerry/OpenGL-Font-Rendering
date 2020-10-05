@@ -74,18 +74,32 @@ protected:
 		uint32_t intPartOrder;
 		uint32_t intPart;		
 		uint32_t fractPartReverse;
-			
-		int x;
-		int y;
+					
 		RenderParams renderParams;
 		bool isDefaultColor;
 		TextAnchor anchor;		
 		TextType type;
 			
+		int x;
+		int y;
 		int w;
-		int h;
-		
+		int h;	
+
+		NumberInfo() noexcept :
+			negative(false),
+			intPartOrder(0),
+			intPart(0),
+			fractPartReverse(0)
+		{}
+
 	} NumberInfo;
+
+	struct Precomputed 
+	{
+		GlyphInfo * gi[2];
+		AbstractRenderer::AABB aabb;
+		int xOffset;
+	};
 
 	bool checkIfExist;
 	int newLineOffset;
@@ -95,8 +109,8 @@ protected:
 	std::vector<NumberInfo> nmbrs;
 	GlyphInfo gi[65];
 	GlyphInfo captionMark;
-	GlyphInfo * precompGi[100][2];
-	//AbstractRenderer::AABB precompAabb[100];
+	Precomputed precomputed[100];
+	
 
 	void Init();
 	void Precompute();
