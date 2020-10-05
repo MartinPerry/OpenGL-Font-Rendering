@@ -153,6 +153,21 @@ void NumberRenderer::Precompute()
 			lastDigit--;			
 			this->precompGi[i][lastDigit] = &this->gi[digits[lastDigit] + '0'];			
 		}
+
+		/*
+		int x = 0;
+		int y = 0;
+		for (int j = 0; j < 2; j++)
+		{
+			int x = 0;
+			const GlyphInfo * gi = this->precompGi[i][j];
+			const int fx = x + gi->bmpX;
+			const int fy = y - gi->bmpY;
+			precompAabb[i].Update(fx, fy, gi->bmpW, gi->bmpH);
+
+			x += (gi->adv >> 6);
+		}
+		*/
 	}
 }
 
@@ -478,7 +493,7 @@ AbstractRenderer::AABB NumberRenderer::CalcNumberAABB(double val, int x, int y,
 {
 
 	AbstractRenderer::AABB aabb;
-		
+
 	if (negative)
 	{
 		GlyphInfo & gi = this->gi['-'];
@@ -486,11 +501,11 @@ AbstractRenderer::AABB NumberRenderer::CalcNumberAABB(double val, int x, int y,
 		const int fx = x + gi.bmpX;
 		const int fy = y - gi.bmpY;
 		aabb.Update(fx, fy, gi.bmpW, gi.bmpH);		
-
+		
 		x += (gi.adv >> 6);
 	}
 
-	if (intPart < 9)
+	if (intPart <= 9)
 	{
 		//one digit number
 		const GlyphInfo & gi = this->gi[intPart + '0'];
@@ -535,6 +550,9 @@ AbstractRenderer::AABB NumberRenderer::CalcNumberAABB(double val, int x, int y,
 
 			x += (gi.adv >> 6);
 		}
+
+
+
 	}
 
 	/*
@@ -669,7 +687,7 @@ bool NumberRenderer::GenerateGeometry()
 		
 		uint32_t intPart = si.intPart;	
 		
-		if (intPart < 9)
+		if (intPart <= 9)
 		{
 			//one digit number
 			const GlyphInfo & gi = this->gi[intPart + '0'];

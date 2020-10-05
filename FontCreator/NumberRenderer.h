@@ -96,7 +96,8 @@ protected:
 	GlyphInfo gi[65];
 	GlyphInfo captionMark;
 	GlyphInfo * precompGi[100][2];
-	
+	//AbstractRenderer::AABB precompAabb[100];
+
 	void Init();
 	void Precompute();
 
