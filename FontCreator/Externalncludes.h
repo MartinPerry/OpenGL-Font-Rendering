@@ -133,8 +133,13 @@ typedef utf8_string UnicodeString;
 #ifdef USE_ICU_LIBRARY
 
 typedef icu::UnicodeString UnicodeString;
+typedef icu::StringCharacterIterator UnicodeCharacterPtr;
 
-#define FOREACH_32_CHAR_ITERATION(c, str) icu::StringCharacterIterator iter = icu::StringCharacterIterator(str); \
+//#define GET_SUBSTRING_VIEW(str, start, len) str.tempSubString(start, len)
+
+#define GET_FIRST_UNICODE_CHAR_PTR(str) icu::StringCharacterIterator(str)
+
+#define FOREACH_32_CHAR_ITERATION(c, str) icu::StringCharacterIterator iter = GET_FIRST_UNICODE_CHAR_PTR(str); \
 										  for (UChar32 c = iter.first32(); iter.hasNext(); c = iter.next32())
 
 #define BIDI(x) BidiHelper::ConvertOneLine(x)

@@ -207,16 +207,16 @@ bool StringRenderer::AddStringInternal(const UnicodeString & str,
 		
 	this->fb->AddString(uniStr);
 
-	this->strs.emplace_back(uniStr, x, y, anchor, align, type);
-
-
+	this->strs.emplace_back(uniStr, x, y, anchor, align, type);	
 	auto & lines = this->strs.back().lines;
-	lines.emplace_back(rp);
+
+	lines.emplace_back(GET_FIRST_UNICODE_CHAR_PTR(str), rp);
+
 	FOREACH_32_CHAR_ITERATION(c, uniStr)
-	{
+	{		
 		if (c == '\n')
 		{
-			lines.emplace_back(rp);
+			lines.emplace_back(iter, rp);
 		}
 	}
 

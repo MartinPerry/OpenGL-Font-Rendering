@@ -63,17 +63,20 @@ protected:
 	
 	struct LineInfo 
 	{
+		UnicodeCharacterPtr start;
 		AABB aabb;
 		RenderParams renderParams;
 		float maxNewLineOffset;
 
-		LineInfo() : 
+		LineInfo(const UnicodeCharacterPtr & start) :
+			start(start),
 			aabb(AABB()),
 			renderParams(DEFAULT_PARAMS),
 			maxNewLineOffset(0.0)
 		{}
 
-		LineInfo(const RenderParams & rp) :
+		LineInfo(const UnicodeCharacterPtr & start, const RenderParams & rp) :
+			start(start),
 			aabb(AABB()),
 			renderParams(rp),
 			maxNewLineOffset(0.0)
