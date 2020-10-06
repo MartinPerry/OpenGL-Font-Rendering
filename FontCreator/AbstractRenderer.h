@@ -107,6 +107,11 @@ protected:
 			maxY(static_cast<float>(std::numeric_limits<int>::min()))
 		{}
 
+		bool IsEmpty() noexcept
+		{
+			return (minX == static_cast<float>(std::numeric_limits<int>::max()));
+		}
+
 		void Update(float x, float y, float w, float h) noexcept
 		{
 			if (x < minX) minX = x;

@@ -63,20 +63,24 @@ protected:
 	
 	struct LineInfo 
 	{
-		UnicodeCharacterPtr start;
+		uint32_t start;
+		uint32_t len;
 		AABB aabb;
 		RenderParams renderParams;
 		float maxNewLineOffset;
 
-		LineInfo(const UnicodeCharacterPtr & start) :
+		LineInfo(const uint32_t & start) :
 			start(start),
+			len(0),
 			aabb(AABB()),
 			renderParams(DEFAULT_PARAMS),
 			maxNewLineOffset(0.0)
 		{}
 
-		LineInfo(const UnicodeCharacterPtr & start, const RenderParams & rp) :
+		LineInfo(const uint32_t & start,
+			const RenderParams & rp) :
 			start(start),
+			len(0),
 			aabb(AABB()),
 			renderParams(rp),
 			maxNewLineOffset(0.0)
@@ -153,7 +157,7 @@ protected:
 	void CalcStringAABB(StringInfo & str, const UsedGlyphCache * gc) const;
 
 	void CalcAnchoredPosition();
-	void CalcLineAlign(const StringInfo & si, int lineId, float & x, float & y) const;
+	void CalcLineAlign(const StringInfo & si, const LineInfo & li, float & x, float & y) const;
 
 	UsedGlyphCache ExtractGlyphs(const UnicodeString & str);
 };

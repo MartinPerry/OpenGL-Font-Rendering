@@ -48,9 +48,6 @@
     <ClCompile Include="Unicode\utf8.cpp">
       <Filter>Source Files\Unicode</Filter>
     </ClCompile>
-    <ClCompile Include="AbstractRenderer.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="StringRenderer.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -61,6 +58,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="Utils\cJSON_JS.c">
+      <Filter>Source Files\Utils</Filter>
+    </ClCompile>
+    <ClCompile Include="AbstractRenderer.cpp">
       <Filter>Source Files\Utils</Filter>
     </ClCompile>
   </ItemGroup>
