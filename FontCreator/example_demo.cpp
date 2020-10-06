@@ -223,7 +223,7 @@ void display() {
 	//printf("%d\n", nmbr);
 	//fn->AddNumber((double)(nmbr + nmbr / 100.0), 0.5f, 0.5f, { 1,1,0,1 }, AbstractRenderer::TextAnchor::CENTER);
 	fn->AddNumber(600010, 0.5f, 0.5f, { 1,1,0,1 }, AbstractRenderer::TextAnchor::CENTER);
-	fn->Render();
+	//fn->Render();
 	
 	
 

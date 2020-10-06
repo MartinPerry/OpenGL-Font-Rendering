@@ -183,6 +183,48 @@ bool StringRenderer::AddString(const UnicodeString & str,
 	return this->AddStringInternal(str, x, y, rp, anchor, align, TextType::TEXT);
 }
 
+bool StringRenderer::AddStringInternal(const UnicodeString & str,
+	int x, int y, const RenderParams & rp,
+	TextAnchor anchor, TextAlign align, TextType type)
+{
+	if (this->axisYOrigin == AbstractRenderer::AxisYOrigin::DOWN)
+	{
+		y = this->rs.deviceH - y;
+	}
+
+	UnicodeString uniStr = (this->isBidiEnabled) ? BIDI(str) : str;
+	
+	if (this->CanAddString(uniStr, x, y, rp, anchor, align, type) == false)
+	{
+		return false;
+	}
+  
+	//new visible string - add it
+		
+#ifdef THREAD_SAFETY
+	std::lock_guard<std::shared_timed_mutex> lk(m);
+#endif
+		
+	this->fb->AddString(uniStr);
+
+	this->strs.emplace_back(uniStr, x, y, anchor, align, type);
+
+
+	auto & lines = this->strs.back().lines;
+	lines.emplace_back(rp);
+	FOREACH_32_CHAR_ITERATION(c, uniStr)
+	{
+		if (c == '\n')
+		{
+			lines.emplace_back(rp);
+		}
+	}
+
+	this->strChanged = true;
+
+    return true;
+}
+
 /// <summary>
 /// test if string uniStr can be added to renderer
 /// </summary>
@@ -200,8 +242,8 @@ bool StringRenderer::CanAddString(const UnicodeString & uniStr,
 {
 	for (const StringInfo & s : this->strs)
 	{
-		if ((s.x == x) && (s.y == y) && 
-			(s.renderParams.scale == rp.scale) &&
+		if ((s.x == x) && (s.y == y) &&
+			//(s.renderParams.scale == rp.scale) &&
 			(s.align == align) && (s.anchor == anchor) && (s.type == type))
 		{
 
@@ -213,8 +255,8 @@ bool StringRenderer::CanAddString(const UnicodeString & uniStr,
 			}
 		}
 	}
-	
-	AbstractRenderer::AABB estimAABB = this->EstimateStringAABB(uniStr, 
+
+	AbstractRenderer::AABB estimAABB = this->EstimateStringAABB(uniStr,
 		static_cast<float>(x), static_cast<float>(y), rp.scale);
 
 	//test if entire string is outside visible area	
@@ -242,39 +284,6 @@ bool StringRenderer::CanAddString(const UnicodeString & uniStr,
 
 	return true;
 }
-
-bool StringRenderer::AddStringInternal(const UnicodeString & str,
-	int x, int y, const RenderParams & rp,
-	TextAnchor anchor, TextAlign align, TextType type)
-{
-	if (this->axisYOrigin == AbstractRenderer::AxisYOrigin::DOWN)
-	{
-		y = this->rs.deviceH - y;
-	}
-
-	UnicodeString uniStr = (this->isBidiEnabled) ? BIDI(str) : str;
-	
-	if (this->CanAddString(uniStr, x, y, rp, anchor, align, type) == false)
-	{
-		return false;
-	}
-  
-	//new visible string - add it
-		
-#ifdef THREAD_SAFETY
-	std::lock_guard<std::shared_timed_mutex> lk(m);
-#endif
-		
-	this->fb->AddString(uniStr);
-
-	this->strs.emplace_back(uniStr, x, y, rp, anchor, align, type);
-
-	this->strChanged = true;
-
-    return true;
-}
-
-
 
 /// <summary>
 /// Estimate AABB based on font size - each glyph will have the same size
@@ -356,17 +365,16 @@ AbstractRenderer::AABB StringRenderer::EstimateStringAABB(const UnicodeString & 
 /// <param name="s"></param>
 /// <param name="gc"></param>
 /// <returns></returns>
-StringRenderer::StringAABB StringRenderer::CalcStringAABB(const UnicodeString & str, float s,
-	const UsedGlyphCache * gc) const
+void StringRenderer::CalcStringAABB(StringInfo & str, const UsedGlyphCache * gc) const
 {		
 
 	//float s = si.renderParams.scale;
 
-	StringAABB aabb;	
-	aabb.maxNewLineOffset = (this->fb->GetMaxNewLineOffset() + this->nlOffsetPx) * s;
-	aabb.lines.reserve(10); //reserve space for 10 lines
+	//StringAABB aabb;	
+	float maxNewLineOffset = (this->fb->GetMaxNewLineOffset() + this->nlOffsetPx);
+	//aabb.lines.reserve(10); //reserve space for 10 lines
 
-	AbstractRenderer::AABB lineAabb;
+	//AbstractRenderer::AABB lineAabb;
 		
 	float x = 0;
 	float y = 0;
@@ -378,22 +386,27 @@ StringRenderer::StringAABB StringRenderer::CalcStringAABB(const UnicodeString & 
 	//-> offset is calculated from glyphs
 	float newLineOffset = 0;
 	
-	FOREACH_32_CHAR_ITERATION(c, str)
+	int lineId = 0;
+
+	FOREACH_32_CHAR_ITERATION(c, str.str)
 	{
 		if (c == '\n')
 		{			
 			if (newLineOffset == 0)
 			{		
 				//no offset was calculated. Use default maximal new line offset
-				newLineOffset = aabb.maxNewLineOffset;
+				newLineOffset = maxNewLineOffset;
 			}
 
-			x = startX;
-			y += newLineOffset;
+			newLineOffset *= str.lines[lineId].renderParams.scale;
 
-			aabb.lines.push_back(lineAabb);
-			lineAabb = AbstractRenderer::AABB();
+			str.lines[lineId].maxNewLineOffset = newLineOffset;
+
+			x = startX;
+			y += newLineOffset;// *str.lines[lineId].renderParams.scale;
+		
 			newLineOffset = 0;
+			lineId++;
 
 			continue;
 		}
@@ -428,31 +441,32 @@ StringRenderer::StringAABB StringRenderer::CalcStringAABB(const UnicodeString & 
 
 		float fx = x + gi.bmpX;
 		float fy = y - gi.bmpY;			   		
-		lineAabb.Update(fx, fy, gi.bmpW, gi.bmpH);
+		str.lines[lineId].aabb.Update(fx, fy, gi.bmpW, gi.bmpH);
 
 		x += (gi.adv >> 6);
 	}
-
 	
-	aabb.lines.push_back(lineAabb);
+	//aabb.lines.push_back(lineAabb);
 	
 
-	for (auto & a : aabb.lines)
-	{
-		a.maxX *= s;
-		a.maxY *= s;
-		a.minX *= s;
-		a.minY *= s;
+	for (auto & a : str.lines)
+	{		
+		a.aabb.maxX *= a.renderParams.scale;
+		a.aabb.maxY *= a.renderParams.scale;
+		a.aabb.minX *= a.renderParams.scale;
+		a.aabb.minY *= a.renderParams.scale;
 
-		if (a.minX < aabb.global.minX) aabb.global.minX = a.minX;
-		if (a.minY < aabb.global.minY) aabb.global.minY = a.minY;
+		str.global.UnionWithOffset(a.aabb, 0);
 
-		if (a.maxX > aabb.global.maxX) aabb.global.maxX = a.maxX;
-		if (a.maxY > aabb.global.maxY) aabb.global.maxY = a.maxY;
+		//if (a.minX < str.global.minX) str.global.minX = a.minX;
+		//if (a.minY < str.global.minY) str.global.minY = a.minY;
+
+		//if (a.maxX > str.global.maxX) str.global.maxX = a.maxX;
+		//if (a.maxY > str.global.maxY) str.global.maxY = a.maxY;
 	}
 
 
-	return aabb;
+	//return aabb;
 }
 
 
@@ -465,30 +479,30 @@ void StringRenderer::CalcAnchoredPosition()
 
 	for (StringInfo & si : this->strs)
 	{		
-		if (si.aabb.lines.empty() == false)
+		if (si.lines.empty() == false)
 		{
 			//position already computed - linesAABB filled
-			continue;
+			//continue;
 		}
 
 		StringRenderer::UsedGlyphCache gc = this->ExtractGlyphs(si.str);
 
-		si.aabb = this->CalcStringAABB(si.str, si.renderParams.scale, &gc);
+		this->CalcStringAABB(si, &gc);
 
 		if (si.anchor == TextAnchor::LEFT_TOP)
 		{			
 			si.anchorX = static_cast<float>(si.x);
-			si.anchorY = si.y - std::min(0.0f, si.aabb.global.minY);
+			si.anchorY = si.y - std::min(0.0f, si.global.minY);
 		}
 		else if (si.anchor == TextAnchor::CENTER)
 		{						
-			si.anchorX = static_cast<float>(si.x - static_cast<int>(si.aabb.global.maxX - si.aabb.global.minX) / 2);			
-			si.anchorY = static_cast<float>(si.y - std::min(0.0f, si.aabb.global.minY) - static_cast<int>(si.aabb.global.maxY - si.aabb.global.minY) / 2);
+			si.anchorX = static_cast<float>(si.x - static_cast<int>(si.global.maxX - si.global.minX) / 2);			
+			si.anchorY = static_cast<float>(si.y - std::min(0.0f, si.global.minY) - static_cast<int>(si.global.maxY - si.global.minY) / 2);
 		}
 		else if (si.anchor == TextAnchor::LEFT_DOWN)
 		{		
 			si.anchorX = static_cast<float>(si.x);
-			si.anchorY = si.y - (si.aabb.global.maxY - si.aabb.global.minY);
+			si.anchorY = si.y - (si.global.maxY - si.global.minY);
 		}
 
 
@@ -530,8 +544,8 @@ void StringRenderer::CalcLineAlign(const StringInfo & si, int lineId, float & x,
 {	
 	if (si.align == TextAlign::ALIGN_CENTER)
 	{
-		float blockCenterX = (si.aabb.global.maxX - si.aabb.global.minX) / 2;		
-		float lineCenterX = (si.aabb.lines[lineId].maxX - si.aabb.lines[lineId].minX) / 2;
+		float blockCenterX = (si.global.maxX - si.global.minX) / 2;		
+		float lineCenterX = (si.lines[lineId].aabb.maxX - si.lines[lineId].aabb.minX) / 2;
 		
 		x += (blockCenterX - lineCenterX);
 	}
@@ -643,11 +657,7 @@ bool StringRenderer::GenerateGeometry()
 	this->geom.reserve(this->strs.size() * 80);
 
 	for (const StringInfo & si : this->strs)
-	{
-
-		float lastNewLineOffset = si.aabb.maxNewLineOffset - this->nlOffsetPx;
-		float newLineOffset = 0;
-
+	{		
 		int lineId = 0;
 
 		float x = si.anchorX;
@@ -656,25 +666,33 @@ bool StringRenderer::GenerateGeometry()
 		this->CalcLineAlign(si, lineId, x, y);
 		
 
+		const LineInfo * li = &(si.lines[lineId]);
+
+		//float lastNewLineOffset = li->maxNewLineOffset - this->nlOffsetPx;
+		//float newLineOffset = 0;
+
 		FOREACH_32_CHAR_ITERATION(cc, si.str)
 		{
             if (cc <= 32)
             {
                 if (cc == '\n')
                 {
-                    if (newLineOffset == 0)
-                    {
-                        newLineOffset = lastNewLineOffset;
-                    }
-
+                   // if (newLineOffset == 0)
+                    //{
+                    //    newLineOffset = lastNewLineOffset;
+                    //}
+					
                     x = si.anchorX;
-                    y += newLineOffset + this->nlOffsetPx * si.renderParams.scale;
+                    //y += newLineOffset + this->nlOffsetPx * li->renderParams.scale;
+					y += si.lines[lineId].maxNewLineOffset;
                     lineId++;
+
+					li = &(si.lines[lineId]);
 
                     this->CalcLineAlign(si, lineId, x, y);
 
-                    lastNewLineOffset = newLineOffset;
-                    newLineOffset = 0;
+                    //lastNewLineOffset = newLineOffset;
+                    //newLineOffset = 0;
                 }
                 else
                 {
@@ -691,7 +709,7 @@ bool StringRenderer::GenerateGeometry()
 				continue;
 			}
 
-			newLineOffset = std::max(newLineOffset, fi->newLineOffset * si.renderParams.scale);
+			//newLineOffset = std::max(newLineOffset, fi->newLineOffset * li->renderParams.scale);
 			
 			
 			const GlyphInfo & gi = *it->second;
@@ -710,9 +728,9 @@ bool StringRenderer::GenerateGeometry()
 			}
 			*/
 
-			this->AddQuad(gi, x, y, si.renderParams);
+			this->AddQuad(gi, x, y, li->renderParams);
             
-			x += (gi.adv >> 6) * si.renderParams.scale;
+			x += (gi.adv >> 6) * li->renderParams.scale;
 		}
 	}
 

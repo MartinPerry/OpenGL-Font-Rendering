@@ -61,6 +61,27 @@ protected:
 
 	typedef std::vector<std::tuple<FontInfo::GlyphLutIterator, bool, FontInfo *>> UsedGlyphCache;
 	
+	struct LineInfo 
+	{
+		AABB aabb;
+		RenderParams renderParams;
+		float maxNewLineOffset;
+
+		LineInfo() : 
+			aabb(AABB()),
+			renderParams(DEFAULT_PARAMS),
+			maxNewLineOffset(0.0)
+		{}
+
+		LineInfo(const RenderParams & rp) :
+			aabb(AABB()),
+			renderParams(rp),
+			maxNewLineOffset(0.0)
+		{}
+
+	};
+
+	/*
 	typedef struct StringAABB
 	{
 		std::vector<AABB> lines;
@@ -69,33 +90,38 @@ protected:
 		float maxNewLineOffset;
 		
 	} StringAABB;
+	*/
 
 	typedef struct StringInfo
 	{
 		UnicodeString str;
 		int x;
 		int y;
-		RenderParams renderParams;
+		//RenderParams renderParams;
 		TextAnchor anchor;
 		TextAlign align;
 		TextType type;
 
 		float anchorX;
 		float anchorY;
-		StringAABB aabb;
+		//StringAABB aabb;
+
+		std::vector<LineInfo> lines;		
+		AABB global;
 
 		StringInfo(UnicodeString & str, int x, int y, 
-			RenderParams rp, TextAnchor anchor,
+			TextAnchor anchor,
 			TextAlign align, TextType type) : 
 			str(str), 
 			x(x), 
 			y(y), 
-			renderParams(rp), 
+			//renderParams(rp), 
 			anchor(anchor), 
 			align(align),
 			type(type),
 			anchorX(static_cast<float>(x)), 
-			anchorY(static_cast<float>(y)) {}
+			anchorY(static_cast<float>(y)) 
+		{}
                
 	} StringInfo;
 
@@ -121,7 +147,7 @@ protected:
 	bool GenerateGeometry() override;
 
 	AABB EstimateStringAABB(const UnicodeString & str, float x, float y, float scale) const;
-	StringAABB CalcStringAABB(const UnicodeString & str, float s, const UsedGlyphCache * gc) const;
+	void CalcStringAABB(StringInfo & str, const UsedGlyphCache * gc) const;
 
 	void CalcAnchoredPosition();
 	void CalcLineAlign(const StringInfo & si, int lineId, float & x, float & y) const;
