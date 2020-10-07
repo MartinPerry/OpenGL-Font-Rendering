@@ -88,30 +88,19 @@ protected:
 
 	};
 
-	/*
-	typedef struct StringAABB
-	{
-		std::vector<AABB> lines;
-		AABB global;
-
-		float maxNewLineOffset;
-		
-	} StringAABB;
-	*/
 
 	typedef struct StringInfo
 	{
 		UnicodeString str;
 		int x;
 		int y;
-		//RenderParams renderParams;
+		
 		TextAnchor anchor;
 		TextAlign align;
 		TextType type;
 
 		float anchorX;
 		float anchorY;
-		//StringAABB aabb;
 
 		std::vector<LineInfo> lines;		
 		AABB global;
@@ -121,8 +110,7 @@ protected:
 			TextAlign align, TextType type) : 
 			str(str), 
 			x(x), 
-			y(y), 
-			//renderParams(rp), 
+			y(y), 			
 			anchor(anchor), 
 			align(align),
 			type(type),

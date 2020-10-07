@@ -137,14 +137,11 @@ typedef icu::StringCharacterIterator UnicodeCharacterPtr;
 
 //#define GET_SUBSTRING_VIEW(str, start, len) str.tempSubString(start, len)
 
-#define GET_FIRST_UNICODE_CHAR_PTR(str) icu::StringCharacterIterator(str)
-
-#define FOREACH_32_CHAR_ITERATION_FROM(c, str, start, len) icu::StringCharacterIterator iter = GET_FIRST_UNICODE_CHAR_PTR(str); \
-										iter.move32(start, icu::CharacterIterator::EOrigin::kStart);	\
+#define FOREACH_32_CHAR_ITERATION_FROM(c, str, start, len) icu::StringCharacterIterator iter = icu::StringCharacterIterator(str, start); \
 										for (UChar32 c = iter.current32(), l = 0; l < len; c = iter.next32(), l++)
 
 
-#define FOREACH_32_CHAR_ITERATION(c, str) icu::StringCharacterIterator iter = GET_FIRST_UNICODE_CHAR_PTR(str); \
+#define FOREACH_32_CHAR_ITERATION(c, str) icu::StringCharacterIterator iter = icu::StringCharacterIterator(str); \
 										  for (UChar32 c = iter.first32(); iter.hasNext(); c = iter.next32())
 
 #define BIDI(x) BidiHelper::ConvertOneLine(x)

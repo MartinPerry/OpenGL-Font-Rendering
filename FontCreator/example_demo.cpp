@@ -9,6 +9,7 @@
 #include "./Unicode/uninorms.h"
 
 #include "./Utils/CharacterExtraxtor.h"
+#include "./Utils/StringIterators.h"
 
 #include <chrono>
 #include <iostream>
@@ -57,14 +58,15 @@ std::string CreateRandomString(int len)
 	static const char alphanum[] =
 		"0123456789"
 		"ABCDEFGHIJKLMNOPQRSTUVWXYZ"
-		"abcdefghijklmnopqrstuvwxyz";
+		"abcdefghijklmnopqrstuvwxyz\n";
 
 	std::string r = "";
-	for (int i = 0; i < len; ++i) {
+	for (int i = 0; i < len; ++i) 
+	{
 		r += alphanum[rand() % (sizeof(alphanum) - 1)];
 	}
 
-	printf("%s\n", r.c_str());
+	//printf("%s\n", r.c_str());
 
 	return r;
 }
@@ -174,15 +176,17 @@ void display() {
 		AbstractRenderer::TextAnchor::LEFT_TOP);
 	*/
 
-	//fr->AddString(//UTF8_TEXT(CreateRandomString(5).c_str()), 
-	//	UTF8_TEXT("Ahoj\nsvete\nsvetg"),
-	//	0.5f, 0.5f,
-	//	{ 1,1,0,1, 1.0 },
-	//	AbstractRenderer::TextAnchor::CENTER,
-	//	AbstractRenderer::TextAlign::ALIGN_CENTER);
-
-	fr->AddStringCaption(//UTF8_TEXT(CreateRandomString(5).c_str()), 
+	/*
+	fr->AddString(//UTF8_TEXT(CreateRandomString(5).c_str()), 
 		UTF8_TEXT("Ahoj\nsvete\nsvetg"),
+		0.5f, 0.5f,
+		{ 1,1,0,1, 1.0 },
+		AbstractRenderer::TextAnchor::CENTER,
+		AbstractRenderer::TextAlign::ALIGN_CENTER);
+	*/
+	
+	fr->AddStringCaption(//UTF8_TEXT(CreateRandomString(10).c_str()), 
+		UTF8_TEXT("Ahoj\nsvete\nsvetg kuk"),
 		0.5f, 0.5f,
 		{ 1,1,0,1, 1.0 });
 
@@ -247,22 +251,46 @@ void idle() {
 	glutPostRedisplay();
 }
 
-#include "./Unicode/tinyutf8.h"
-#include "./Unicode/utf8.h"
-#include <string_view>
+template <typename S>
+struct Wrapper 
+{
+	S str;
+};
 
 //------------------------------------------------------------------------------
 void initGL() {	
 		
 	//http://dpi.lv
-	std::string_view v = "Hello, world";
 	
-	//std::string_view v = xxx;
+	Wrapper<std::string> strA;
+	strA.str = "ahaoj";
+	CustromAsciiIterator it2 = CustromIteratorCreator::Create(strA.str);
 
-	icu::UnicodeString sss = "Ahoj vole\nxxx";
-	sss.tempSubString();
-	printf("x");
+	uint32_t c2;
+	while ((c2 = it2.GetCurrentAndAdvance()) != it2.DONE)
+	{
+		printf("%d ", c2);
+	}
 
+	printf("\n");
+
+	Wrapper<icu::UnicodeString> str;
+	str.str = "ahaoj";
+	CustomUnicodeIterator it = CustromIteratorCreator::Create(str.str);
+
+	uint32_t c;
+	while ((c = it.GetCurrentAndAdvance()) != it.DONE)
+	{
+		printf("%d ", c);
+	}
+	/*
+	for (auto c = it.GetFirst(); it.HasNext() && (c = it.GetCurrent()); it.GetNext())
+	{
+		printf("%d ", c);
+	}
+	*/
+
+	printf("\n");
 	/*
 	Font f;
 	//f.name = "test.ttf";	

@@ -377,16 +377,9 @@ AbstractRenderer::AABB StringRenderer::EstimateStringAABB(const UnicodeString & 
 /// <param name="gc"></param>
 /// <returns></returns>
 void StringRenderer::CalcStringAABB(StringInfo & si, const UsedGlyphCache * gc) const
-{		
-
-	//float s = si.renderParams.scale;
-
-	//StringAABB aabb;	
+{			
 	float maxNewLineOffset = (this->fb->GetMaxNewLineOffset() + this->nlOffsetPx);
-	//aabb.lines.reserve(10); //reserve space for 10 lines
-
-	//AbstractRenderer::AABB lineAabb;
-		
+				
 	float x = 0;
 	float y = 0;
 
@@ -447,7 +440,7 @@ void StringRenderer::CalcStringAABB(StringInfo & si, const UsedGlyphCache * gc) 
 		li.maxNewLineOffset = newLineOffset;
 
 		x = startX;
-		y += newLineOffset;// *str.lines[lineId].renderParams.scale;
+		y += newLineOffset;
 
 		newLineOffset = 0;
 	}
@@ -524,16 +517,7 @@ void StringRenderer::CalcStringAABB(StringInfo & si, const UsedGlyphCache * gc) 
 		a.aabb.minY *= a.renderParams.scale;
 
 		si.global.UnionWithOffset(a.aabb, 0);
-
-		//if (a.minX < str.global.minX) str.global.minX = a.minX;
-		//if (a.minY < str.global.minY) str.global.minY = a.minY;
-
-		//if (a.maxX > str.global.maxX) str.global.maxX = a.maxX;
-		//if (a.maxY > str.global.maxY) str.global.maxY = a.maxY;
 	}
-
-
-	//return aabb;
 }
 
 

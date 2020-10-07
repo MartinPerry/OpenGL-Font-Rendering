@@ -123,6 +123,7 @@
       <PreprocessorDefinitions>WIN32;NDEBUG;_CONSOLE;NOMINMAX;U_STATIC_IMPLEMENTATION;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <AdditionalIncludeDirectories>./include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
+      <LanguageStandard>stdcpp17</LanguageStandard>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -182,6 +183,7 @@
     <ClInclude Include="Utils\CharacterExtraxtor.h" />
     <ClInclude Include="Utils\cJSON_JS.h" />
     <ClInclude Include="Utils\DebugUtils.h" />
+    <ClInclude Include="Utils\StringIterators.h" />
     <ClInclude Include="Utils\win_dirent.h" />
   </ItemGroup>
   <ItemGroup>
