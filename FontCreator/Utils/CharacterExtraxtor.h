@@ -246,12 +246,15 @@ void CharacterExtractor::RemoveChar(int32_t c)
 /// </summary>
 /// <param name="str"></param>
 void CharacterExtractor::AddText(const UnicodeString & str)
-{
+{	
+	uint32_t c;
+	
 	//Add original text
 	//in case that Bidi replace some Arabic chars with some others
 	//in arabic shaping
 	{
-		FOREACH_32_CHAR_ITERATION(c, str)
+		auto it = CustromIteratorCreator::Create(str);
+		while ((c = it.GetCurrentAndAdvance()) != it.DONE)
 		{
 			this->characters.insert(c);
 		}
@@ -261,7 +264,9 @@ void CharacterExtractor::AddText(const UnicodeString & str)
 	//that will use arabic shaping
 	UnicodeString bidiStr = BIDI(str);
 
-	FOREACH_32_CHAR_ITERATION(c, bidiStr)
+	auto it = CustromIteratorCreator::Create(bidiStr);
+
+	while ((c = it.GetCurrentAndAdvance()) != it.DONE)
 	{
 		this->characters.insert(c);		
 	}

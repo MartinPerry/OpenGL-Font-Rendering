@@ -19,6 +19,14 @@ struct CustromAsciiIterator
 		index(0)
 	{}
 
+	CustromAsciiIterator(const std::string_view & view) :
+		v(view),
+		index(0)
+	{}
+
+	void SetOffsetFromStart(uint32_t offset) { index = offset; }
+	void SetOffsetFromCurrent(uint32_t offset) { index += offset; }
+
 	uint32_t GetFirst() { return this->v[0]; }
 	uint32_t GetCurrent() { return this->v[index]; }
 	uint32_t GetNext() { this->index++; return 0; }
@@ -26,7 +34,7 @@ struct CustromAsciiIterator
 	{ 
 		if (this->HasNext() == false)
 		{
-			return 65535;
+			return CustromAsciiIterator::DONE;
 		}
 		uint32_t c = this->v[this->index];
 		this->index++; 		
@@ -48,6 +56,8 @@ struct CustomUnicodeIterator : public icu::StringCharacterIterator
 		icu::StringCharacterIterator(str)
 	{}
 
+	void SetOffsetFromStart(uint32_t offset) { this->move32(offset, icu::CharacterIterator::EOrigin::kStart); }
+	void SetOffsetFromCurrent(uint32_t offset) { this->move32(offset, icu::CharacterIterator::EOrigin::kCurrent); }
 	uint32_t GetFirst() { return this->first32(); }
 	uint32_t GetCurrent() { return this->current32(); }
 	uint32_t GetNext() { return this->next32(); }
@@ -64,6 +74,11 @@ struct CustromIteratorCreator
 	static auto Create(const T & str)
 	{
 		if constexpr (std::is_same<T, std::string>::value)
+		{
+			return CustromAsciiIterator(str);
+		}
+
+		if constexpr (std::is_same<T, std::string_view>::value)
 		{
 			return CustromAsciiIterator(str);
 		}

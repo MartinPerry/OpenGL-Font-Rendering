@@ -36,6 +36,8 @@
 #	include <dirent.h>
 #endif
 
+#include "./Utils/StringIterators.h"
+
 //=====================================================================================
 //Global macros
 
@@ -123,7 +125,6 @@ static void CheckOpenGLError(const char* stmt, const char* fname, int line)
 /*
 typedef utf8_string UnicodeString;
 
-#define FOREACH_32_CHAR_ITERATION(c, str) for (auto c : str)
 #define BIDI(x) x
 #define UTF8_TEXT(x) x
 #define UTF8_UNESCAPE(x) utf8_string::build_from_escaped(x.c_str())
@@ -135,14 +136,6 @@ typedef utf8_string UnicodeString;
 typedef icu::UnicodeString UnicodeString;
 typedef icu::StringCharacterIterator UnicodeCharacterPtr;
 
-//#define GET_SUBSTRING_VIEW(str, start, len) str.tempSubString(start, len)
-
-#define FOREACH_32_CHAR_ITERATION_FROM(c, str, start, len) icu::StringCharacterIterator iter = icu::StringCharacterIterator(str, start); \
-										for (UChar32 c = iter.current32(), l = 0; l < len; c = iter.next32(), l++)
-
-
-#define FOREACH_32_CHAR_ITERATION(c, str) icu::StringCharacterIterator iter = icu::StringCharacterIterator(str); \
-										  for (UChar32 c = iter.first32(); iter.hasNext(); c = iter.next32())
 
 #define BIDI(x) BidiHelper::ConvertOneLine(x)
 

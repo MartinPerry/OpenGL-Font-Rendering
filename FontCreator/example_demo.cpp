@@ -393,7 +393,10 @@ void Normalize()
 	//UErrorCode pError;
 	//ucnv_convert("US-ASCII", "UTF-8", tt, 50, ss.data(), ss.size(), &pError);
 
-	FOREACH_32_CHAR_ITERATION(c, u8str)
+	auto it = CustromIteratorCreator::Create(u8str);
+	uint32_t c;
+
+	while ((c = it.GetCurrentAndAdvance()) != it.DONE)
 	{
 		auto uu = UnicodeNormalizer::nfd(c);
 		printf("%c -> %i / %c \n", c, uu.length(), uu[0]);

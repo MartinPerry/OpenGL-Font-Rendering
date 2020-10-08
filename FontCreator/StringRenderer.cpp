@@ -214,7 +214,10 @@ bool StringRenderer::AddStringInternal(const UnicodeString & str,
 
 	int len = 0;
 	int start = 0;
-	FOREACH_32_CHAR_ITERATION(c, uniStr)
+
+	auto it = CustromIteratorCreator::Create(uniStr);
+	uint32_t c;
+	while ((c = it.GetCurrentAndAdvance()) != it.DONE)
 	{			
 		if (c == '\n')
 		{
@@ -230,6 +233,14 @@ bool StringRenderer::AddStringInternal(const UnicodeString & str,
 	}
 
 	lines.back().len = len;
+
+	//debug
+	if (lines.size() > 1)
+	{
+		lines[0].renderParams.scale = 2.0;
+	}
+
+	//for (auto & l : lines) l.renderParams.scale = 2.0;
 
 	this->strChanged = true;
 
@@ -319,8 +330,9 @@ AbstractRenderer::AABB StringRenderer::EstimateStringAABB(const UnicodeString & 
 	float lastNewLineOffset = this->fb->GetMaxNewLineOffset() * scale;
 	float newLineOffset = 0;
     
-
-	FOREACH_32_CHAR_ITERATION(c, str)
+	auto it = CustromIteratorCreator::Create(str);
+	uint32_t c;
+	while ((c = it.GetCurrentAndAdvance()) != it.DONE)	
 	{
 		if (c == '\n')
 		{
@@ -389,11 +401,20 @@ void StringRenderer::CalcStringAABB(StringInfo & si, const UsedGlyphCache * gc) 
 	//new line offset has default value 0
 	//-> offset is calculated from glyphs
 	float newLineOffset = 0;
-		
+	
+	auto it = CustromIteratorCreator::Create(si.str);
+	uint32_t c;
+	uint32_t lastOffset = 0;
+
 	for (LineInfo & li : si.lines)
-	{
-		FOREACH_32_CHAR_ITERATION_FROM(c, si.str, li.start, li.len)
-		{			
+	{			
+		it.SetOffsetFromCurrent(li.start - lastOffset);
+		lastOffset = li.start + li.len;
+
+		for (uint32_t l = 0; l < li.len; l++)
+		{
+			c = it.GetCurrentAndAdvance();
+		
 			index++;
 
 			FontInfo::GlyphLutIterator it;
@@ -435,89 +456,63 @@ void StringRenderer::CalcStringAABB(StringInfo & si, const UsedGlyphCache * gc) 
 			newLineOffset = maxNewLineOffset;
 		}
 
-		newLineOffset *= li.renderParams.scale;
-
+		//newLineOffset *= li.renderParams.scale;
+		
 		li.maxNewLineOffset = newLineOffset;
 
 		x = startX;
-		y += newLineOffset;
+		y += newLineOffset* li.renderParams.scale;
 
 		newLineOffset = 0;
 	}
-
-	/*
-	int lineId = 0;
-
-	FOREACH_32_CHAR_ITERATION(c, si.str)
-	{
-		if (c == '\n')
-		{			
-			if (newLineOffset == 0)
-			{		
-				//no offset was calculated. Use default maximal new line offset
-				newLineOffset = maxNewLineOffset;
-			}
-
-			newLineOffset *= si.lines[lineId].renderParams.scale;
-
-			si.lines[lineId].maxNewLineOffset = newLineOffset;
-
-			x = startX;
-			y += newLineOffset;// *str.lines[lineId].renderParams.scale;
-		
-			newLineOffset = 0;
-			lineId++;
-
-			continue;
-		}
-
-		index++;
-
-		FontInfo::GlyphLutIterator it;
-		if (gc != nullptr)
-		{
-			auto r = (*gc)[index];
-			if (!std::get<1>(r))
-			{				
-				continue;
-			}
-			it = std::get<0>(r);
-			newLineOffset = std::max(newLineOffset, static_cast<float>(std::get<2>(r)->newLineOffset + this->nlOffsetPx));
-		}
-		else
-		{
-			bool exist;
-			FontInfo * fi = nullptr;
-			it = this->fb->GetGlyph(c, exist, &fi);
-			if (!exist)
-			{
-				continue;
-			}
-
-			newLineOffset = std::max(newLineOffset, static_cast<float>(fi->newLineOffset + this->nlOffsetPx));
-		}
-				
-		const GlyphInfo & gi = *it->second;
-
-		float fx = x + gi.bmpX;
-		float fy = y - gi.bmpY;			   		
-		si.lines[lineId].aabb.Update(fx, fy, gi.bmpW, gi.bmpH);
-
-		x += (gi.adv >> 6);
-	}
-	*/
-	//aabb.lines.push_back(lineAabb);
 	
 
-	for (auto & a : si.lines)
+	for (auto & li : si.lines)
 	{		
-		a.aabb.maxX *= a.renderParams.scale;
-		a.aabb.maxY *= a.renderParams.scale;
-		a.aabb.minX *= a.renderParams.scale;
-		a.aabb.minY *= a.renderParams.scale;
+		if (li.renderParams.scale != 1.0)
+		{
+			li.maxNewLineOffset *= li.renderParams.scale;
 
-		si.global.UnionWithOffset(a.aabb, 0);
+			li.aabb.maxX *= li.renderParams.scale;
+			li.aabb.maxY *= li.renderParams.scale;
+			li.aabb.minX *= li.renderParams.scale;
+			li.aabb.minY *= li.renderParams.scale;
+
+			/*
+			float w2 = li.aabb.GetWidth() * 0.25 * li.renderParams.scale;
+			float h2 = li.aabb.GetHeight() * 0.25 * li.renderParams.scale;
+
+			li.aabb.maxX += w2;
+			li.aabb.maxY += h2;
+			li.aabb.minX -= w2;
+			li.aabb.minY -= h2;
+			*/
+
+			/*
+			float x, y;
+			li.aabb.GetCenter(x, y);
+
+			li.aabb.maxX -= x;
+			li.aabb.maxY -= y;
+			li.aabb.minX -= x;
+			li.aabb.minY -= y;
+
+			li.aabb.maxX *= li.renderParams.scale;
+			li.aabb.maxY *= li.renderParams.scale;
+			li.aabb.minX *= li.renderParams.scale;
+			li.aabb.minY *= li.renderParams.scale;
+
+			li.aabb.maxX += x;
+			li.aabb.maxY += y;
+			li.aabb.minX += x;
+			li.aabb.minY += y;
+			*/
+		}
+
+		si.global.UnionWithOffset(li.aabb, 0);
 	}
+
+	//printf("");
 }
 
 
@@ -547,13 +542,13 @@ void StringRenderer::CalcAnchoredPosition()
 		}
 		else if (si.anchor == TextAnchor::CENTER)
 		{						
-			si.anchorX = static_cast<float>(si.x - static_cast<int>(si.global.maxX - si.global.minX) / 2);			
-			si.anchorY = static_cast<float>(si.y - std::min(0.0f, si.global.minY) - static_cast<int>(si.global.maxY - si.global.minY) / 2);
+			si.anchorX = static_cast<float>(si.x - static_cast<int>(si.global.GetWidth()) / 2);			
+			si.anchorY = static_cast<float>(si.y - std::min(0.0f, si.global.minY) - static_cast<int>(si.global.GetHeight()) / 2);
 		}
 		else if (si.anchor == TextAnchor::LEFT_DOWN)
 		{		
 			si.anchorX = static_cast<float>(si.x);
-			si.anchorY = si.y - (si.global.maxY - si.global.minY);
+			si.anchorY = si.y - si.global.GetHeight();
 		}
 
 
@@ -595,8 +590,8 @@ void StringRenderer::CalcLineAlign(const StringInfo & si, const LineInfo & li, f
 {	
 	if (si.align == TextAlign::ALIGN_CENTER)
 	{
-		float blockCenterX = (si.global.maxX - si.global.minX) / 2;		
-		float lineCenterX = (li.aabb.maxX - li.aabb.minX) / 2;
+		float blockCenterX = si.global.GetWidth() / 2;		
+		float lineCenterX = li.aabb.GetWidth() / 2;
 		
 		x += (blockCenterX - lineCenterX);
 	}
@@ -613,8 +608,9 @@ StringRenderer::UsedGlyphCache StringRenderer::ExtractGlyphs(const UnicodeString
 	UsedGlyphCache g;
 	g.reserve(str.length());
 
-
-	FOREACH_32_CHAR_ITERATION(c, str)
+	auto it = CustromIteratorCreator::Create(str);
+	uint32_t c;
+	while ((c = it.GetCurrentAndAdvance()) != it.DONE)	
 	{
 		if (c == '\n')
 		{			
@@ -712,14 +708,23 @@ bool StringRenderer::GenerateGeometry()
 	{						
 		float y = si.anchorY;
 		
+		auto it = CustromIteratorCreator::Create(si.str);
+		uint32_t c;
+		uint32_t lastOffset = 0;
+
 		for (const LineInfo & li : si.lines)
 		{
 			float x = si.anchorX;
 
 			this->CalcLineAlign(si, li, x, y);
 
-			FOREACH_32_CHAR_ITERATION_FROM(c, si.str, li.start, li.len)
-			{				
+			it.SetOffsetFromCurrent(li.start - lastOffset);
+			lastOffset = li.start + li.len;
+
+			for (uint32_t l = 0; l < li.len; l++)
+			{
+				c = it.GetCurrentAndAdvance();				
+
 				if (c <= 32)
 				{
 					x += spaceSize;					
@@ -736,88 +741,13 @@ bool StringRenderer::GenerateGeometry()
 
 				const GlyphInfo & gi = *it->second;
 
-				/*
-				//test for single scaled chars
-				if (cc == 'A')
-				{
-					auto pp = si.renderParams;
-					pp.scale = 5.0;
-					this->AddQuad(gi, x, y, pp);
-				}
-				else
-				{
-					this->AddQuad(gi, x, y, si.renderParams);
-				}
-				*/
-
 				this->AddQuad(gi, x, y, li.renderParams);
 
 				x += (gi.adv >> 6) * li.renderParams.scale;
 			}
-
-			//x = si.anchorX;
-			//y += newLineOffset + this->nlOffsetPx * li->renderParams.scale;
+			
 			y += li.maxNewLineOffset;
-						
-			//this->CalcLineAlign(si, li, x, y);
 		}
-
-
-		/*
-		int lineId = 0;
-		const LineInfo * li = &(si.lines[lineId]);
-
-		//float lastNewLineOffset = li->maxNewLineOffset - this->nlOffsetPx;
-		//float newLineOffset = 0;
-
-		FOREACH_32_CHAR_ITERATION(cc, si.str)
-		{
-            if (cc <= 32)
-            {
-                if (cc == '\n')
-                {
-                   // if (newLineOffset == 0)
-                    //{
-                    //    newLineOffset = lastNewLineOffset;
-                    //}
-					
-                    x = si.anchorX;
-                    //y += newLineOffset + this->nlOffsetPx * li->renderParams.scale;
-					y += si.lines[lineId].maxNewLineOffset;
-                    lineId++;
-
-					li = &(si.lines[lineId]);
-
-                    this->CalcLineAlign(si, lineId, x, y);
-
-                    //lastNewLineOffset = newLineOffset;
-                    //newLineOffset = 0;
-                }
-                else
-                {
-                    x += spaceSize;
-                }
-                continue;
-            }
-
-			bool exist;
-			FontInfo * fi = nullptr;
-			auto it = this->fb->GetGlyph(cc, exist, &fi);
-			if (!exist)
-			{								
-				continue;
-			}
-
-			//newLineOffset = std::max(newLineOffset, fi->newLineOffset * li->renderParams.scale);
-			
-			
-			const GlyphInfo & gi = *it->second;
-						
-			this->AddQuad(gi, x, y, li->renderParams);
-            
-			x += (gi.adv >> 6) * li->renderParams.scale;
-		}
-		*/
 	}
 
 	this->strChanged = false;

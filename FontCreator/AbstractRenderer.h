@@ -112,6 +112,22 @@ protected:
 			return (minX == static_cast<float>(std::numeric_limits<int>::max()));
 		}
 
+		float GetWidth() const noexcept
+		{
+			return maxX - minX;
+		}
+
+		float GetHeight() const noexcept
+		{
+			return maxY - minY;
+		}
+
+		void GetCenter(float & x, float & y) const noexcept
+		{
+			x = minX + this->GetWidth() * 0.5;
+			y = minY + this->GetHeight() * 0.5;
+		}
+
 		void Update(float x, float y, float w, float h) noexcept
 		{
 			if (x < minX) minX = x;

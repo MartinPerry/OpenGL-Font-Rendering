@@ -640,8 +640,10 @@ void FontBuilder::SetGridPacking(int binW, int binH)
 /// </summary>
 void FontBuilder::AddString(const UnicodeString & str)
 {
-	FOREACH_32_CHAR_ITERATION(c, str)
-	{
+	auto it = CustromIteratorCreator::Create(str);
+	uint32_t c;
+	while ((c = it.GetCurrentAndAdvance()) != it.DONE)
+	{	
 		this->AddCharacter(c);
 	}
 }
