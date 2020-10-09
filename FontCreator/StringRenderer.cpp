@@ -238,9 +238,14 @@ bool StringRenderer::AddStringInternal(const UnicodeString & str,
 	if (lines.size() > 1)
 	{
 		lines[0].renderParams.scale = 2.0;
+		lines[1].renderParams.scale = 1.5;
+		lines[2].renderParams.scale = 3.0;
 	}
-
-	//for (auto & l : lines) l.renderParams.scale = 2.0;
+	else 
+	{
+	//	lines[0].renderParams.scale = 4.0;
+	}
+	//for (auto & l : lines) l.renderParams.scale = 1.0;
 
 	this->strChanged = true;
 
@@ -395,7 +400,6 @@ void StringRenderer::CalcStringAABB(StringInfo & si, const UsedGlyphCache * gc) 
 	float x = 0;
 	float y = 0;
 
-	float startX = x;
 	int index = -1;
 
 	//new line offset has default value 0
@@ -406,8 +410,31 @@ void StringRenderer::CalcStringAABB(StringInfo & si, const UsedGlyphCache * gc) 
 	uint32_t c;
 	uint32_t lastOffset = 0;
 
+	LineInfo * prevLine = nullptr;
+
 	for (LineInfo & li : si.lines)
-	{			
+	{	
+
+		x = 0;
+
+		if (prevLine)
+		{
+			if (newLineOffset == 0)
+			{
+				//no offset was calculated. Use default maximal new line offset
+				newLineOffset = maxNewLineOffset;
+			}
+
+			//at least one line was processed
+			//offset to new line of the last line 
+			//is based on the scale of the actual line
+
+			prevLine->maxNewLineOffset = newLineOffset * li.renderParams.scale;
+			y += newLineOffset;
+		}		
+
+		newLineOffset = 0;
+
 		it.SetOffsetFromCurrent(li.start - lastOffset);
 		lastOffset = li.start + li.len;
 
@@ -447,72 +474,24 @@ void StringRenderer::CalcStringAABB(StringInfo & si, const UsedGlyphCache * gc) 
 			float fy = y - gi.bmpY;
 			li.aabb.Update(fx, fy, gi.bmpW, gi.bmpH);
 
-			x += (gi.adv >> 6);
+			x += (gi.adv >> 6);// *li.renderParams.scale;
 		}
-
-		if (newLineOffset == 0)
-		{
-			//no offset was calculated. Use default maximal new line offset
-			newLineOffset = maxNewLineOffset;
-		}
-
-		//newLineOffset *= li.renderParams.scale;
-		
-		li.maxNewLineOffset = newLineOffset;
-
-		x = startX;
-		y += newLineOffset* li.renderParams.scale;
-
-		newLineOffset = 0;
+											
+				
+		prevLine = &li;
 	}
+		
 	
-
 	for (auto & li : si.lines)
 	{		
-		if (li.renderParams.scale != 1.0)
-		{
-			li.maxNewLineOffset *= li.renderParams.scale;
-
-			li.aabb.maxX *= li.renderParams.scale;
-			li.aabb.maxY *= li.renderParams.scale;
-			li.aabb.minX *= li.renderParams.scale;
-			li.aabb.minY *= li.renderParams.scale;
-
-			/*
-			float w2 = li.aabb.GetWidth() * 0.25 * li.renderParams.scale;
-			float h2 = li.aabb.GetHeight() * 0.25 * li.renderParams.scale;
-
-			li.aabb.maxX += w2;
-			li.aabb.maxY += h2;
-			li.aabb.minX -= w2;
-			li.aabb.minY -= h2;
-			*/
-
-			/*
-			float x, y;
-			li.aabb.GetCenter(x, y);
-
-			li.aabb.maxX -= x;
-			li.aabb.maxY -= y;
-			li.aabb.minX -= x;
-			li.aabb.minY -= y;
-
-			li.aabb.maxX *= li.renderParams.scale;
-			li.aabb.maxY *= li.renderParams.scale;
-			li.aabb.minX *= li.renderParams.scale;
-			li.aabb.minY *= li.renderParams.scale;
-
-			li.aabb.maxX += x;
-			li.aabb.maxY += y;
-			li.aabb.minX += x;
-			li.aabb.minY += y;
-			*/
-		}
+		li.aabb.minX *= li.renderParams.scale;
+		li.aabb.maxX *= li.renderParams.scale;
+		li.aabb.minY *= li.renderParams.scale;
+		li.aabb.maxY *= li.renderParams.scale;
 
 		si.global.UnionWithOffset(li.aabb, 0);
 	}
-
-	//printf("");
+	
 }
 
 
@@ -551,7 +530,7 @@ void StringRenderer::CalcAnchoredPosition()
 			si.anchorY = si.y - si.global.GetHeight();
 		}
 
-
+		
 		if (si.type == TextType::CAPTION)
 		{	
 			if (si.str == ci.mark)
@@ -572,10 +551,9 @@ void StringRenderer::CalcAnchoredPosition()
 			else
 			{								
 				si.anchorY -= (captionMarkAnchorY - si.anchorY);				
-			}
-			
-			
-		}				
+			}						
+		}	
+		
 	}
 }
 
@@ -727,7 +705,7 @@ bool StringRenderer::GenerateGeometry()
 
 				if (c <= 32)
 				{
-					x += spaceSize;					
+					x += spaceSize * li.renderParams.scale;
 					continue;
 				}
 
@@ -746,7 +724,7 @@ bool StringRenderer::GenerateGeometry()
 				x += (gi.adv >> 6) * li.renderParams.scale;
 			}
 			
-			y += li.maxNewLineOffset;
+			y += li.maxNewLineOffset;// *li.renderParams.scale;
 		}
 	}
 

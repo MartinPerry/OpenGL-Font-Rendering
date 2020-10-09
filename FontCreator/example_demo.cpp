@@ -187,7 +187,7 @@ void display() {
 	
 	fr->AddStringCaption(//UTF8_TEXT(CreateRandomString(10).c_str()), 
 		UTF8_TEXT("Ahoj\nsvete\nsvetg kuk"),
-		0.5f, 0.5f,
+		0.5f, 0.75f,
 		{ 1,1,0,1, 1.0 });
 
 	//fr->AddStringCaption(rrr, 0.5, 0.8);
