@@ -190,6 +190,23 @@ void display() {
 		0.5f, 0.75f,
 		{ 1,1,0,1, 1.0 });
 
+	//=================================
+	//debug
+	auto & si = fr->GetLastStringInfo();	
+	if (si.lines.size() > 1)
+	{
+		si.lines[0].renderParams.scale = 2.0;
+		//si.lines[1].renderParams.scale = 1.5;
+		//si.lines[2].renderParams.scale = 3.0;
+	}
+	else
+	{
+		//	si.lines[0].renderParams.scale = 4.0;
+	}
+	//for (auto & l : si.lines) l.renderParams.scale = 1.0;
+	//=================================
+
+
 	//fr->AddStringCaption(rrr, 0.5, 0.8);
 
 	//fr->AddString(u8"lll", 200, 300);
@@ -226,8 +243,9 @@ void display() {
 	int nmbr = rand();
 	//printf("%d\n", nmbr);
 	//fn->AddNumber((double)(nmbr + nmbr / 100.0), 0.5f, 0.5f, { 1,1,0,1 }, AbstractRenderer::TextAnchor::CENTER);
-	//fn->AddNumber(600010, 0.5f, 0.5f, { 1,1,0,1 }, AbstractRenderer::TextAnchor::CENTER);
-	//fn->Render();
+	fn->AddNumber(600010, 0.5f, 0.5f, { 1,1,0,1 }, AbstractRenderer::TextAnchor::CENTER);
+	//fn->AddNumberCaption(60000, 0.5f, 0.4f, { 1,1,0,1 });
+	fn->Render();
 	
 	
 
@@ -367,6 +385,7 @@ void initGL() {
 	fr->SetCaption(UTF8_TEXT(u8"\U0001F300"), 10);
 	fr->SetCaption(UTF8_TEXT(u8"\U00002b55"), 0);
 	fr->SetCaption(UTF8_TEXT(u8"*"), 0);
+	
 	
 	//fr->AddStringCaption(u8"Pøíliš\nžluouèký\nkùò", 0.5f, 0.5f, { 1,1,0,1 });
 	//fr->AddStringCaption(u8"AbBd", 0.5f, 0.5f, { 1,1,0,1 });

@@ -456,7 +456,7 @@ uint32_t NumberRenderer::ReversDigits(uint32_t num) const noexcept
 /// </summary>
 /// <param name="x"></param>
 /// <returns></returns>
-uint32_t NumberRenderer::GetIntDivisor(const uint32_t x) const noexcept
+uint64_t NumberRenderer::GetIntDivisor(const uint32_t x) const noexcept
 {
 	if (x >= 10000U) {
 		if (x >= 10000000U) {
@@ -491,7 +491,7 @@ uint32_t NumberRenderer::GetIntDivisor(const uint32_t x) const noexcept
 /// <param name="fractPartReversed"></param>
 /// <returns></returns>
 AbstractRenderer::AABB NumberRenderer::CalcNumberAABB(double val, int x, int y,
-	bool negative, uint32_t intPart, uint32_t intPartOrder, uint32_t fractPartReversed)
+	bool negative, uint32_t intPart, uint64_t intPartOrder, uint32_t fractPartReversed)
 {	
 	//store offsets
 	int xOffset = x;
@@ -521,7 +521,7 @@ AbstractRenderer::AABB NumberRenderer::CalcNumberAABB(double val, int x, int y,
 	}
 	else
 	{
-		int divisor = intPartOrder;
+		uint64_t divisor = intPartOrder;
 		do
 		{
 			divisor /= 100;
@@ -655,7 +655,7 @@ bool NumberRenderer::GenerateGeometry()
 		else				
 		{	
 			//at least two digits number
-			int divisor = si.intPartOrder;
+			uint64_t divisor = si.intPartOrder;
 
 			do
 			{

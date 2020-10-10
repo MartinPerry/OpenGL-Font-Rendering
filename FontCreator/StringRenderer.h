@@ -11,65 +11,18 @@ class StringRenderer : public AbstractRenderer
 {
 public:
 
-	static StringRenderer * CreateSingleColor(Color color, const std::vector<Font> & fs, RenderSettings r, int glVersion = 3);
-
-	StringRenderer(const std::vector<Font> & fs, RenderSettings r, int glVersion = 3);
-    StringRenderer(const std::vector<Font> & fs, RenderSettings r, int glVersion,
-                   const char * vSource, const char * pSource, std::shared_ptr<IFontShaderManager> sm);
-	~StringRenderer();
-		
-	void Clear();
-	size_t GetStringsCount() const;
-	
-	void SetNewLineOffset(int offsetInPixels);
-
-	void SetBidiEnabled(bool val);
-
-	bool AddStringCaption(const char * str,
-		double x, double y, const RenderParams & rp = DEFAULT_PARAMS);
-
-	bool AddStringCaption(const UnicodeString & str,
-		double x, double y, const RenderParams & rp = DEFAULT_PARAMS);
-
-	bool AddStringCaption(const char * str,
-		int x, int y, const RenderParams & rp = DEFAULT_PARAMS);
-
-	bool AddStringCaption(const UnicodeString & str,
-		int x, int y, const RenderParams & rp = DEFAULT_PARAMS);
-
-	bool AddString(const char * str,
-		double x, double y, const RenderParams & rp = DEFAULT_PARAMS,
-		TextAnchor anchor = TextAnchor::LEFT_TOP,
-		TextAlign align = TextAlign::ALIGN_LEFT);
-
-	bool AddString(const char * str,
-		int x, int y, const RenderParams & rp = DEFAULT_PARAMS,
-		TextAnchor anchor = TextAnchor::LEFT_TOP,
-		TextAlign align = TextAlign::ALIGN_LEFT);
-
-	bool AddString(const UnicodeString & str,
-		double x, double y, const RenderParams & rp = DEFAULT_PARAMS,
-		TextAnchor anchor = TextAnchor::LEFT_TOP,
-		TextAlign align = TextAlign::ALIGN_LEFT);
-
-	bool AddString(const UnicodeString & str,
-		int x, int y, const RenderParams & rp = DEFAULT_PARAMS,
-		TextAnchor anchor = TextAnchor::LEFT_TOP,
-		TextAlign align = TextAlign::ALIGN_LEFT);
-
-protected:
-
-	typedef std::vector<std::tuple<FontInfo::GlyphLutIterator, bool, FontInfo *>> UsedGlyphCache;
-	
-	struct LineInfo 
+	/// <summary>
+	/// Single line info	
+	/// </summary>
+	struct LineInfo
 	{
-		uint32_t start;
-		uint32_t len;
-		AABB aabb;
+		uint32_t start; //offset of start char within text
+		uint32_t len;   //line length
+		AABB aabb;		//line AABB
 		RenderParams renderParams;
-		float maxNewLineOffset;
+		float maxNewLineOffset; //offset to next new line
 
-		LineInfo(const uint32_t & start) :
+		LineInfo(const uint32_t & start) noexcept :
 			start(start),
 			len(0),
 			aabb(AABB()),
@@ -78,7 +31,7 @@ protected:
 		{}
 
 		LineInfo(const uint32_t & start,
-			const RenderParams & rp) :
+			const RenderParams & rp) noexcept :
 			start(start),
 			len(0),
 			aabb(AABB()),
@@ -88,13 +41,15 @@ protected:
 
 	};
 
-
-	typedef struct StringInfo
+	/// <summary>
+	/// Single string info
+	/// </summary>
+	struct StringInfo
 	{
 		UnicodeString str;
 		int x;
 		int y;
-		
+
 		TextAnchor anchor;
 		TextAlign align;
 		TextType type;
@@ -102,31 +57,107 @@ protected:
 		float anchorX;
 		float anchorY;
 
-		std::vector<LineInfo> lines;		
+		std::vector<LineInfo> lines;
 		AABB global;
 
-		StringInfo(UnicodeString & str, int x, int y, 
+		StringInfo(const UnicodeString & str, int x, int y,
 			TextAnchor anchor,
-			TextAlign align, TextType type) : 
-			str(str), 
-			x(x), 
-			y(y), 			
-			anchor(anchor), 
+			TextAlign align, TextType type) noexcept :
+			str(str),
+			x(x),
+			y(y),
+			anchor(anchor),
 			align(align),
 			type(type),
-			anchorX(static_cast<float>(x)), 
-			anchorY(static_cast<float>(y)) 
+			anchorX(static_cast<float>(x)),
+			anchorY(static_cast<float>(y))
 		{}
-               
-	} StringInfo;
+
+		StringInfo(UnicodeString && str, int x, int y,
+			TextAnchor anchor,
+			TextAlign align, TextType type) noexcept :
+			str(std::move(str)),
+			x(x),
+			y(y),
+			anchor(anchor),
+			align(align),
+			type(type),
+			anchorX(static_cast<float>(x)),
+			anchorY(static_cast<float>(y))
+		{}
+
+	};
+	
+	static StringRenderer * CreateSingleColor(Color color, const std::vector<Font> & fs, RenderSettings r, int glVersion = 3);
+
+	StringRenderer(const std::vector<Font> & fs, RenderSettings r, int glVersion = 3);
+    StringRenderer(const std::vector<Font> & fs, RenderSettings r, int glVersion,
+                   const char * vSource, const char * pSource, std::shared_ptr<IFontShaderManager> sm);
+	~StringRenderer();
+		
+	void Clear();
+
+	size_t GetStringsCount() const;
+	StringInfo & GetStringInfo(size_t index);
+	StringInfo & GetLastStringInfo();
 
 
-	bool isBidiEnabled;
+	void SetNewLineOffset(int offsetInPixels);
+
+	void SetBidiEnabled(bool val);
+	
+	
+	//=========================================================
+
+	bool AddStringCaption(const char * str,
+		double x, double y, const RenderParams & rp = DEFAULT_PARAMS);
+
+	bool AddStringCaption(const UnicodeString & str,
+		double x, double y, const RenderParams & rp = DEFAULT_PARAMS);
+
+	bool AddStringCaption(const char * str,
+		int x, int y, const RenderParams & rp = DEFAULT_PARAMS);
+
+	bool AddStringCaption(const UnicodeString & str,
+		int x, int y, const RenderParams & rp = DEFAULT_PARAMS);
+
+	//=========================================================
+
+	bool AddString(const char * str,
+		double x, double y, const RenderParams & rp = DEFAULT_PARAMS,
+		TextAnchor anchor = TextAnchor::LEFT_TOP,
+		TextAlign align = TextAlign::ALIGN_LEFT);
+
+	bool AddString(const char * str,
+		int x, int y, const RenderParams & rp = DEFAULT_PARAMS,
+		TextAnchor anchor = TextAnchor::LEFT_TOP,
+		TextAlign align = TextAlign::ALIGN_LEFT);
+
+	bool AddString(const UnicodeString & str,
+		double x, double y, const RenderParams & rp = DEFAULT_PARAMS,
+		TextAnchor anchor = TextAnchor::LEFT_TOP,
+		TextAlign align = TextAlign::ALIGN_LEFT);
+
+	bool AddString(const UnicodeString & str,
+		int x, int y, const RenderParams & rp = DEFAULT_PARAMS,
+		TextAnchor anchor = TextAnchor::LEFT_TOP,
+		TextAlign align = TextAlign::ALIGN_LEFT);
+
+	//=========================================================
+
+protected:
+
+	typedef std::vector<std::tuple<FontInfo::GlyphLutIterator, bool, FontInfo *>> UsedGlyphCache;
+	
+	
 	std::vector<StringInfo> strs;
-	int nlOffsetPx;
 
+	bool isBidiEnabled;		
 	bool spaceSizeExist;
+
+	int nlOffsetPx;
 	long spaceSize;
+
 	long CalcSpaceSize();
 
 	bool CanAddString(const UnicodeString & uniStr,

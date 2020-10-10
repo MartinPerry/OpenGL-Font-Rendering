@@ -73,6 +73,16 @@ size_t StringRenderer::GetStringsCount() const
 	return strs.size();
 }
 
+StringRenderer::StringInfo & StringRenderer::GetStringInfo(size_t index)
+{
+	return this->strs[index];
+}
+
+StringRenderer::StringInfo & StringRenderer::GetLastStringInfo()
+{
+	return this->strs.back();
+}
+
 void StringRenderer::SetNewLineOffset(int offsetInPixels)
 {
 	this->nlOffsetPx = offsetInPixels;
@@ -82,6 +92,8 @@ void StringRenderer::SetBidiEnabled(bool val)
 {
 	this->isBidiEnabled = val;
 }
+
+//=========================================================
 
 bool StringRenderer::AddStringCaption(const char * str,
 	double x, double y, const RenderParams & rp)
@@ -114,6 +126,8 @@ bool StringRenderer::AddStringCaption(const UnicodeString & str,
     this->AddStringInternal(ci.mark, x, y, rp, TextAnchor::CENTER, TextAlign::ALIGN_CENTER, TextType::CAPTION);
     return this->AddStringInternal(str, x, y, rp, TextAnchor::CENTER, TextAlign::ALIGN_CENTER, TextType::CAPTION);	
 }
+
+//=========================================================
 
 /// <summary>
 /// Add new string to be rendered - string coordinates
@@ -183,6 +197,8 @@ bool StringRenderer::AddString(const UnicodeString & str,
 	return this->AddStringInternal(str, x, y, rp, anchor, align, TextType::TEXT);
 }
 
+//=========================================================
+
 bool StringRenderer::AddStringInternal(const UnicodeString & str,
 	int x, int y, const RenderParams & rp,
 	TextAnchor anchor, TextAlign align, TextType type)
@@ -193,6 +209,7 @@ bool StringRenderer::AddStringInternal(const UnicodeString & str,
 	}
 
 	UnicodeString uniStr = (this->isBidiEnabled) ? BIDI(str) : str;
+	
 	
 	if (this->CanAddString(uniStr, x, y, rp, anchor, align, type) == false)
 	{
@@ -207,15 +224,15 @@ bool StringRenderer::AddStringInternal(const UnicodeString & str,
 		
 	this->fb->AddString(uniStr);
 
-	this->strs.emplace_back(uniStr, x, y, anchor, align, type);	
-	auto & lines = this->strs.back().lines;
+	auto & added = this->strs.emplace_back(std::move(uniStr), x, y, anchor, align, type);	
+	auto & lines = added.lines;
 
 	lines.emplace_back(0, rp);
 
 	int len = 0;
 	int start = 0;
 
-	auto it = CustromIteratorCreator::Create(uniStr);
+	auto it = CustromIteratorCreator::Create(added.str);
 	uint32_t c;
 	while ((c = it.GetCurrentAndAdvance()) != it.DONE)
 	{			
@@ -233,20 +250,7 @@ bool StringRenderer::AddStringInternal(const UnicodeString & str,
 	}
 
 	lines.back().len = len;
-
-	//debug
-	if (lines.size() > 1)
-	{
-		lines[0].renderParams.scale = 2.0;
-		lines[1].renderParams.scale = 1.5;
-		lines[2].renderParams.scale = 3.0;
-	}
-	else 
-	{
-	//	lines[0].renderParams.scale = 4.0;
-	}
-	//for (auto & l : lines) l.renderParams.scale = 1.0;
-
+	
 	this->strChanged = true;
 
     return true;
@@ -313,7 +317,9 @@ bool StringRenderer::CanAddString(const UnicodeString & uniStr,
 }
 
 /// <summary>
-/// Estimate AABB based on font size - each glyph will have the same size
+/// Estimate AABB based on font size
+/// Try to get glyph if it already exist
+/// If not - each glyph will have the same size
 /// </summary>
 /// <param name="strUTF8"></param>
 /// <param name="x"></param>
@@ -395,7 +401,7 @@ AbstractRenderer::AABB StringRenderer::EstimateStringAABB(const UnicodeString & 
 /// <returns></returns>
 void StringRenderer::CalcStringAABB(StringInfo & si, const UsedGlyphCache * gc) const
 {			
-	float maxNewLineOffset = (this->fb->GetMaxNewLineOffset() + this->nlOffsetPx);
+	float maxNewLineOffset = static_cast<float>(this->fb->GetMaxNewLineOffset() + this->nlOffsetPx);
 				
 	float x = 0;
 	float y = 0;
@@ -444,29 +450,14 @@ void StringRenderer::CalcStringAABB(StringInfo & si, const UsedGlyphCache * gc) 
 		
 			index++;
 
-			FontInfo::GlyphLutIterator it;
-			if (gc != nullptr)
+			auto r = (*gc)[index];
+			if (!std::get<1>(r))
 			{
-				auto r = (*gc)[index];
-				if (!std::get<1>(r))
-				{
-					continue;
-				}
-				it = std::get<0>(r);
-				newLineOffset = std::max(newLineOffset, static_cast<float>(std::get<2>(r)->newLineOffset + this->nlOffsetPx));
+				continue;
 			}
-			else
-			{
-				bool exist;
-				FontInfo * fi = nullptr;
-				it = this->fb->GetGlyph(c, exist, &fi);
-				if (!exist)
-				{
-					continue;
-				}
-
-				newLineOffset = std::max(newLineOffset, static_cast<float>(fi->newLineOffset + this->nlOffsetPx));
-			}
+			FontInfo::GlyphLutIterator it = std::get<0>(r);
+			newLineOffset = std::max(newLineOffset, static_cast<float>(std::get<2>(r)->newLineOffset + this->nlOffsetPx));
+			
 
 			const GlyphInfo & gi = *it->second;
 

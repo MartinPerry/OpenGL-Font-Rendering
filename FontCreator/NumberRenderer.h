@@ -39,6 +39,10 @@ public:
 		int x, int y, const RenderParams & rp = DEFAULT_PARAMS);
 
 	template <typename T>
+	IS_FLOAT AddNumberCaption(T val,
+		double x, double y, const RenderParams & rp = DEFAULT_PARAMS);
+
+	template <typename T>
 	IS_FLOAT AddNumber(T val,
 		double x, double y, const RenderParams & rp = DEFAULT_PARAMS,
 		TextAnchor anchor = TextAnchor::LEFT_TOP);
@@ -52,6 +56,10 @@ public:
 	template <typename T>
 	IS_INTEGRAL AddNumberCaption(T val,
 		int x, int y, const RenderParams & rp = DEFAULT_PARAMS);
+
+	template <typename T>
+	IS_INTEGRAL AddNumberCaption(T val,
+		double x, double y, const RenderParams & rp = DEFAULT_PARAMS);
 
 	template <typename T>
 	IS_INTEGRAL AddNumber(T val,
@@ -71,7 +79,7 @@ protected:
 	{
 		double val;
 		bool negative;
-		uint32_t intPartOrder;
+		uint64_t intPartOrder;
 		uint32_t intPart;		
 		uint32_t fractPartReverse;
 					
@@ -131,7 +139,7 @@ protected:
 	bool GenerateGeometry() override;
 
 	AbstractRenderer::AABB CalcNumberAABB(double val, int x, int y, 
-		bool negative, uint32_t intPart, uint32_t intPartOrder, uint32_t fractPartReversed);
+		bool negative, uint32_t intPart, uint64_t intPartOrder, uint32_t fractPartReversed);
 
 	
 	void GetAnchoredPosition(const NumberRenderer::NumberInfo & si, int & x, int & y);
@@ -139,7 +147,7 @@ protected:
 
 	uint32_t GetFractPartReversed(double val, uint32_t intPart) const noexcept;
 	uint32_t ReversDigits(uint32_t num) const noexcept;
-	uint32_t GetIntDivisor(const uint32_t x) const noexcept;
+	uint64_t GetIntDivisor(const uint32_t x) const noexcept;
 };
 
 
@@ -156,6 +164,24 @@ IS_FLOAT NumberRenderer::AddNumberCaption(T val,
 {
 	//this->AddNumberInternal(ci.mark, x, y, color, TextAnchor::CENTER, TextAlign::ALIGN_CENTER, TextType::CAPTION);
 	return this->AddFloatNumberInternal(val, x, y, rp, TextAnchor::CENTER, TextType::CAPTION);
+}
+
+/// <summary>
+/// Add new number as caption
+/// </summary>
+/// <param name="val"></param>
+/// <param name="x"></param>
+/// <param name="y"></param>
+/// <param name="color"></param>
+template <typename T>
+IS_FLOAT NumberRenderer::AddNumberCaption(T val,
+	double x, double y, const RenderParams & rp)
+{
+	int xx = static_cast<int>(x * this->rs.deviceW);
+	int yy = static_cast<int>(y * this->rs.deviceH);
+
+	//this->AddNumberInternal(ci.mark, x, y, color, TextAnchor::CENTER, TextAlign::ALIGN_CENTER, TextType::CAPTION);
+	return this->AddFloatNumberInternal(val, xx, yy, rp, TextAnchor::CENTER, TextType::CAPTION);
 }
 
 /// <summary>
@@ -211,6 +237,24 @@ IS_INTEGRAL NumberRenderer::AddNumberCaption(T val,
 {
 	//this->AddNumberInternal(ci.mark, x, y, color, TextAnchor::CENTER, TextAlign::ALIGN_CENTER, TextType::CAPTION);
 	return this->AddIntegralNumberInternal(static_cast<long>(val), x, y, rp, TextAnchor::CENTER, TextType::CAPTION);
+}
+
+/// <summary>
+/// Add new number as caption
+/// </summary>
+/// <param name="val"></param>
+/// <param name="x"></param>
+/// <param name="y"></param>
+/// <param name="color"></param>
+template <typename T>
+IS_INTEGRAL NumberRenderer::AddNumberCaption(T val,
+	double x, double y, const RenderParams & rp)
+{
+	int xx = static_cast<int>(x * this->rs.deviceW);
+	int yy = static_cast<int>(y * this->rs.deviceH);
+
+	//this->AddNumberInternal(ci.mark, x, y, color, TextAnchor::CENTER, TextAlign::ALIGN_CENTER, TextType::CAPTION);
+	return this->AddIntegralNumberInternal(static_cast<long>(val), xx, yy, rp, TextAnchor::CENTER, TextType::CAPTION);
 }
 
 /// <summary>

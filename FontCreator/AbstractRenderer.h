@@ -124,8 +124,8 @@ protected:
 
 		void GetCenter(float & x, float & y) const noexcept
 		{
-			x = minX + this->GetWidth() * 0.5;
-			y = minY + this->GetHeight() * 0.5;
+			x = minX + this->GetWidth() * 0.5f;
+			y = minY + this->GetHeight() * 0.5f;
 		}
 
 		void Update(float x, float y, float w, float h) noexcept
