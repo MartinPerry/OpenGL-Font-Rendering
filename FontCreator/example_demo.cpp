@@ -187,7 +187,8 @@ void display() {
 	
 	fr->AddStringCaption(//UTF8_TEXT(CreateRandomString(10).c_str()), 
 		UTF8_TEXT("Ahoj\nsvete\nsvetg kuk"),
-		0.5f, 0.75f,
+		//UTF8_TEXT("H\n1023hPa"),
+		0.5f, 0.85f,
 		{ 1,1,0,1, 1.0 });
 
 	//=================================
@@ -196,14 +197,14 @@ void display() {
 	if (si.lines.size() > 1)
 	{
 		si.lines[0].renderParams.scale = 2.0;
-		//si.lines[1].renderParams.scale = 1.5;
-		//si.lines[2].renderParams.scale = 3.0;
+		si.lines[1].renderParams.scale = 0.8;
+		si.lines[2].renderParams.scale = 3.0;
 	}
 	else
 	{
 		//	si.lines[0].renderParams.scale = 4.0;
 	}
-	//for (auto & l : si.lines) l.renderParams.scale = 1.0;
+	//for (auto & l : si.lines) l.renderParams.scale = 4.0;
 	//=================================
 
 
@@ -243,9 +244,9 @@ void display() {
 	int nmbr = rand();
 	//printf("%d\n", nmbr);
 	//fn->AddNumber((double)(nmbr + nmbr / 100.0), 0.5f, 0.5f, { 1,1,0,1 }, AbstractRenderer::TextAnchor::CENTER);
-	fn->AddNumber(600010, 0.5f, 0.5f, { 1,1,0,1 }, AbstractRenderer::TextAnchor::CENTER);
+	//fn->AddNumber(600010, 0.5f, 0.5f, { 1,1,0,1 }, AbstractRenderer::TextAnchor::CENTER);
 	//fn->AddNumberCaption(60000, 0.5f, 0.4f, { 1,1,0,1 });
-	fn->Render();
+	//fn->Render();
 	
 	
 

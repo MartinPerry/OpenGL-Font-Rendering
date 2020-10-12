@@ -465,14 +465,18 @@ void StringRenderer::CalcStringAABB(StringInfo & si, const UsedGlyphCache * gc) 
 			float fy = y - gi.bmpY;
 			li.aabb.Update(fx, fy, gi.bmpW, gi.bmpH);
 
-			x += (gi.adv >> 6);// *li.renderParams.scale;
+			x += (gi.adv >> 6);
 		}
 											
 				
 		prevLine = &li;
 	}
-		
 	
+	if (prevLine)
+	{
+		prevLine->maxNewLineOffset = newLineOffset;
+	}
+
 	for (auto & li : si.lines)
 	{		
 		li.aabb.minX *= li.renderParams.scale;
@@ -490,8 +494,8 @@ void StringRenderer::CalcStringAABB(StringInfo & si, const UsedGlyphCache * gc) 
 /// Calculate start position of text using anchors
 /// </summary>
 void StringRenderer::CalcAnchoredPosition()
-{	
-	float captionMarkAnchorY = 0;
+{		
+	float captionMarkHeight = 0;
 
 	for (StringInfo & si : this->strs)
 	{		
@@ -504,7 +508,7 @@ void StringRenderer::CalcAnchoredPosition()
 		StringRenderer::UsedGlyphCache gc = this->ExtractGlyphs(si.str);
 
 		this->CalcStringAABB(si, &gc);
-
+		
 		if (si.anchor == TextAnchor::LEFT_TOP)
 		{			
 			si.anchorX = static_cast<float>(si.x);
@@ -525,25 +529,46 @@ void StringRenderer::CalcAnchoredPosition()
 		if (si.type == TextType::CAPTION)
 		{	
 			if (si.str == ci.mark)
-			{				
-				bool exist;
-				auto it = this->fb->GetGlyph(ci.mark[0], exist);
-				if (exist)
-				{										
-					//si.anchorY += (it->second->bmpH);										
-					captionMarkAnchorY = si.anchorY + (it->second->bmpH);					
-				}			
-				else
-				{
-					captionMarkAnchorY = si.anchorY;
-				}
-				captionMarkAnchorY += ci.offset;
+			{
+				//captionMarkAnchorY = si.anchorY + si.global.GetHeight() + ci.offset;
+				//captionMarkAnchorY = -si.global.minY;
+				captionMarkHeight = si.global.GetHeight();
+			}
+			else
+			{
+				float h = si.global.GetHeight() + captionMarkHeight;
+				h *= 0.5;
+				
+				si.anchorY -= h;
+				si.anchorY -= ci.offset;
+			}
+
+			/*
+			if (si.str == ci.mark)
+			{								
+				captionMarkAnchorY = si.anchorY + si.global.GetHeight() + ci.offset;
+				//captionMarkAnchorY = -si.global.minY;
 			}
 			else
 			{								
-				si.anchorY -= (captionMarkAnchorY - si.anchorY);				
-			}						
-		}	
+				//si.anchorY -= (captionMarkAnchorY - si.anchorY);								
+				//si.anchorY +=  std::max(captionMarkAnchorY, si.global.minY);
+				//si.anchorY -= (captionMarkAnchorY - si.global.minY);
+				captionMarkAnchorY = 0;
+
+				float h = 0;
+				for (auto & li : si.lines)
+				{
+					h += li.maxNewLineOffset;
+				}
+
+				h = si.global.GetHeight() + si.lines.back().maxNewLineOffset;
+				h *= 0.5;
+
+				si.anchorY += (captionMarkAnchorY - h);
+			}	
+			*/
+		}		
 		
 	}
 }
@@ -715,7 +740,7 @@ bool StringRenderer::GenerateGeometry()
 				x += (gi.adv >> 6) * li.renderParams.scale;
 			}
 			
-			y += li.maxNewLineOffset;// *li.renderParams.scale;
+			y += li.maxNewLineOffset;
 		}
 	}
 
