@@ -18,12 +18,16 @@ public:
 
 	static const std::string NUMBERS_STRING;
 
-	static NumberRenderer * CreateSingleColor(Color color, const std::vector<Font> & fs, RenderSettings r, int glVersion = 3);
+	static NumberRenderer * CreateSingleColor(Color color, const FontBuilderSettings& fs, const RenderSettings& r, int glVersion = 3);
+	static NumberRenderer* CreateSingleColor(Color color, std::shared_ptr<FontBuilder> fb, const RenderSettings& r, int glVersion = 3);
 
 
-	NumberRenderer(const std::vector<Font> & fs, RenderSettings r, int glVersion = 3);
-	NumberRenderer(const std::vector<Font> & fs, RenderSettings r, int glVersion,
+	NumberRenderer(const FontBuilderSettings& fs, const RenderSettings& r, int glVersion = 3);
+	NumberRenderer(std::shared_ptr<FontBuilder> fb, const RenderSettings& r, int glVersion = 3);
+	NumberRenderer(const FontBuilderSettings& fs, const RenderSettings& r, int glVersion,
 		const char * vSource, const char * pSource, std::shared_ptr<IFontShaderManager> sm);
+	NumberRenderer(std::shared_ptr<FontBuilder> fb, const RenderSettings& r, int glVersion,
+		const char* vSource, const char* pSource, std::shared_ptr<IFontShaderManager> sm);
 	~NumberRenderer();
 
 	void SetExistenceCheck(bool val) noexcept;

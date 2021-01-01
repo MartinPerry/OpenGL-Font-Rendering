@@ -88,11 +88,17 @@ public:
 
 	};
 	
-	static StringRenderer * CreateSingleColor(Color color, const std::vector<Font> & fs, RenderSettings r, int glVersion = 3);
+	static StringRenderer* CreateSingleColor(Color color, const FontBuilderSettings& fs, const RenderSettings & r, int glVersion = 3);
+	static StringRenderer* CreateSingleColor(Color color, std::shared_ptr<FontBuilder> fb, const RenderSettings & r, int glVersion = 3);
 
-	StringRenderer(const std::vector<Font> & fs, RenderSettings r, int glVersion = 3);
-    StringRenderer(const std::vector<Font> & fs, RenderSettings r, int glVersion,
+	StringRenderer(const FontBuilderSettings& fs, const RenderSettings& r, int glVersion = 3);
+	StringRenderer(std::shared_ptr<FontBuilder> fb, const RenderSettings& r, int glVersion = 3);
+
+    StringRenderer(const FontBuilderSettings& fs, const RenderSettings& r, int glVersion,
                    const char * vSource, const char * pSource, std::shared_ptr<IFontShaderManager> sm);
+	StringRenderer(std::shared_ptr<FontBuilder> fb, const RenderSettings& r, int glVersion,
+		const char* vSource, const char* pSource, std::shared_ptr<IFontShaderManager> sm);
+
 	~StringRenderer();
 		
 	void Clear();

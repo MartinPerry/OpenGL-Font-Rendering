@@ -20,7 +20,7 @@ const std::string NumberRenderer::NUMBERS_STRING = "0123456789,.-";
 /// <param name="r"></param>
 /// <param name="glVersion"></param>
 /// <returns></returns>
-NumberRenderer * NumberRenderer::CreateSingleColor(Color color, const std::vector<Font> & fs, RenderSettings r, int glVersion)
+NumberRenderer * NumberRenderer::CreateSingleColor(Color color, const FontBuilderSettings& fs, const RenderSettings& r, int glVersion)
 {
 	
 	auto sm = std::make_shared<SingleColorFontShaderManager>();
@@ -32,13 +32,25 @@ NumberRenderer * NumberRenderer::CreateSingleColor(Color color, const std::vecto
 
 }
 
+NumberRenderer* NumberRenderer::CreateSingleColor(Color color, std::shared_ptr<FontBuilder> fb, const RenderSettings& r, int glVersion)
+{
+
+	auto sm = std::make_shared<SingleColorFontShaderManager>();
+	sm->SetColor(color.r, color.g, color.b, color.a);
+
+	return new NumberRenderer(fb, r, glVersion,
+		SINGLE_COLOR_VERTEX_SHADER_SOURCE, SINGLE_COLOR_PIXEL_SHADER_SOURCE,
+		sm);
+
+}
+
 /// <summary>
 /// ctor
 /// </summary>
 /// <param name="fs"></param>
 /// <param name="r"></param>
 /// <param name="glVersion"></param>
-NumberRenderer::NumberRenderer(const std::vector<Font> & fs, RenderSettings r, int glVersion) : 
+NumberRenderer::NumberRenderer(const FontBuilderSettings& fs, const RenderSettings& r, int glVersion) :
 	AbstractRenderer(fs, r, glVersion),
 	decimalPlaces(0),
 	decimalMult(1),
@@ -47,9 +59,28 @@ NumberRenderer::NumberRenderer(const std::vector<Font> & fs, RenderSettings r, i
 	this->Init();
 }
 
-NumberRenderer::NumberRenderer(const std::vector<Font> & fs, RenderSettings r, int glVersion,
+NumberRenderer::NumberRenderer(std::shared_ptr<FontBuilder> fb, const RenderSettings& r, int glVersion) :
+	AbstractRenderer(fb, r, glVersion),
+	decimalPlaces(0),
+	decimalMult(1),
+	checkIfExist(true)
+{
+	this->Init();
+}
+
+NumberRenderer::NumberRenderer(const FontBuilderSettings& fs, const RenderSettings& r, int glVersion,
 	const char * vSource, const char * pSource, std::shared_ptr<IFontShaderManager> sm) : 
 	AbstractRenderer(fs, r, glVersion, vSource, pSource, sm),
+	decimalPlaces(0),
+	decimalMult(1),
+	checkIfExist(true)
+{
+	this->Init();
+}
+
+NumberRenderer::NumberRenderer(std::shared_ptr<FontBuilder> fb, const RenderSettings& r, int glVersion,
+	const char* vSource, const char* pSource, std::shared_ptr<IFontShaderManager> sm) : 
+	AbstractRenderer(fb, r, glVersion, vSource, pSource, sm),
 	decimalPlaces(0),
 	decimalMult(1),
 	checkIfExist(true)
@@ -67,24 +98,32 @@ NumberRenderer::~NumberRenderer()
 void NumberRenderer::Init()
 {	
 	//prepare numbers	
+
+	bool needCreate = false;
+
 	for (const auto & c : NUMBERS_STRING)
 	{
-		this->fb->AddString(c);
+		needCreate |= this->fb->AddCharacter(c);		
 	}
-	this->fb->AddString(this->ci.mark);
+	needCreate |= this->fb->AddString(this->ci.mark);
 
-	if (this->fb->CreateFontAtlas())
+	if (needCreate)
 	{
-		//if font atlas changed - update texture 
+		if (this->fb->CreateFontAtlas())
+		{
+			//if font atlas changed - update texture 
 
-		//DEBUG !!!
-		//this->fb->Save("gl.png");
-		//-------
+			//DEBUG !!!
+			//this->fb->Save("gl.png");
+			//-------
 
-		//Fill font texture
-		this->FillTexture();
+			//Fill font texture
+			this->FillTexture();
+		}
 	}
-	
+
+
+
 	for (const auto & c : NUMBERS_STRING)
 	{
 		bool exist;

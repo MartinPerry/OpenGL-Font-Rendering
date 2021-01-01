@@ -3,12 +3,12 @@
 
 typedef struct FT_FaceRec_*  FT_Face;
 
+class FontBuilder;
+
 #include <stdint.h>
 #include <unordered_map>
 #include <list>
 #include <string>
-
-
 
 
 typedef uint32_t CHAR_CODE;
@@ -80,40 +80,6 @@ typedef struct FontInfo
 
 } FontInfo;
 
-/*
-typedef struct UnusedGlyphInfo
-{
-	FontInfo::UsedGlyphIterator gi;
-	int fontIndex;
-
-} UnusedGlyphInfo;
-*/
-
-/// <summary>
-/// Render settings for font renderer
-/// </summary>
-typedef struct RenderSettings
-{
-	int deviceW;
-	int deviceH;
-
-	int textureW;
-	int textureH;
-
-	bool useTextureLinearFilter = false;
-
-	int screenDpi = 0;
-
-	//how many times is resolution bigger than displey pts units
-	//used on iPhones
-	float screenScale = 1.0;
-    
-} RenderSettings;
-
-
-
-
-
 
 /// <summary>
 /// Font size helper struct
@@ -180,15 +146,49 @@ typedef struct Font
 	FontSize size;
 	int defaultFontSizeInPx; //default size of font - used if FontSize is in em
 
-	Font(const std::string & name, FontSize size) : 
-		name(name), size(size), defaultFontSizeInPx(0)
+	Font(std::string_view name, FontSize size) : 
+		name(name), 
+		size(size), 
+		defaultFontSizeInPx(0)
 	{}
 
 	Font() :
-		name(""), size(0_pt), defaultFontSizeInPx(0)
+		name(""), 
+		size(0_pt), 
+		defaultFontSizeInPx(0)
 	{}
 
 } Font;
+
+
+
+/// <summary>
+/// Render settings for font renderer
+/// </summary>
+struct RenderSettings
+{
+	int deviceW;
+	int deviceH;
+
+	bool useTextureLinearFilter = false;
+};
+
+
+struct FontBuilderSettings
+{
+	std::vector<Font> fonts;
+
+	int textureW;
+	int textureH;
+
+	int screenDpi = 0;
+
+	//how many times is resolution bigger than displey pts units
+	//used on iPhones
+	float screenScale = 1.0;
+
+};
+
 
 
 

@@ -24,13 +24,13 @@ public:
 	enum class TextType { TEXT, CAPTION };
 	enum class AxisYOrigin { TOP, DOWN };
 
-    typedef struct Vertex
+    struct Vertex
     {
         float x, y;
         float u, v;
-    } Vertex;
-    
-    typedef struct Color
+    };
+
+	struct Color
     {
         float r, g, b, a;
         bool IsSame(const Color & c) const noexcept 
@@ -38,27 +38,31 @@ public:
             return (c.r == r) && (c.g == g) &&
 				   (c.b == b) && (c.a == a); 
 		}
-    } Color;
+    };
 	
-	typedef struct RenderParams
+	struct RenderParams
 	{
 		Color color;
 		float scale = 1.0f;
-
-	} RenderParams;
+	};
 
 	static const Color DEFAULT_COLOR;
 	static const RenderParams DEFAULT_PARAMS;
 
 	static std::vector<std::string> GetFontsInDirectory(const std::string & fontDir);
 
-	AbstractRenderer(const std::vector<Font> & fs, RenderSettings r, int glVersion);
-    AbstractRenderer(const std::vector<Font> & fs, RenderSettings r, int glVersion,
+	AbstractRenderer(const FontBuilderSettings& fs, const RenderSettings& r, int glVersion);
+    AbstractRenderer(const FontBuilderSettings& fs, const RenderSettings& r, int glVersion,
                      const char * vSource, const char * pSource, std::shared_ptr<IFontShaderManager> sm);
-    
+   
+	AbstractRenderer(std::shared_ptr<FontBuilder> fb, const RenderSettings& r, int glVersion);
+	AbstractRenderer(std::shared_ptr<FontBuilder> fb, const RenderSettings& r, int glVersion,
+		const char* vSource, const char* pSource, std::shared_ptr<IFontShaderManager> sm);
+
+
 	virtual ~AbstractRenderer();
 
-	FontBuilder * GetFontBuilder();
+	std::shared_ptr<FontBuilder> GetFontBuilder();
 	void SetCanvasSize(int w, int h);
 	void SetFontTextureLinearFiler(bool val);
 	void SetAxisYOrigin(AxisYOrigin axisY);
@@ -84,14 +88,14 @@ public:
 	
 protected:
 	        
-	typedef struct CaptionInfo
+	struct CaptionInfo
 	{
 		UnicodeString mark;
 		int offset;
 
-	} CaptionInfo;
+	};
 
-	typedef struct AABB
+	struct AABB
 	{
 		float minX;
 		float maxX;
@@ -146,25 +150,23 @@ protected:
 		}
 		
 
-	} AABB;
-
+	};
 	
-	
-
-	typedef struct Shader
+	struct Shader
 	{
         GLuint program;
 
 		const char * vSource;
 		const char * pSource;
-        bool isDefault;
-        
-	} Shader;
+        bool isDefault;        
+	};
+
+
 
     std::shared_ptr<IFontShaderManager> sm;
     RenderSettings rs;
     
-	FontBuilder * fb;
+	std::shared_ptr<FontBuilder> fb;
 	
 	CaptionInfo ci;
 

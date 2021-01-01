@@ -21,12 +21,13 @@
 /// </summary>
 /// <param name="fonts"></param>
 /// <param name="r"></param>
-FontBuilder::FontBuilder(const std::vector<Font> & fonts, const RenderSettings & r) :
-	r(r)
+FontBuilder::FontBuilder(const FontBuilderSettings& r) : 
+	screenScale(r.screenScale),
+	screenDpi(r.screenDpi)
 {
 	
 	this->texPacker = new TextureAtlasPack(r.textureW, r.textureH, LETTER_BORDER_SIZE);
-	this->texPacker->SetTightPacking();
+	//this->texPacker->SetTightPacking();
 	//this->texPacker->SetGridPacking(fontSize, fontSize);
 
 	
@@ -37,7 +38,7 @@ FontBuilder::FontBuilder(const std::vector<Font> & fonts, const RenderSettings &
 	}
 
 	
-	for (auto & f : fonts)
+	for (const auto & f : r.fonts)
 	{
 		int index = this->InitializeFont(f.name);
 
@@ -66,6 +67,9 @@ FontBuilder::FontBuilder(const std::vector<Font> & fonts, const RenderSettings &
 	int maxEmSize = this->GetMaxEmSize();
 	this->UpdateBitmapFontsSizes(maxEmSize);
 
+
+	int ps = this->GetMaxEmSize();// this->fb->GetMaxFontPixelHeight();
+	this->SetGridPacking(ps, ps);
 }
 
 
@@ -394,13 +398,13 @@ void FontBuilder::SetFontSize(const std::string & fontName, const FontSize & fs,
 		}
 		else if (fs.sizeType == FontSize::SizeType::em)
 		{
-			int size = static_cast<int>(defaultFontSizeInPx * fs.size * r.screenScale);
+			int size = static_cast<int>(defaultFontSizeInPx * fs.size * screenScale);
 
 			this->SetFontSizePixels(f, size);
 		}
 		else
 		{
-			this->SetFontSizePts(f, static_cast<int>(fs.size), r.screenDpi);
+			this->SetFontSizePts(f, static_cast<int>(fs.size), screenDpi);
 		}
 	}
 
@@ -446,13 +450,13 @@ void FontBuilder::SetAllFontSize(const FontSize & fs, int defaultFontSizeInPx)
 		}
 		else if (fs.sizeType == FontSize::SizeType::em)
 		{
-			int size = static_cast<int>(defaultFontSizeInPx * fs.size * r.screenScale);
+			int size = static_cast<int>(defaultFontSizeInPx * fs.size * screenScale);
 
 			this->SetFontSizePixels(f, size);
 		}
 		else
 		{
-			this->SetFontSizePts(f, static_cast<int>(fs.size), r.screenDpi);
+			this->SetFontSizePts(f, static_cast<int>(fs.size), screenDpi);
 		}
 	}
 
@@ -640,14 +644,17 @@ void FontBuilder::SetGridPacking(int binW, int binH)
 /// String is iterated character by character and they are added
 /// to set
 /// </summary>
-void FontBuilder::AddString(const UnicodeString & str)
+bool FontBuilder::AddString(const UnicodeString & str)
 {
+	bool res = false;
 	auto it = CustromIteratorCreator::Create(str);
 	uint32_t c;
 	while ((c = it.GetCurrentAndAdvance()) != it.DONE)
 	{	
-		this->AddCharacter(c);
+		res |= this->AddCharacter(c);
 	}
+
+	return res;
 }
 
 /// <summary>
@@ -681,11 +688,11 @@ void FontBuilder::AddAllAsciiNumbers()
 /// Add single character in unicode
 /// </summary>
 /// <param name="c"></param>
-void FontBuilder::AddCharacter(CHAR_CODE c)
+bool FontBuilder::AddCharacter(CHAR_CODE c)
 {
 	if (c == '\n')
 	{
-		return;
+		return false;
 	}
 	
 	for (const FontInfo & fi : this->fis)
@@ -694,20 +701,15 @@ void FontBuilder::AddCharacter(CHAR_CODE c)
 		{
 			//character already exist
 			this->reused.insert(c);
-			return;
-		}
-		else
-		{			
-			//if (this->newCodes.find(c) == this->newCodes.end())
-			//{
-			//	this->newCodes.insert(c);
-			//}
-		}
+			return false;
+		}		
 	}
 
 	//new character
 	//can insert the same character again, set does not contain duplicities
 	this->newCodes.insert(c);
+
+	return true;
 }
 
 

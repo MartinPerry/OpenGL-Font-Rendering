@@ -24,7 +24,9 @@ public:
 	}
 
 	BidiHelper(const icu::UnicodeString & str) :
-		str(str), pErrorCode(U_ZERO_ERROR), para(nullptr)
+		str(str), 
+		pErrorCode(U_ZERO_ERROR), 
+		para(nullptr)
 	{
 		this->Init();
 	}
@@ -132,7 +134,7 @@ protected:
 			tmp.reverse();
 		}
 
-		visualStrs.push_back(tmp);
+		visualStrs.push_back(std::move(tmp));
 
 	}
 

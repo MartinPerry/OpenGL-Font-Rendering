@@ -18,7 +18,7 @@
 /// <param name="r"></param>
 /// <param name="glVersion"></param>
 /// <returns></returns>
-StringRenderer * StringRenderer::CreateSingleColor(Color color, const std::vector<Font> & fs, RenderSettings r, int glVersion)
+StringRenderer * StringRenderer::CreateSingleColor(Color color, const FontBuilderSettings& fs, const RenderSettings & r, int glVersion)
 {
 	auto sm = std::make_shared<SingleColorFontShaderManager>();
 	sm->SetColor(color.r, color.g, color.b, color.a);
@@ -29,7 +29,19 @@ StringRenderer * StringRenderer::CreateSingleColor(Color color, const std::vecto
 
 }
 
-StringRenderer::StringRenderer(const std::vector<Font> & fs, RenderSettings r, int glVersion) : 
+StringRenderer* StringRenderer::CreateSingleColor(Color color, std::shared_ptr<FontBuilder> fb, const RenderSettings & r, int glVersion)
+{
+	auto sm = std::make_shared<SingleColorFontShaderManager>();
+	sm->SetColor(color.r, color.g, color.b, color.a);
+
+	return new StringRenderer(fb, r, glVersion,
+		SINGLE_COLOR_VERTEX_SHADER_SOURCE, SINGLE_COLOR_PIXEL_SHADER_SOURCE,
+		sm);
+
+}
+
+
+StringRenderer::StringRenderer(const FontBuilderSettings& fs, const RenderSettings& r, int glVersion) :
 	AbstractRenderer(fs, r, glVersion), 
 	isBidiEnabled(true), 
 	nlOffsetPx(0),
@@ -38,7 +50,16 @@ StringRenderer::StringRenderer(const std::vector<Font> & fs, RenderSettings r, i
 {
 }
 
-StringRenderer::StringRenderer(const std::vector<Font> & fs, RenderSettings r, int glVersion,
+StringRenderer::StringRenderer(std::shared_ptr<FontBuilder> fb, const RenderSettings& r, int glVersion) :
+	AbstractRenderer(fb, r, glVersion),
+	isBidiEnabled(true),
+	nlOffsetPx(0),
+	spaceSizeExist(false),
+	spaceSize(10)
+{
+}
+
+StringRenderer::StringRenderer(const FontBuilderSettings& fs, const RenderSettings& r, int glVersion,
                const char * vSource, const char * pSource, std::shared_ptr<IFontShaderManager> sm) : 
 	AbstractRenderer(fs, r, glVersion, vSource, pSource, sm), 
 	isBidiEnabled(true), 
@@ -46,7 +67,17 @@ StringRenderer::StringRenderer(const std::vector<Font> & fs, RenderSettings r, i
 	spaceSizeExist(false), 
 	spaceSize(10)
 {
-    
+}
+
+StringRenderer::StringRenderer(std::shared_ptr<FontBuilder> fb, const RenderSettings& r, int glVersion,
+	const char* vSource, const char* pSource, std::shared_ptr<IFontShaderManager> sm) :
+	AbstractRenderer(fb, r, glVersion, vSource, pSource, sm),
+	isBidiEnabled(true),
+	nlOffsetPx(0),
+	spaceSizeExist(false),
+	spaceSize(10)
+{
+
 }
 
 StringRenderer::~StringRenderer()
@@ -222,7 +253,7 @@ bool StringRenderer::AddStringInternal(const UnicodeString & str,
 	std::lock_guard<std::shared_timed_mutex> lk(m);
 #endif
 		
-	this->fb->AddString(uniStr);
+	//this->fb->AddString(uniStr);
 
 	auto & added = this->strs.emplace_back(std::move(uniStr), x, y, anchor, align, type);	
 	auto & lines = added.lines;
@@ -235,7 +266,9 @@ bool StringRenderer::AddStringInternal(const UnicodeString & str,
 	auto it = CustromIteratorCreator::Create(added.str);
 	uint32_t c;
 	while ((c = it.GetCurrentAndAdvance()) != it.DONE)
-	{			
+	{		
+		this->fb->AddCharacter(c);
+
 		if (c == '\n')
 		{
 			lines.back().len = len;
@@ -670,19 +703,49 @@ bool StringRenderer::GenerateGeometry()
 		return false;
 	}
 
-	//first we must build font atlas - it will load glyph infos
-	if (this->fb->CreateFontAtlas())
-	{
-		//if font atlas changed - update texture 
-
-		//DEBUG !!!
-		//this->fb->Save("gl.png");
-		//-------
-
-		//Fill font texture
-		this->FillTexture();
-	}
 	
+#ifdef THREAD_SAFETY
+	if (this->fb.use_count() > 1)
+	{
+
+		std::shared_lock<std::shared_timed_mutex> lk(m);
+
+		//first we must build font atlas - it will load glyph infos
+		if (this->fb->CreateFontAtlas())
+		{
+			//if font atlas changed - update texture 
+
+			//DEBUG !!!
+			//this->fb->Save("gl.png");
+			//-------
+
+			//Fill font texture
+			this->FillTexture();
+		}
+
+		lk.unlock();
+	}
+	else
+	{
+#endif	
+
+		//first we must build font atlas - it will load glyph infos
+		if (this->fb->CreateFontAtlas())
+		{
+			//if font atlas changed - update texture 
+
+			//DEBUG !!!
+			//this->fb->Save("gl.png");
+			//-------
+
+			//Fill font texture
+			this->FillTexture();
+		}
+
+#ifdef THREAD_SAFETY
+	}
+#endif
+
 	//calculate anchored position
 	//it will be calculated only once - if it already is calculated
 	//wont be calculated again

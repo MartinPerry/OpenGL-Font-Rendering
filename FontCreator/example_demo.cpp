@@ -364,20 +364,26 @@ void initGL() {
 	//fNum.name = "../fonts/NotoSans-Regular.ttf";
 
 
-	RenderSettings r;
-	r.screenDpi = 260;
-	r.textureW = 512;
-	r.textureH = 512;
+	RenderSettings r;	
 	r.deviceW = g_width;
 	r.deviceH = g_height;
-	r.screenScale = 1.0;
+	
+	FontBuilderSettings fs;
+	fs.screenDpi = 260;
+	fs.textureW = 512;
+	fs.textureH = 512;
+	fs.screenScale = 1.0;
+	fs.fonts = fonts;
 
-	//fr = new StringRenderer({ f, f2, f3 }, r);
-	//fr = new StringRenderer(fonts, r);
-	fr = StringRenderer::CreateSingleColor({ 1,0,1,1 }, fonts, r);
+	//fs.fonts = { f, f2, f3 };
+	//fr = new StringRenderer(fs, r);
+	//fr = new StringRenderer(fs, r);
+	fr = StringRenderer::CreateSingleColor({ 1,0,1,1 }, fs, r);
 	//fr = new StringRenderer({ fNum }, r);
 	//fr = new StringRenderer({ f4 }, r);
-	fn = new NumberRenderer({ fArial }, r);
+
+	fs.fonts = { fArial };
+	fn = new NumberRenderer(fs, r);
 
 	
 	fr->SetCaption(UTF8_TEXT(u8"\U0001F300"), 10);

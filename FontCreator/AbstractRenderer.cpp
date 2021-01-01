@@ -59,7 +59,7 @@ std::vector<std::string> AbstractRenderer::GetFontsInDirectory(const std::string
 			fullPath += ent->d_name;
 
 
-			t.push_back(fullPath);
+			t.push_back(std::move(fullPath));
 		}
 	}
 
@@ -70,48 +70,60 @@ std::vector<std::string> AbstractRenderer::GetFontsInDirectory(const std::string
 }
 
 
-AbstractRenderer::AbstractRenderer(const std::vector<Font> & fs, RenderSettings r, int glVersion) : 
+AbstractRenderer::AbstractRenderer(const FontBuilderSettings& fs, const RenderSettings& r, int glVersion) :
 	AbstractRenderer(fs, r, glVersion,
                        DEFAULT_VERTEX_SHADER_SOURCE, DEFAULT_PIXEL_SHADER_SOURCE,
                        std::make_shared<DefaultFontShaderManager>())
 {
 }
 
-AbstractRenderer::AbstractRenderer(const std::vector<Font> & fs, RenderSettings r, int glVersion,
+AbstractRenderer::AbstractRenderer(std::shared_ptr<FontBuilder> fb, const RenderSettings& r, int glVersion) :
+	AbstractRenderer(fb, r, glVersion,
+		DEFAULT_VERTEX_SHADER_SOURCE, DEFAULT_PIXEL_SHADER_SOURCE,
+		std::make_shared<DefaultFontShaderManager>())
+{
+}
+
+AbstractRenderer::AbstractRenderer(const FontBuilderSettings& fs, const RenderSettings& r, int glVersion,
                  const char * vSource, const char * pSource, std::shared_ptr<IFontShaderManager> sm) :
-	rs(r), 
-	renderEnabled(true), 
-	glVersion(glVersion), 
-	sm(sm), 
-	ci({ UTF8_TEXT(u8""), 0}),
-	axisYOrigin(AxisYOrigin::TOP), 
-	quadsCount(0), 
+	AbstractRenderer(std::make_shared<FontBuilder>(fs), r, glVersion,
+		DEFAULT_VERTEX_SHADER_SOURCE, DEFAULT_PIXEL_SHADER_SOURCE,
+		std::make_shared<DefaultFontShaderManager>())
+{  	
+}
+
+AbstractRenderer::AbstractRenderer(std::shared_ptr<FontBuilder> fb, const RenderSettings& r, int glVersion,
+	const char* vSource, const char* pSource, std::shared_ptr<IFontShaderManager> sm) : 
+	rs(r),
+	fb(fb),
+	renderEnabled(true),
+	glVersion(glVersion),
+	sm(sm),
+	ci({ UTF8_TEXT(u8""), 0 }),
+	axisYOrigin(AxisYOrigin::TOP),
+	quadsCount(0),
 	strChanged(false),
 	vbo(0),
 	vao(0),
 	fontTex(0)
-{   
+{
 	this->shader.program = 0;
-    this->shader.pSource = pSource;
-    this->shader.vSource = vSource;
-    
-    if ((pSource == DEFAULT_PIXEL_SHADER_SOURCE) && (vSource == DEFAULT_VERTEX_SHADER_SOURCE))
-    {
-        this->shader.isDefault = true;
-    }
-    else
-    {
-        this->shader.isDefault = false;
-    }
-    
-    this->fb = new FontBuilder(fs, r);
-    
-	int ps = this->fb->GetMaxEmSize();// this->fb->GetMaxFontPixelHeight();
-    this->fb->SetGridPacking(ps, ps);
-        
-    this->SetCaption(UTF8_TEXT(u8"\u2022"), 10);
-         
-    this->InitGL();
+	this->shader.pSource = pSource;
+	this->shader.vSource = vSource;
+
+	if ((pSource == DEFAULT_PIXEL_SHADER_SOURCE) && (vSource == DEFAULT_VERTEX_SHADER_SOURCE))
+	{
+		this->shader.isDefault = true;
+	}
+	else
+	{
+		this->shader.isDefault = false;
+	}
+
+	
+	this->SetCaption(UTF8_TEXT(u8"\u2022"), 10);
+
+	this->InitGL();
 
 	this->psW = 1.0f / static_cast<float>(rs.deviceW); //pixel size in width
 	this->psH = 1.0f / static_cast<float>(rs.deviceH); //pixel size in height
@@ -121,16 +133,13 @@ AbstractRenderer::AbstractRenderer(const std::vector<Font> & fs, RenderSettings 
 
 }
 
+
 AbstractRenderer::~AbstractRenderer()
 {
-
-	SAFE_DELETE(this->fb);
-
+	
 	//this will end in error, if OpenGL is not initialized during
 	//destruction
 	//however, that should be OK
-
-
 
 	FONT_UNBIND_SHADER;
 	FONT_UNBIND_TEXTURE_2D;
@@ -141,7 +150,6 @@ AbstractRenderer::~AbstractRenderer()
 	GL_CHECK(glDeleteTextures(1, &this->fontTex));
 	GL_CHECK(glDeleteBuffers(1, &this->vbo));
 	GL_CHECK(glDeleteVertexArrays(1, &this->vao));
-
 }
 
 /// <summary>
@@ -377,7 +385,7 @@ bool AbstractRenderer::IsEnabled() const
 	return this->renderEnabled;
 }
 
-FontBuilder * AbstractRenderer::GetFontBuilder()
+std::shared_ptr<FontBuilder> AbstractRenderer::GetFontBuilder()
 {
 	return this->fb;
 }

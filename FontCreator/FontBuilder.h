@@ -22,7 +22,7 @@ class TextureAtlasPack;
 class FontBuilder
 {
 public:
-	FontBuilder(const std::vector<Font> & fonts, const RenderSettings & r);
+	FontBuilder(const FontBuilderSettings& fs);
 	~FontBuilder();
 
 	void Release();
@@ -31,8 +31,8 @@ public:
 	void SetFontSize(const std::string & fontName, const FontSize & fs, int defaultFontSizeInPx = 0);
 	void SetAllFontSize(const FontSize & fs, int defaultFontSizeInPx = 0);
 
-	void AddString(const UnicodeString & str);	
-	void AddCharacter(CHAR_CODE c);
+	bool AddString(const UnicodeString & str);	
+	bool AddCharacter(CHAR_CODE c);
 	void AddAllAsciiLetters();
 	void AddAllAsciiNumbers();
 	
@@ -64,7 +64,8 @@ protected:
 
 	static const int LETTER_BORDER_SIZE = 0;
 
-	RenderSettings r;
+	float screenScale;
+	int screenDpi;
 
 	FT_Library library;
 	
