@@ -70,16 +70,16 @@ std::vector<std::string> AbstractRenderer::GetFontsInDirectory(const std::string
 }
 
 
-AbstractRenderer::AbstractRenderer(const std::vector<Font> & fs, RenderSettings r, int glVersion)
-	: AbstractRenderer(fs, r, glVersion,
+AbstractRenderer::AbstractRenderer(const std::vector<Font> & fs, RenderSettings r, int glVersion) : 
+	AbstractRenderer(fs, r, glVersion,
                        DEFAULT_VERTEX_SHADER_SOURCE, DEFAULT_PIXEL_SHADER_SOURCE,
                        std::make_shared<DefaultFontShaderManager>())
 {
 }
 
 AbstractRenderer::AbstractRenderer(const std::vector<Font> & fs, RenderSettings r, int glVersion,
-                 const char * vSource, const char * pSource, std::shared_ptr<IFontShaderManager> sm)
-    : rs(r), 
+                 const char * vSource, const char * pSource, std::shared_ptr<IFontShaderManager> sm) :
+	rs(r), 
 	renderEnabled(true), 
 	glVersion(glVersion), 
 	sm(sm), 

@@ -38,8 +38,8 @@ NumberRenderer * NumberRenderer::CreateSingleColor(Color color, const std::vecto
 /// <param name="fs"></param>
 /// <param name="r"></param>
 /// <param name="glVersion"></param>
-NumberRenderer::NumberRenderer(const std::vector<Font> & fs, RenderSettings r, int glVersion)
-	: AbstractRenderer(fs, r, glVersion),
+NumberRenderer::NumberRenderer(const std::vector<Font> & fs, RenderSettings r, int glVersion) : 
+	AbstractRenderer(fs, r, glVersion),
 	decimalPlaces(0),
 	decimalMult(1),
 	checkIfExist(true)
@@ -48,8 +48,8 @@ NumberRenderer::NumberRenderer(const std::vector<Font> & fs, RenderSettings r, i
 }
 
 NumberRenderer::NumberRenderer(const std::vector<Font> & fs, RenderSettings r, int glVersion,
-	const char * vSource, const char * pSource, std::shared_ptr<IFontShaderManager> sm)
-	: AbstractRenderer(fs, r, glVersion, vSource, pSource, sm),
+	const char * vSource, const char * pSource, std::shared_ptr<IFontShaderManager> sm) : 
+	AbstractRenderer(fs, r, glVersion, vSource, pSource, sm),
 	decimalPlaces(0),
 	decimalMult(1),
 	checkIfExist(true)
@@ -67,7 +67,7 @@ NumberRenderer::~NumberRenderer()
 void NumberRenderer::Init()
 {	
 	//prepare numbers	
-	for (auto c : NUMBERS_STRING)
+	for (const auto & c : NUMBERS_STRING)
 	{
 		this->fb->AddString(c);
 	}
@@ -85,7 +85,7 @@ void NumberRenderer::Init()
 		this->FillTexture();
 	}
 	
-	for (auto c : NUMBERS_STRING)
+	for (const auto & c : NUMBERS_STRING)
 	{
 		bool exist;
 		auto it = this->fb->GetGlyph(c, exist);

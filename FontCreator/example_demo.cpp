@@ -15,11 +15,12 @@
 #include <iostream>
 
 
-#ifdef _WIN32
-#include <windows.h>
-#ifdef _DEBUG
-//#include <vld.h>
+#if __has_include(<vld.h>)
+#	include <vld.h>
 #endif
+
+#ifdef _WIN32
+#	include <windows.h>
 #endif
 
 
@@ -30,9 +31,9 @@
 
 
 #ifdef _MSC_VER
-#pragma comment(lib, "opengl32.lib")
-#pragma comment(lib, "./libs/freeglut.lib")		
-#pragma comment(lib, "./libs/glew32.lib")
+#	pragma comment(lib, "opengl32.lib")
+#	pragma comment(lib, "./libs/freeglut.lib")		
+#	pragma comment(lib, "./libs/glew32.lib")
 #endif
 
 
@@ -185,8 +186,8 @@ void display() {
 		AbstractRenderer::TextAlign::ALIGN_CENTER);
 	*/
 	
-	fr->AddStringCaption(//UTF8_TEXT(CreateRandomString(10).c_str()), 
-		UTF8_TEXT("Ahoj\nsvete\nsvetg kuk"),
+	fr->AddStringCaption(UTF8_TEXT(CreateRandomString(10).c_str()), 
+		//UTF8_TEXT("Ahoj\nsvete\nsvetg kuk"),
 		//UTF8_TEXT("H\n1023hPa"),
 		0.5f, 0.85f,
 		{ 1,1,0,1, 1.0 });
@@ -197,8 +198,8 @@ void display() {
 	if (si.lines.size() > 1)
 	{
 		si.lines[0].renderParams.scale = 2.0;
-		si.lines[1].renderParams.scale = 0.8;
-		si.lines[2].renderParams.scale = 3.0;
+		if (si.lines.size() > 1) si.lines[1].renderParams.scale = 0.8;
+		if (si.lines.size() > 2) si.lines[2].renderParams.scale = 3.0;
 	}
 	else
 	{
@@ -293,17 +294,13 @@ void initGL() {
 
 	printf("\n");
 
+	/*
 	Wrapper<icu::UnicodeString> str;
 	str.str = "ahaoj";
 	CustomUnicodeIterator it = CustromIteratorCreator::Create(str.str);
 
 	uint32_t c;
 	while ((c = it.GetCurrentAndAdvance()) != it.DONE)
-	{
-		printf("%d ", c);
-	}
-	/*
-	for (auto c = it.GetFirst(); it.HasNext() && (c = it.GetCurrent()); it.GetNext())
 	{
 		printf("%d ", c);
 	}
@@ -441,10 +438,9 @@ void Normalize()
 
 int main(int argc, char ** argv)
 {
-#ifdef _WIN32 
-#ifdef _DEBUG
-	//VLDSetReportOptions(VLD_OPT_REPORT_TO_DEBUGGER | VLD_OPT_REPORT_TO_FILE, L"leaks.txt");
-#endif
+
+#if __has_include(<vld.h>)
+	VLDSetReportOptions(VLD_OPT_REPORT_TO_DEBUGGER | VLD_OPT_REPORT_TO_FILE, L"leaks.txt");
 #endif
 		
 	//Normalize();

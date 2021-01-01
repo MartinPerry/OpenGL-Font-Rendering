@@ -29,8 +29,8 @@ StringRenderer * StringRenderer::CreateSingleColor(Color color, const std::vecto
 
 }
 
-StringRenderer::StringRenderer(const std::vector<Font> & fs, RenderSettings r, int glVersion)
-	: AbstractRenderer(fs, r, glVersion), 
+StringRenderer::StringRenderer(const std::vector<Font> & fs, RenderSettings r, int glVersion) : 
+	AbstractRenderer(fs, r, glVersion), 
 	isBidiEnabled(true), 
 	nlOffsetPx(0),
 	spaceSizeExist(false),
@@ -39,8 +39,8 @@ StringRenderer::StringRenderer(const std::vector<Font> & fs, RenderSettings r, i
 }
 
 StringRenderer::StringRenderer(const std::vector<Font> & fs, RenderSettings r, int glVersion,
-               const char * vSource, const char * pSource, std::shared_ptr<IFontShaderManager> sm)
-    : AbstractRenderer(fs, r, glVersion, vSource, pSource, sm), 
+               const char * vSource, const char * pSource, std::shared_ptr<IFontShaderManager> sm) : 
+	AbstractRenderer(fs, r, glVersion, vSource, pSource, sm), 
 	isBidiEnabled(true), 
 	nlOffsetPx(0),
 	spaceSizeExist(false), 

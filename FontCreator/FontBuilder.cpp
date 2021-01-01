@@ -194,8 +194,10 @@ int FontBuilder::InitializeFont(const std::string & fontFacePath)
 
 	FT_Select_Charmap(ff, FT_ENCODING_UNICODE);
 
+	int lastIndex = static_cast<int>(this->fis.size());;
+
 	fi.fontFace = ff;
-	fi.index = static_cast<int>(this->fis.size());
+	fi.index = lastIndex;
 	fi.onlyBitmapGlyphs = false;
 	fi.scaleFactor = 1.0f;
 	
@@ -209,12 +211,12 @@ int FontBuilder::InitializeFont(const std::string & fontFacePath)
 		}
 	}
 	
-	this->fis.push_back(fi);
+	this->fis.push_back(std::move(fi));
 
 	//after each change, reset font infos in texture packer	
 	this->texPacker->SetAllFontInfos(&this->fis);
 
-	return fi.index;
+	return lastIndex;
 
 }
 
@@ -915,8 +917,8 @@ bool FontBuilder::FillGlyphInfo(CHAR_CODE c, FontInfo & fi) const
 	}
 
 
-	fi.glyphs.push_back(gInfo);	
-	fi.glyphsLut[gInfo.code] = std::prev(fi.glyphs.end());
+	fi.glyphs.push_back(std::move(gInfo));	
+	fi.glyphsLut[c] = std::prev(fi.glyphs.end());
 
 	return true;
 

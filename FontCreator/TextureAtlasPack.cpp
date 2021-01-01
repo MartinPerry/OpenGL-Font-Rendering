@@ -218,9 +218,10 @@ bool TextureAtlasPack::PackGrid()
 					return false;
 				}
 
-				info = this->packedInfo[removedCode];
+				auto it = this->packedInfo.find(removedCode);
 
-				this->packedInfo.erase(removedCode);
+				info = it->second;
+				this->packedInfo.erase(it);
 			}
 			else
 			{
@@ -305,8 +306,10 @@ bool TextureAtlasPack::PackTight()
 					continue;
 				}
 
-				info = this->packedInfo[c];
-				this->packedInfo.erase(c);
+				auto it = this->packedInfo.find(c);
+
+				info = it->second;
+				this->packedInfo.erase(it);
 			}
 			else
 			{
@@ -669,7 +672,8 @@ bool TextureAtlasPack::FreeSpace(int spaceWidth, int spaceHeight, CHAR_CODE * c)
 				
 		*c = it->first;
 
-		if (this->erased.find(*c) != this->erased.end())
+		auto jt = this->erased.find(*c);
+		if (jt != this->erased.end())
 		{
 			//already erased - space is not free anymore
 			continue;
@@ -678,7 +682,8 @@ bool TextureAtlasPack::FreeSpace(int spaceWidth, int spaceHeight, CHAR_CODE * c)
 		//space find				
 		//add glyph to erased				
 
-		this->erased[*c] = it;
+		jt->second = it;
+		//this->erased[*c] = it;
 								
 		return true;
 	}
