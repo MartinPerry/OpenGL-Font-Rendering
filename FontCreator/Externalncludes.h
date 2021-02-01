@@ -4,9 +4,13 @@
 //=====================================================================================
 //additional preprocessor directives
 
-#define USE_ICU_LIBRARY
+#ifndef USE_ICU_LIBRARY
+#	define USE_ICU_LIBRARY
+#endif
 
-#define THREAD_SAFETY
+#ifndef THREAD_SAFETY
+#	define THREAD_SAFETY
+#endif
 
 //Path to this can be changes - eg. if you are not using freeglut - include OpenGL here
 //if you want to move strings change dir here
@@ -133,15 +137,14 @@ typedef utf8_string UnicodeString;
 
 #ifdef USE_ICU_LIBRARY
 
-typedef icu::UnicodeString UnicodeString;
-typedef icu::StringCharacterIterator UnicodeCharacterPtr;
+	typedef icu::UnicodeString UnicodeString;
+	typedef icu::StringCharacterIterator UnicodeCharacterPtr;
 
+#	define BIDI(x) BidiHelper::ConvertOneLine(x)
 
-#define BIDI(x) BidiHelper::ConvertOneLine(x)
+#	define UTF8_TEXT(x) icu::UnicodeString::fromUTF8(x)
 
-#define UTF8_TEXT(x) icu::UnicodeString::fromUTF8(x)
-
-#define UTF8_UNESCAPE(x) icu::UnicodeString::fromUTF8(x).unescape()
+#	define UTF8_UNESCAPE(x) icu::UnicodeString::fromUTF8(x).unescape()
 
 #endif
 

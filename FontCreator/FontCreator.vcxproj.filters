@@ -63,6 +63,9 @@
     <ClCompile Include="AbstractRenderer.cpp">
       <Filter>Source Files\Utils</Filter>
     </ClCompile>
+    <ClCompile Include="FontCache.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="TextureAtlasPack.h">
@@ -121,6 +124,9 @@
     </ClInclude>
     <ClInclude Include="Utils\StringIterators.h">
       <Filter>Header Files\Utils</Filter>
+    </ClInclude>
+    <ClInclude Include="FontCache.h">
+      <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

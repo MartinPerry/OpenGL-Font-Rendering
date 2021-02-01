@@ -78,8 +78,7 @@ protected:
 
 	TextureAtlasPack * texPacker;
 		
-	int InitializeFont(const std::string & fontFacePath);
-	uint8_t * LoadFontFromFile(const std::string & fontFacePath, size_t * bufSize);
+	int InitializeFont(const std::string & fontFacePath);	
 	bool SetFontSizePixels(FontInfo & f, int size);
 	bool SetFontSizePts(FontInfo & f, int size, int dpi);
 	bool SetClosestFontSizeForBitmaps(FontInfo & f, int size);

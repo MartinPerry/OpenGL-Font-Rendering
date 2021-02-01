@@ -8,6 +8,8 @@
 
 #include "./Externalncludes.h"
 
+#include "./FontCache.h"
+
 #ifdef USE_VFS
 #	include "../../Utils/VFS/VFS.h"
 #endif
@@ -103,10 +105,12 @@ void FontBuilder::Release()
 		}
 	}
 
+	/*
 	for (auto & f : this->memoryFonts)
 	{
 		SAFE_DELETE_ARRAY(f);
 	}
+	*/
 }
 
 //================================================================
@@ -120,39 +124,6 @@ void FontBuilder::Release()
 bool FontBuilder::IsInited() const
 {
 	return this->library != nullptr;
-}
-
-/// <summary>
-/// Load font from file fontFacePath to a buffer
-/// </summary>
-/// <param name="fontFacePath"></param>
-/// <param name="bufSize"></param>
-/// <returns></returns>
-uint8_t * FontBuilder::LoadFontFromFile(const std::string & fontFacePath, size_t * bufSize)
-{
-#ifdef USE_VFS
-	return (uint8_t *)VFS::GetInstance()->GetFileContent(fontFacePath.c_str(), bufSize);
-#else
-
-	FILE * f = nullptr;
-	my_fopen(&f, fontFacePath.c_str(), "rb");
-
-	if (f == nullptr)
-	{
-		*bufSize = 0;
-		return nullptr;
-	}
-
-	fseek(f, 0, SEEK_END);
-	*bufSize = static_cast<size_t>(ftell(f));
-	fseek(f, 0, SEEK_SET);
-		
-	uint8_t * buf = new uint8_t[*bufSize];
-	fread(buf, sizeof(uint8_t), *bufSize, f);
-
-	fclose(f);
-	return buf;
-#endif
 }
 
 /// <summary>
@@ -172,8 +143,11 @@ int FontBuilder::InitializeFont(const std::string & fontFacePath)
 	std::string::size_type const p(fi.faceName.find_last_of('.'));
 	fi.faceName = fi.faceName.substr(0, p);
 
-	size_t bufSize = 0;
-	auto data = this->LoadFontFromFile(fontFacePath, &bufSize);
+	auto cache = FontCache::GetFontFace(fontFacePath);
+
+	size_t bufSize = cache.size;
+	auto data = cache.memory;
+
 	
 	if (data != nullptr)
 	{
