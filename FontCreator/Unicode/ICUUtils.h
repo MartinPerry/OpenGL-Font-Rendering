@@ -1,8 +1,10 @@
-#ifndef _ICU_UTILS_H_
-#define _ICU_UTILS_H_
+#ifndef ICU_UTILS_H
+#define ICU_UTILS_H
 
 
 #ifdef USE_ICU_LIBRARY
+
+#include <vector>
 
 //This is for ICU library
 

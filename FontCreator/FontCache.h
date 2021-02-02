@@ -3,6 +3,7 @@
 
 #include <cstdint>
 #include <string>
+#include <shared_mutex>
 
 #include <unordered_map>
 
@@ -20,11 +21,15 @@ public:
 
 	virtual	~FontCache();
 
-
+	static void Init();
 	static Cache GetFontFace(const std::string& fontFacePath);
 
 protected:
 	
+#ifdef THREAD_SAFETY
+	std::shared_timed_mutex m;
+#endif
+
 	std::unordered_map<std::string, Cache> cache;
 
 	FontCache();

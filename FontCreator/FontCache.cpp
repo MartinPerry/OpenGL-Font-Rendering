@@ -1,6 +1,7 @@
 #include "./FontCache.h"
 
 #include <memory>
+#include <mutex>
 
 #ifdef _MSC_VER
 #	ifndef my_fopen 
@@ -31,13 +32,30 @@ FontCache::~FontCache()
 
 FontCache* FontCache::GetInstance()
 {
-	static std::unique_ptr<FontCache> instance = std::unique_ptr<FontCache>(new FontCache());
+	static std::unique_ptr<FontCache> instance = nullptr;
+
+#ifdef THREAD_SAFETY
+	static std::once_flag flag;
+	std::call_once(flag, []() { instance = std::unique_ptr<FontCache>(new FontCache()); });
+#else
+	instance = std::unique_ptr<FontCache>(new FontCache());
+#endif
+
 	return instance.get();
+}
+
+void FontCache::Init()
+{
+	FontCache::GetInstance();
 }
 
 FontCache::Cache FontCache::GetFontFace(const std::string& fontFacePath)
 {	
 	auto instance = GetInstance();
+
+#ifdef THREAD_SAFETY
+	std::lock_guard<std::shared_timed_mutex> lk(instance->m);
+#endif
 
 	auto it = instance->cache.find(fontFacePath);
 	if (it != instance->cache.end())
