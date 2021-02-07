@@ -34,12 +34,15 @@ FontCache* FontCache::GetInstance()
 {
 	static std::unique_ptr<FontCache> instance = nullptr;
 
+	if (instance == nullptr)
+	{
 #ifdef THREAD_SAFETY
-	static std::once_flag flag;
-	std::call_once(flag, []() { instance = std::unique_ptr<FontCache>(new FontCache()); });
+		static std::once_flag flag;
+		std::call_once(flag, []() { instance = std::unique_ptr<FontCache>(new FontCache()); });
 #else
-	instance = std::unique_ptr<FontCache>(new FontCache());
+		instance = std::unique_ptr<FontCache>(new FontCache());
 #endif
+	}
 
 	return instance.get();
 }
