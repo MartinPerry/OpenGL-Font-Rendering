@@ -299,15 +299,7 @@ bool NumberRenderer::AddIntegralNumberInternal(long val,
 		}
 	}
 
-	NumberInfo i;
-	i.val = val;
-	if (val < 0)
-	{
-		i.negative = true;
-		val *= -1;
-	}
-	
-	i.intPart = static_cast<unsigned long>(val);
+	NumberInfo i(val);				
 	i.intPartOrder = this->GetIntDivisor(i.intPart);	
 
 	return this->AddNumber(i, x, y, rp, anchor, type);	

@@ -66,11 +66,14 @@ public:
 	void SetCanvasSize(int w, int h);
 	void SetFontTextureLinearFiler(bool val);
 	void SetAxisYOrigin(AxisYOrigin axisY);
+	void SetCaption(const UnicodeString& mark);
 	void SetCaption(const UnicodeString & mark, int offsetInPixels);
 	void SetCaptionOffset(int offsetInPixels);
 
+	const RenderSettings& GetRenderSettings() const;
 	int GetCanvasWidth() const;
 	int GetCanvasHeight() const;
+	int GetCaptionOffset() const;
 
 	std::shared_ptr<IFontShaderManager> GetShaderManager() const;
 

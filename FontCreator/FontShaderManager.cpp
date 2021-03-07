@@ -135,10 +135,10 @@ void SingleColorFontShaderManager::SetColor(float r, float g, float b, float a)
 /// </summary>
 void SingleColorFontShaderManager::GetAttributtesUniforms()
 {
-	GL_CHECK(positionLocation = glGetAttribLocation(shaderProgram, "POSITION"));
-	GL_CHECK(texCoordLocation = glGetAttribLocation(shaderProgram, "TEXCOORD0"));	
+    GL_CHECK(colorUniform = glGetUniformLocation(shaderProgram, "fontColor"));
 
-	GL_CHECK(colorUniform = glGetUniformLocation(shaderProgram, "fontColor"));
+	GL_CHECK(positionLocation = glGetAttribLocation(shaderProgram, "POSITION"));
+	GL_CHECK(texCoordLocation = glGetAttribLocation(shaderProgram, "TEXCOORD0"));		
 }
 
 void SingleColorFontShaderManager::BindVertexAtribs()

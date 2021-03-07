@@ -98,10 +98,23 @@ protected:
 		int h;	
 
 		NumberInfo() noexcept :
-			negative(false),
-			intPartOrder(0),
+			NumberInfo(0.0)
+		{
+		}
+
+		NumberInfo(double val) noexcept :
+			val((val < 0) ? -val : val),
+			negative(val < 0),
+			intPartOrder(static_cast<unsigned long>(val)),
 			intPart(0),
-			fractPartReverse(0)
+			fractPartReverse(0),
+			isDefaultColor(true),
+			anchor(TextAnchor::CENTER),
+			type(TextType::TEXT),
+			x(0),
+			y(0),
+			w(0),
+			h(0)
 		{}
 
 	} NumberInfo;

@@ -60,7 +60,8 @@ StringRenderer::StringRenderer(std::shared_ptr<FontBuilder> fb, const RenderSett
 }
 
 StringRenderer::StringRenderer(const FontBuilderSettings& fs, const RenderSettings& r, int glVersion,
-               const char * vSource, const char * pSource, std::shared_ptr<IFontShaderManager> sm) : 
+				const char * vSource, const char * pSource, 
+				std::shared_ptr<IFontShaderManager> sm) : 
 	AbstractRenderer(fs, r, glVersion, vSource, pSource, sm), 
 	isBidiEnabled(true), 
 	nlOffsetPx(0),
@@ -70,7 +71,8 @@ StringRenderer::StringRenderer(const FontBuilderSettings& fs, const RenderSettin
 }
 
 StringRenderer::StringRenderer(std::shared_ptr<FontBuilder> fb, const RenderSettings& r, int glVersion,
-	const char* vSource, const char* pSource, std::shared_ptr<IFontShaderManager> sm) :
+				const char* vSource, const char* pSource, 
+				std::shared_ptr<IFontShaderManager> sm) :
 	AbstractRenderer(fb, r, glVersion, vSource, pSource, sm),
 	isBidiEnabled(true),
 	nlOffsetPx(0),

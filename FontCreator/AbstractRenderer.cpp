@@ -87,8 +87,7 @@ AbstractRenderer::AbstractRenderer(std::shared_ptr<FontBuilder> fb, const Render
 AbstractRenderer::AbstractRenderer(const FontBuilderSettings& fs, const RenderSettings& r, int glVersion,
                  const char * vSource, const char * pSource, std::shared_ptr<IFontShaderManager> sm) :
 	AbstractRenderer(std::make_shared<FontBuilder>(fs), r, glVersion,
-		DEFAULT_VERTEX_SHADER_SOURCE, DEFAULT_PIXEL_SHADER_SOURCE,
-		std::make_shared<DefaultFontShaderManager>())
+		vSource, pSource, sm)
 {  	
 }
 
@@ -317,9 +316,14 @@ GLuint AbstractRenderer::LinkGLSLProgram(GLuint vertexShader, GLuint fragmentSha
 	return program;
 }
 
+void AbstractRenderer::SetCaption(const UnicodeString& mark)
+{
+	ci.mark = mark;
+}
+
 void AbstractRenderer::SetCaption(const UnicodeString & mark, int offsetInPixels)
 {
-	ci.mark = mark;	
+	this->SetCaption(mark);
 	this->SetCaptionOffset(offsetInPixels);
 }
 
@@ -390,6 +394,11 @@ std::shared_ptr<FontBuilder> AbstractRenderer::GetFontBuilder()
 	return this->fb;
 }
 
+const RenderSettings& AbstractRenderer::GetRenderSettings() const
+{
+	return this->rs;
+}
+
 int AbstractRenderer::GetCanvasWidth() const
 {
 	return this->rs.deviceW;
@@ -398,6 +407,11 @@ int AbstractRenderer::GetCanvasWidth() const
 int AbstractRenderer::GetCanvasHeight() const
 {
 	return this->rs.deviceH;
+}
+
+int AbstractRenderer::GetCaptionOffset() const
+{
+	return this->ci.offset;
 }
 
 std::shared_ptr<IFontShaderManager> AbstractRenderer::GetShaderManager() const
@@ -423,7 +437,8 @@ void AbstractRenderer::Render()
 	this->Render(nullptr, nullptr);
 }
 
-void AbstractRenderer::Render(std::function<void(GLuint)> preDrawCallback, std::function<void()> postDrawCallback)
+void AbstractRenderer::Render(std::function<void(GLuint)> preDrawCallback, 
+	std::function<void()> postDrawCallback)
 {
 	if (this->renderEnabled == false)
 	{

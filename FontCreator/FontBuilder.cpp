@@ -471,6 +471,11 @@ int FontBuilder::GetMaxFontPixelWidth() const
 	return maxWidth;
 }
 
+float FontBuilder::GetScreenScale() const
+{
+	return this->screenScale;
+}
+
 /// <summary>
 /// Get maximal pixel size of M glyph from all fonts
 /// that are not obly bitmap

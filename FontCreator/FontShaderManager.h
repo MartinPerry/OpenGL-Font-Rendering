@@ -48,9 +48,9 @@ public:
                         std::vector<float> & vec) override;
     	
 protected:
-    GLuint positionLocation;
-    GLuint texCoordLocation;
-    GLuint colorLocation;        
+    GLint positionLocation;
+    GLint texCoordLocation;
+    GLint colorLocation;        
 };
 
 class SingleColorFontShaderManager : public IFontShaderManager
@@ -72,11 +72,11 @@ public:
 	void PreRender() override;
 
 protected:
-	GLuint positionLocation;
-	GLuint texCoordLocation;	
-	GLuint colorUniform;
+	GLint positionLocation;
+	GLint texCoordLocation;	
+	GLint colorUniform;
 
 	float r, g, b, a;
 };
 
-#endif /* _FONT_SHADER_MANAGER_H_ */
+#endif /* FONT_SHADER_MANAGER_H */

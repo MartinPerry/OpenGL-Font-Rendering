@@ -44,6 +44,7 @@ public:
 	int GetMaxFontPixelHeight() const;
 	int GetMaxFontPixelWidth() const;
 	int GetMaxEmSize() const;
+	float GetScreenScale() const;
 
 	int GetMaxNewLineOffset() const;
 	int GetNewLineOffsetBasedOnGlyph(CHAR_CODE c);	
