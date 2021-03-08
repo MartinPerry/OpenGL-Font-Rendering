@@ -60,10 +60,13 @@
     <ClCompile Include="Utils\cJSON_JS.c">
       <Filter>Source Files\Utils</Filter>
     </ClCompile>
-    <ClCompile Include="AbstractRenderer.cpp">
+    <ClCompile Include="FontCache.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Utils\CharacterExtractor.cpp">
       <Filter>Source Files\Utils</Filter>
     </ClCompile>
-    <ClCompile Include="FontCache.cpp">
+    <ClCompile Include="AbstractRenderer.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

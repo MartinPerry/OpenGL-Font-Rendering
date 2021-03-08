@@ -109,7 +109,7 @@ int TextureAtlasPack::GetTextureHeight() const
 }
 
 
-const uint8_t * TextureAtlasPack::GetTexture() const
+const uint8_t * TextureAtlasPack::GetTextureData() const
 {
 	return this->rawPackedData;
 }

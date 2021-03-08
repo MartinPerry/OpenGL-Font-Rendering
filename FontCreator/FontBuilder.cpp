@@ -583,9 +583,9 @@ int FontBuilder::GetTextureHeight() const
 /// Get font texture raw data
 /// </summary>
 /// <returns></returns>
-const uint8_t * FontBuilder::GetTexture() const
+const uint8_t * FontBuilder::GetTextureData() const
 {
-	return this->texPacker->GetTexture();
+	return this->texPacker->GetTextureData();
 }
 
 /// <summary>

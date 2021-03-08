@@ -166,6 +166,7 @@
     <ClCompile Include="Unicode\tinyutf8.cpp" />
     <ClCompile Include="Unicode\uninorms.cpp" />
     <ClCompile Include="Unicode\utf8.cpp" />
+    <ClCompile Include="Utils\CharacterExtractor.cpp" />
     <ClCompile Include="Utils\cJSON_JS.c" />
   </ItemGroup>
   <ItemGroup>

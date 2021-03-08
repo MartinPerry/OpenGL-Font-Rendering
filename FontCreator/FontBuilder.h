@@ -53,7 +53,7 @@ public:
 
 	int GetTextureWidth() const;
 	int GetTextureHeight() const;
-	const uint8_t * GetTexture() const;
+	const uint8_t * GetTextureData() const;
 
 	bool CreateFontAtlas();
 		

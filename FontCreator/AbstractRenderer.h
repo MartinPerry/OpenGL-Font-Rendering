@@ -55,11 +55,7 @@ public:
     AbstractRenderer(const FontBuilderSettings& fs, const RenderSettings& r, int glVersion,
                      const char * vSource, const char * pSource, std::shared_ptr<IFontShaderManager> sm);
    
-	AbstractRenderer(std::shared_ptr<FontBuilder> fb, const RenderSettings& r, int glVersion);
-	AbstractRenderer(std::shared_ptr<FontBuilder> fb, const RenderSettings& r, int glVersion,
-		const char* vSource, const char* pSource, std::shared_ptr<IFontShaderManager> sm);
-
-
+	
 	virtual ~AbstractRenderer();
 
 	std::shared_ptr<FontBuilder> GetFontBuilder();
@@ -197,6 +193,11 @@ protected:
 	int glVersion;
 	
 	bool renderEnabled;
+
+	AbstractRenderer(std::shared_ptr<FontBuilder> fb, const RenderSettings& r, int glVersion);
+	AbstractRenderer(std::shared_ptr<FontBuilder> fb, const RenderSettings& r, int glVersion,
+		const char* vSource, const char* pSource, std::shared_ptr<IFontShaderManager> sm);
+
 
 	virtual bool GenerateGeometry() = 0;
 	 

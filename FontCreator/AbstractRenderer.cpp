@@ -77,6 +77,14 @@ AbstractRenderer::AbstractRenderer(const FontBuilderSettings& fs, const RenderSe
 {
 }
 
+AbstractRenderer::AbstractRenderer(const FontBuilderSettings& fs, const RenderSettings& r, int glVersion,
+                 const char * vSource, const char * pSource, std::shared_ptr<IFontShaderManager> sm) :
+	AbstractRenderer(std::make_shared<FontBuilder>(fs), r, glVersion,
+		vSource, pSource, sm)
+{  	
+}
+
+
 AbstractRenderer::AbstractRenderer(std::shared_ptr<FontBuilder> fb, const RenderSettings& r, int glVersion) :
 	AbstractRenderer(fb, r, glVersion,
 		DEFAULT_VERTEX_SHADER_SOURCE, DEFAULT_PIXEL_SHADER_SOURCE,
@@ -84,12 +92,6 @@ AbstractRenderer::AbstractRenderer(std::shared_ptr<FontBuilder> fb, const Render
 {
 }
 
-AbstractRenderer::AbstractRenderer(const FontBuilderSettings& fs, const RenderSettings& r, int glVersion,
-                 const char * vSource, const char * pSource, std::shared_ptr<IFontShaderManager> sm) :
-	AbstractRenderer(std::make_shared<FontBuilder>(fs), r, glVersion,
-		vSource, pSource, sm)
-{  	
-}
 
 AbstractRenderer::AbstractRenderer(std::shared_ptr<FontBuilder> fb, const RenderSettings& r, int glVersion,
 	const char* vSource, const char* pSource, std::shared_ptr<IFontShaderManager> sm) : 
@@ -136,6 +138,8 @@ AbstractRenderer::AbstractRenderer(std::shared_ptr<FontBuilder> fb, const Render
 AbstractRenderer::~AbstractRenderer()
 {
 	
+	this->fb =  nullptr;
+
 	//this will end in error, if OpenGL is not initialized during
 	//destruction
 	//however, that should be OK
@@ -517,7 +521,7 @@ void AbstractRenderer::FillTexture()
 	GL_CHECK(glTexSubImage2D(GL_TEXTURE_2D, 0,
 		0, 0,
 		this->fb->GetTextureWidth(), this->fb->GetTextureHeight(),
-		TEXTURE_SINGLE_CHANNEL, GL_UNSIGNED_BYTE, this->fb->GetTexture()));
+		TEXTURE_SINGLE_CHANNEL, GL_UNSIGNED_BYTE, this->fb->GetTextureData()));
 
 	FONT_UNBIND_TEXTURE_2D;
 }

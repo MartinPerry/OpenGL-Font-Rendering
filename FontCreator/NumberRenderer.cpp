@@ -121,6 +121,12 @@ void NumberRenderer::Init()
 			this->FillTexture();
 		}
 	}
+	else 
+	{
+		//Fill font texture
+		//from existing font builder
+		this->FillTexture();
+	}
 
 
 
