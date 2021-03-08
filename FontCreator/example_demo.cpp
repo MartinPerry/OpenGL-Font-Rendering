@@ -468,7 +468,7 @@ int main(int argc, char ** argv)
 	cr.AddDirectory("d:/Martin/Programming/test/Ventusky/Ventusky_v11/Preprocessing/GeneratedCities/cities/");
 	
 	cr.AddDirectory("d:/Martin/Programming/test/Ventusky/Ventusky_v11/_bundle_dir_/DATA/localization/");
-	cr.AddTextFromJsonFile("", [](cJSON * root, CharacterExtractor * ce) -> void {
+	cr.AddTextFromJsonFile("", [](const char * str, CharacterExtractor * ce) -> void {
 		
 	});
 	//cr.RemoveChar(utf8_string(u8"P")[0]);

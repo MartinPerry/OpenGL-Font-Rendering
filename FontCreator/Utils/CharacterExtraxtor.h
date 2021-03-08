@@ -1,8 +1,6 @@
 #ifndef CHARACTER_EXTRACTOR_H
 #define CHARACTER_EXTRACTOR_H
 
-struct cJSON;
-
 #include <set>
 #include <cstdint>
 #include <vector>
@@ -40,7 +38,7 @@ public:
 	void AddCharacter(uint32_t c);
 	void AddText(const UnicodeString & strU);
 	void AddTextFromFile(const std::string & filePath);
-	void AddTextFromJsonFile(const std::string & filePath, std::function<void(cJSON * root, CharacterExtractor * ce)> parseCallback);
+	void AddTextFromFile(const std::string & filePath, std::function<void(const char* str, CharacterExtractor * ce)> parseCallback);
 	void AddDirectory(const std::string & dirPath);
 
 	void RemoveChar(int32_t c);

@@ -17,7 +17,6 @@
 
 
 #include "../Unicode/ICUUtils.h"
-#include "./cJSON_JS.h"
 
 
 /*
@@ -273,23 +272,17 @@ void CharacterExtractor::AddTextFromFile(const std::string& filePath)
 /// </summary>
 /// <param name="filePath"></param>
 /// <param name="parseCallback"></param>
-void CharacterExtractor::AddTextFromJsonFile(const std::string& filePath,
-	std::function<void(cJSON* root, CharacterExtractor* ce)> parseCallback)
+void CharacterExtractor::AddTextFromFile(const std::string& filePath,
+	std::function<void(const char * str, CharacterExtractor* ce)> parseCallback)
 {
 	std::ifstream t(filePath);
 	std::string str((std::istreambuf_iterator<char>(t)), std::istreambuf_iterator<char>());
+	
+	
 
-	cJSON* root = cJSON_Parse(str.c_str());
-	if (root == nullptr)
-	{
-		return;
-	}
-
-	parseCallback(root, this);
+	parseCallback(str.c_str(), this);
 
 	//this->AddText(UTF8_UNESCAPE(str));
-
-	cJSON_Delete(root);
 };
 
 /// <summary>
