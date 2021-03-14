@@ -102,11 +102,11 @@ protected:
 		{
 		}
 
-		NumberInfo(double val) noexcept :
-			val((val < 0) ? -val : val),
-			negative(val < 0),
-			intPartOrder(static_cast<unsigned long>(val)),
-			intPart(0),
+		NumberInfo(double value) noexcept :
+			val((value < 0) ? -value : value),
+			negative(value < 0),
+			intPart(static_cast<unsigned long>(val)),
+			intPartOrder(0),
 			fractPartReverse(0),
 			isDefaultColor(true),
 			anchor(TextAnchor::CENTER),
