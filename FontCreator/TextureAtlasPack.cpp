@@ -217,9 +217,8 @@ bool TextureAtlasPack::PackGrid()
 					//this->AddToErased(g.fontIndex, g.code);
 					return false;
 				}
-
+				
 				auto it = this->packedInfo.find(removedCode);
-
 				info = it->second;
 				this->packedInfo.erase(it);
 			}

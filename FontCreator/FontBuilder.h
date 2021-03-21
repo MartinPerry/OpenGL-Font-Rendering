@@ -70,9 +70,8 @@ protected:
 
 	FT_Library library;
 	
-
 	std::vector<FontInfo> fis;
-	std::vector<uint8_t *> memoryFonts;
+	
 
 	std::unordered_set<CHAR_CODE> reused; //codes that were already added and are also in current string
 	std::unordered_set<CHAR_CODE> newCodes; //newly added codes

@@ -144,15 +144,10 @@ int FontBuilder::InitializeFont(const std::string & fontFacePath)
 	fi.faceName = fi.faceName.substr(0, p);
 
 	auto cache = FontCache::GetFontFace(fontFacePath);
-
-	size_t bufSize = cache.size;
-	auto data = cache.memory;
-
-	
-	if (data != nullptr)
-	{
-		memoryFonts.push_back(data);
-		error = FT_New_Memory_Face(this->library, data, bufSize, 0, &ff);
+		
+	if (cache.memory != nullptr)
+	{		
+		error = FT_New_Memory_Face(this->library, cache.memory, cache.size, 0, &ff);
 	}
 	else
 	{
@@ -334,7 +329,7 @@ void FontBuilder::UpdateBitmapFontsSizes(int maxEmSize)
 //================================================================
 
 /// <summary>
-/// Set size for font with name fonrName to fs
+/// Set size for font with name fontName to fs
 /// defaultFontSizeInPx - used only if FontSize type is em
 /// as a base size that is multiplied by em
 /// </summary>
