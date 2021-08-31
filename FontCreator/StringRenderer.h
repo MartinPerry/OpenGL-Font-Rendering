@@ -3,11 +3,11 @@
 
 class IFontShaderManager;
 
-#include "./AbstractRenderer.h"
+#include "./AbstractGLRenderer.h"
 
 #include "./Externalncludes.h"
 
-class StringRenderer : public AbstractRenderer
+class StringRenderer : public AbstractGLRenderer
 {
 public:
 
@@ -172,6 +172,7 @@ protected:
 		TextType type = TextType::TEXT);
 
 	bool GenerateGeometry() override;
+	void SaveToFile();
 
 	AABB EstimateStringAABB(const UnicodeString & str, float x, float y, float scale) const;
 	void CalcStringAABB(StringInfo & str, const UsedGlyphCache * gc) const;

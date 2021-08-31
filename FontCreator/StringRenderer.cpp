@@ -31,7 +31,7 @@ StringRenderer * StringRenderer::CreateSingleColor(Color color, const FontBuilde
 
 
 StringRenderer::StringRenderer(const FontBuilderSettings& fs, const RenderSettings& r, int glVersion) :
-	AbstractRenderer(fs, r, glVersion), 
+	AbstractGLRenderer(fs, r, glVersion),
 	isBidiEnabled(true), 
 	nlOffsetPx(0),
 	spaceSizeExist(false),
@@ -42,7 +42,7 @@ StringRenderer::StringRenderer(const FontBuilderSettings& fs, const RenderSettin
 StringRenderer::StringRenderer(const FontBuilderSettings& fs, const RenderSettings& r, int glVersion,
 				const char * vSource, const char * pSource, 
 				std::shared_ptr<IFontShaderManager> sm) : 
-	AbstractRenderer(fs, r, glVersion, vSource, pSource, sm), 
+	AbstractGLRenderer(fs, r, glVersion, vSource, pSource, sm),
 	isBidiEnabled(true), 
 	nlOffsetPx(0),
 	spaceSizeExist(false), 
@@ -66,7 +66,7 @@ void StringRenderer::Clear()
 	std::lock_guard<std::shared_timed_mutex> lk(m);
 #endif
 
-	AbstractRenderer::Clear();
+	AbstractGLRenderer::Clear();
 	this->strs.clear();
 }
 
@@ -205,7 +205,7 @@ bool StringRenderer::AddStringInternal(const UnicodeString & str,
 	int x, int y, const RenderParams & rp,
 	TextAnchor anchor, TextAlign align, TextType type)
 {
-	if (this->axisYOrigin == AbstractRenderer::AxisYOrigin::DOWN)
+	if (this->axisYOrigin == AbstractGLRenderer::AxisYOrigin::DOWN)
 	{
 		y = this->rs.deviceH - y;
 	}
@@ -291,7 +291,7 @@ bool StringRenderer::CanAddString(const UnicodeString & uniStr,
 		}
 	}
 
-	AbstractRenderer::AABB estimAABB = this->EstimateStringAABB(uniStr,
+	AbstractGLRenderer::AABB estimAABB = this->EstimateStringAABB(uniStr,
 		static_cast<float>(x), static_cast<float>(y), rp.scale);
 
 	//test if entire string is outside visible area	
@@ -329,10 +329,10 @@ bool StringRenderer::CanAddString(const UnicodeString & uniStr,
 /// <param name="x"></param>
 /// <param name="y"></param>
 /// <returns></returns>
-AbstractRenderer::AABB StringRenderer::EstimateStringAABB(const UnicodeString & str, 
+AbstractGLRenderer::AABB StringRenderer::EstimateStringAABB(const UnicodeString & str,
 	float x, float y, float scale) const
 {
-	AbstractRenderer::AABB aabb;
+	AbstractGLRenderer::AABB aabb;
 	
 	float maxGlyphHeight = this->fb->GetMaxFontPixelHeight() * scale;
     
@@ -698,7 +698,7 @@ bool StringRenderer::GenerateGeometry()
 
 	//Build geometry
 	
-    AbstractRenderer::Clear();
+	AbstractGLRenderer::Clear();
 	
 	this->geom.reserve(this->strs.size() * 80);
 
@@ -751,7 +751,66 @@ bool StringRenderer::GenerateGeometry()
 
 	this->strChanged = false;
 
+	this->SaveToFile();
+
 	this->FillVB();
 
 	return true;
+}
+
+void StringRenderer::SaveToFile()
+{
+	struct Vertex 
+	{
+		float x, y;
+		float u, v;		
+	};
+
+	struct Quad 
+	{
+		Vertex a;
+		Vertex b;
+		Vertex d;
+
+		Vertex b1;
+		Vertex c;
+		Vertex d1;
+	};
+
+	size_t count = this->geom.size() / (6 * (sizeof(Vertex) / sizeof(float)));
+	Quad* quads = reinterpret_cast<Quad*>(this->geom.data());
+
+	uint8_t* image = new uint8_t[this->GetCanvasWidth() * this->GetCanvasHeight()];
+	memset(image, 0, this->GetCanvasWidth()* this->GetCanvasHeight());
+
+	auto texData = this->fb->GetTextureData();
+
+	for (size_t i = 0; i < count; i++)
+	{
+		const Quad& q = quads[i];
+
+		float minX = ((q.a.x + 1.0) / 2.0) / this->psW;
+		float minY = ((-q.a.y + 1.0) / 2.0) / this->psH;
+
+		float maxX = ((q.c.x + 1.0) / 2.0) / this->psW;
+		float maxY = ((-q.c.y + 1.0) / 2.0) / this->psH;
+
+		float minU = q.a.u / this->tW;
+		float minV = q.a.v / this->tH;
+
+		float maxU = q.c.u / this->tW;
+		float maxV = q.c.v / this->tH;
+
+		for (int y = minY, v = minV; y < maxY; y++, v++)
+		{
+			for (int x = minX, u = minU; x < maxX; x++, u++)
+			{
+				image[x + y * this->GetCanvasWidth()] = texData[u + v * this->fb->GetTextureWidth()];
+			}
+		}
+	}
+
+	lodepng::encode("D://test.png", 
+		image, this->GetCanvasWidth(), this->GetCanvasHeight(),
+		LodePNGColorType::LCT_GREY, 8 * sizeof(uint8_t));
 }

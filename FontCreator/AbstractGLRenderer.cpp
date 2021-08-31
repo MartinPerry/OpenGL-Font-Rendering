@@ -1,4 +1,4 @@
-#include "./AbstractRenderer.h"
+#include "./AbstractGLRenderer.h"
 
 #include <limits>
 #include <algorithm>
@@ -18,11 +18,11 @@
 
 //=============================================================================
 
-const AbstractRenderer::Color AbstractRenderer::DEFAULT_COLOR = { 1,1,1,1 };
+const AbstractGLRenderer::Color AbstractGLRenderer::DEFAULT_COLOR = { 1,1,1,1 };
 
-const AbstractRenderer::RenderParams AbstractRenderer::DEFAULT_PARAMS = { DEFAULT_COLOR, 1.0f };
+const AbstractGLRenderer::RenderParams AbstractGLRenderer::DEFAULT_PARAMS = { DEFAULT_COLOR, 1.0f };
 
-std::vector<std::string> AbstractRenderer::GetFontsInDirectory(const std::string & fontDir)
+std::vector<std::string> AbstractGLRenderer::GetFontsInDirectory(const std::string & fontDir)
 {
 	std::vector<std::string> t;
 
@@ -70,30 +70,30 @@ std::vector<std::string> AbstractRenderer::GetFontsInDirectory(const std::string
 }
 
 
-AbstractRenderer::AbstractRenderer(const FontBuilderSettings& fs, const RenderSettings& r, int glVersion) :
-	AbstractRenderer(fs, r, glVersion,
+AbstractGLRenderer::AbstractGLRenderer(const FontBuilderSettings& fs, const RenderSettings& r, int glVersion) :
+	AbstractGLRenderer(fs, r, glVersion,
                        DEFAULT_VERTEX_SHADER_SOURCE, DEFAULT_PIXEL_SHADER_SOURCE,
                        std::make_shared<DefaultFontShaderManager>())
 {
 }
 
-AbstractRenderer::AbstractRenderer(const FontBuilderSettings& fs, const RenderSettings& r, int glVersion,
+AbstractGLRenderer::AbstractGLRenderer(const FontBuilderSettings& fs, const RenderSettings& r, int glVersion,
                  const char * vSource, const char * pSource, std::shared_ptr<IFontShaderManager> sm) :
-	AbstractRenderer(std::make_shared<FontBuilder>(fs), r, glVersion,
+	AbstractGLRenderer(std::make_shared<FontBuilder>(fs), r, glVersion,
 		vSource, pSource, sm)
 {  	
 }
 
 
-AbstractRenderer::AbstractRenderer(std::shared_ptr<FontBuilder> fb, const RenderSettings& r, int glVersion) :
-	AbstractRenderer(fb, r, glVersion,
+AbstractGLRenderer::AbstractGLRenderer(std::shared_ptr<FontBuilder> fb, const RenderSettings& r, int glVersion) :
+	AbstractGLRenderer(fb, r, glVersion,
 		DEFAULT_VERTEX_SHADER_SOURCE, DEFAULT_PIXEL_SHADER_SOURCE,
 		std::make_shared<DefaultFontShaderManager>())
 {
 }
 
 
-AbstractRenderer::AbstractRenderer(std::shared_ptr<FontBuilder> fb, const RenderSettings& r, int glVersion,
+AbstractGLRenderer::AbstractGLRenderer(std::shared_ptr<FontBuilder> fb, const RenderSettings& r, int glVersion,
 	const char* vSource, const char* pSource, std::shared_ptr<IFontShaderManager> sm) : 
 	rs(r),
 	fb(fb),
@@ -126,16 +126,16 @@ AbstractRenderer::AbstractRenderer(std::shared_ptr<FontBuilder> fb, const Render
 
 	this->InitGL();
 
-	this->psW = 1.0f / static_cast<float>(rs.deviceW); //pixel size in width
-	this->psH = 1.0f / static_cast<float>(rs.deviceH); //pixel size in height
+	this->psW = 1.0f / static_cast<float>(rs.deviceW); //1.0 / pixel size in width
+	this->psH = 1.0f / static_cast<float>(rs.deviceH); //1.0 / pixel size in height
 
-	this->tW = 1.0f / static_cast<float>(this->fb->GetTextureWidth());  //pixel size in width
-	this->tH = 1.0f / static_cast<float>(this->fb->GetTextureHeight()); //pixel size in height
+	this->tW = 1.0f / static_cast<float>(this->fb->GetTextureWidth());  //1.0 / pixel size in width
+	this->tH = 1.0f / static_cast<float>(this->fb->GetTextureHeight()); //1.0 / pixel size in height
 
 }
 
 
-AbstractRenderer::~AbstractRenderer()
+AbstractGLRenderer::~AbstractGLRenderer()
 {
 	
 	this->fb =  nullptr;
@@ -158,7 +158,7 @@ AbstractRenderer::~AbstractRenderer()
 /// <summary>
 /// Init OpenGL
 /// </summary>
-void AbstractRenderer::InitGL()
+void AbstractGLRenderer::InitGL()
 {
 
 	//create shader
@@ -218,7 +218,7 @@ void AbstractRenderer::InitGL()
 /// <summary>
 /// Create VAO
 /// </summary>
-void AbstractRenderer::CreateVAO()
+void AbstractGLRenderer::CreateVAO()
 {
 #ifdef __ANDROID_API__
 	if (glVersion == 2)
@@ -248,7 +248,7 @@ void AbstractRenderer::CreateVAO()
 /// <param name="target"></param>
 /// <param name="shader"></param>
 /// <returns></returns>
-GLuint AbstractRenderer::CompileGLSLShader(GLenum target, const char* shader)
+GLuint AbstractGLRenderer::CompileGLSLShader(GLenum target, const char* shader)
 {
 	GLuint object;
 
@@ -285,7 +285,7 @@ GLuint AbstractRenderer::CompileGLSLShader(GLenum target, const char* shader)
 /// <param name="vertexShader"></param>
 /// <param name="fragmentShader"></param>
 /// <returns></returns>
-GLuint AbstractRenderer::LinkGLSLProgram(GLuint vertexShader, GLuint fragmentShader)
+GLuint AbstractGLRenderer::LinkGLSLProgram(GLuint vertexShader, GLuint fragmentShader)
 {
 	GLuint program = 0;
 	GL_CHECK(program = glCreateProgram());
@@ -320,24 +320,24 @@ GLuint AbstractRenderer::LinkGLSLProgram(GLuint vertexShader, GLuint fragmentSha
 	return program;
 }
 
-void AbstractRenderer::SetCaption(const UnicodeString& mark)
+void AbstractGLRenderer::SetCaption(const UnicodeString& mark)
 {
 	ci.mark = mark;
 }
 
-void AbstractRenderer::SetCaption(const UnicodeString & mark, int offsetInPixels)
+void AbstractGLRenderer::SetCaption(const UnicodeString & mark, int offsetInPixels)
 {
 	this->SetCaption(mark);
 	this->SetCaptionOffset(offsetInPixels);
 }
 
-void AbstractRenderer::SetCaptionOffset(int offsetInPixels)
+void AbstractGLRenderer::SetCaptionOffset(int offsetInPixels)
 {
 	//take half of new line offset and add extra 20%
 	ci.offset = offsetInPixels;// static_cast<int>(this->fb->GetNewLineOffsetBasedOnGlyph(ci.mark[0]) * 0.5 * 1.2);	
 }
 
-void AbstractRenderer::SetFontTextureLinearFiler(bool val)
+void AbstractGLRenderer::SetFontTextureLinearFiler(bool val)
 {
 	this->rs.useTextureLinearFilter = val;	
 
@@ -357,7 +357,7 @@ void AbstractRenderer::SetFontTextureLinearFiler(bool val)
 	FONT_UNBIND_TEXTURE_2D;
 }
 
-void AbstractRenderer::SetCanvasSize(int w, int h)
+void AbstractGLRenderer::SetCanvasSize(int w, int h)
 {
 	this->rs.deviceW = w;
 	this->rs.deviceH = h;
@@ -368,7 +368,7 @@ void AbstractRenderer::SetCanvasSize(int w, int h)
 	this->strChanged = true;
 }
 
-void AbstractRenderer::SwapCanvasWidthHeight()
+void AbstractGLRenderer::SwapCanvasWidthHeight()
 {
 	std::swap(this->rs.deviceW, this->rs.deviceH);
 
@@ -378,47 +378,47 @@ void AbstractRenderer::SwapCanvasWidthHeight()
 	this->strChanged = true;
 }
 
-void AbstractRenderer::SetAxisYOrigin(AxisYOrigin axisY)
+void AbstractGLRenderer::SetAxisYOrigin(AxisYOrigin axisY)
 {
 	this->axisYOrigin = axisY;
 }
 
-void AbstractRenderer::SetEnabled(bool val)
+void AbstractGLRenderer::SetEnabled(bool val)
 {
 	this->renderEnabled = val;
 }
 
-bool AbstractRenderer::IsEnabled() const
+bool AbstractGLRenderer::IsEnabled() const
 {
 	return this->renderEnabled;
 }
 
-std::shared_ptr<FontBuilder> AbstractRenderer::GetFontBuilder()
+std::shared_ptr<FontBuilder> AbstractGLRenderer::GetFontBuilder()
 {
 	return this->fb;
 }
 
-const RenderSettings& AbstractRenderer::GetRenderSettings() const
+const RenderSettings& AbstractGLRenderer::GetRenderSettings() const
 {
 	return this->rs;
 }
 
-int AbstractRenderer::GetCanvasWidth() const
+int AbstractGLRenderer::GetCanvasWidth() const
 {
 	return this->rs.deviceW;
 }
 
-int AbstractRenderer::GetCanvasHeight() const
+int AbstractGLRenderer::GetCanvasHeight() const
 {
 	return this->rs.deviceH;
 }
 
-int AbstractRenderer::GetCaptionOffset() const
+int AbstractGLRenderer::GetCaptionOffset() const
 {
 	return this->ci.offset;
 }
 
-std::shared_ptr<IFontShaderManager> AbstractRenderer::GetShaderManager() const
+std::shared_ptr<IFontShaderManager> AbstractGLRenderer::GetShaderManager() const
 {
 	return this->sm;
 }
@@ -426,7 +426,7 @@ std::shared_ptr<IFontShaderManager> AbstractRenderer::GetShaderManager() const
 /// <summary>
 /// Remove all added strings
 /// </summary>
-void AbstractRenderer::Clear()
+void AbstractGLRenderer::Clear()
 {
 	this->strChanged = true;
 	this->geom.clear();
@@ -436,12 +436,12 @@ void AbstractRenderer::Clear()
 /// <summary>
 /// Render all fonts
 /// </summary>
-void AbstractRenderer::Render()
+void AbstractGLRenderer::Render()
 {
 	this->Render(nullptr, nullptr);
 }
 
-void AbstractRenderer::Render(std::function<void(GLuint)> preDrawCallback, 
+void AbstractGLRenderer::Render(std::function<void(GLuint)> preDrawCallback, 
 	std::function<void()> postDrawCallback)
 {
 	if (this->renderEnabled == false)
@@ -514,7 +514,7 @@ void AbstractRenderer::Render(std::function<void(GLuint)> preDrawCallback,
 
 
 
-void AbstractRenderer::FillTexture()
+void AbstractGLRenderer::FillTexture()
 {
 	FONT_BIND_TEXTURE_2D(this->fontTex);
 
@@ -532,7 +532,7 @@ void AbstractRenderer::FillTexture()
 /// <param name="gi"></param>
 /// <param name="x"></param>
 /// <param name="y"></param>
-void AbstractRenderer::AddQuad(const GlyphInfo & gi, float x, float y, const RenderParams & rp)
+void AbstractGLRenderer::AddQuad(const GlyphInfo & gi, float x, float y, const RenderParams & rp)
 {    
     float fx = x + gi.bmpX * rp.scale;
 	float fy = y - gi.bmpY * rp.scale;
@@ -556,7 +556,7 @@ void AbstractRenderer::AddQuad(const GlyphInfo & gi, float x, float y, const Ren
 }
 
 
-void AbstractRenderer::FillVB()
+void AbstractGLRenderer::FillVB()
 {
     if (this->geom.empty())
     {

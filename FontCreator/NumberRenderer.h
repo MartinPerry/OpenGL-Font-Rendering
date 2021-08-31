@@ -3,7 +3,7 @@
 
 #include <type_traits>
 
-#include "./AbstractRenderer.h"
+#include "./AbstractGLRenderer.h"
 
 #include "./Externalncludes.h"
 
@@ -12,7 +12,7 @@
 #define IS_FLOAT typename std::enable_if<std::is_floating_point<T>::value, bool>::type
 #define IS_INTEGRAL typename std::enable_if<std::is_integral<T>::value, bool>::type
 
-class NumberRenderer : public AbstractRenderer
+class NumberRenderer : public AbstractGLRenderer
 {
 public:
 
@@ -122,7 +122,7 @@ protected:
 	struct Precomputed 
 	{
 		GlyphInfo * gi[2];
-		AbstractRenderer::AABB aabb;
+		AbstractGLRenderer::AABB aabb;
 		int xOffset;
 	};
 
@@ -155,7 +155,7 @@ protected:
 
 	bool GenerateGeometry() override;
 
-	AbstractRenderer::AABB CalcNumberAABB(double val, int x, int y, 
+	AbstractGLRenderer::AABB CalcNumberAABB(double val, int x, int y,
 		bool negative, uint32_t intPart, uint64_t intPartOrder, uint32_t fractPartReversed);
 
 	

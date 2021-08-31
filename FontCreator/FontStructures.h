@@ -183,7 +183,7 @@ struct FontBuilderSettings
 
 	int screenDpi = 0;
 
-	//how many times is resolution bigger than displey pts units
+	//how many times is resolution bigger than display pts units
 	//used on iPhones
 	float screenScale = 1.0;
 

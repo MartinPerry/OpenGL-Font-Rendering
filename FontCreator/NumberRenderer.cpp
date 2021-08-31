@@ -51,7 +51,7 @@ NumberRenderer* NumberRenderer::CreateSingleColor(Color color, std::shared_ptr<F
 /// <param name="r"></param>
 /// <param name="glVersion"></param>
 NumberRenderer::NumberRenderer(const FontBuilderSettings& fs, const RenderSettings& r, int glVersion) :
-	AbstractRenderer(fs, r, glVersion),
+	AbstractGLRenderer(fs, r, glVersion),
 	decimalPlaces(0),
 	decimalMult(1),
 	checkIfExist(true)
@@ -60,7 +60,7 @@ NumberRenderer::NumberRenderer(const FontBuilderSettings& fs, const RenderSettin
 }
 
 NumberRenderer::NumberRenderer(std::shared_ptr<FontBuilder> fb, const RenderSettings& r, int glVersion) :
-	AbstractRenderer(fb, r, glVersion),
+	AbstractGLRenderer(fb, r, glVersion),
 	decimalPlaces(0),
 	decimalMult(1),
 	checkIfExist(true)
@@ -70,7 +70,7 @@ NumberRenderer::NumberRenderer(std::shared_ptr<FontBuilder> fb, const RenderSett
 
 NumberRenderer::NumberRenderer(const FontBuilderSettings& fs, const RenderSettings& r, int glVersion,
 	const char * vSource, const char * pSource, std::shared_ptr<IFontShaderManager> sm) : 
-	AbstractRenderer(fs, r, glVersion, vSource, pSource, sm),
+	AbstractGLRenderer(fs, r, glVersion, vSource, pSource, sm),
 	decimalPlaces(0),
 	decimalMult(1),
 	checkIfExist(true)
@@ -80,7 +80,7 @@ NumberRenderer::NumberRenderer(const FontBuilderSettings& fs, const RenderSettin
 
 NumberRenderer::NumberRenderer(std::shared_ptr<FontBuilder> fb, const RenderSettings& r, int glVersion,
 	const char* vSource, const char* pSource, std::shared_ptr<IFontShaderManager> sm) : 
-	AbstractRenderer(fb, r, glVersion, vSource, pSource, sm),
+	AbstractGLRenderer(fb, r, glVersion, vSource, pSource, sm),
 	decimalPlaces(0),
 	decimalMult(1),
 	checkIfExist(true)
@@ -264,7 +264,7 @@ void NumberRenderer::Clear()
 	std::lock_guard<std::shared_timed_mutex> lk(m);
 #endif
 
-	AbstractRenderer::Clear();
+	AbstractGLRenderer::Clear();
 	this->nmbrs.clear();
 }
 
@@ -283,7 +283,7 @@ bool NumberRenderer::AddIntegralNumberInternal(long val,
 	int x, int y, const RenderParams & rp,
 	TextAnchor anchor, TextType type)
 {
-	if (this->axisYOrigin == AbstractRenderer::AxisYOrigin::DOWN)
+	if (this->axisYOrigin == AbstractGLRenderer::AxisYOrigin::DOWN)
 	{
 		y = this->rs.deviceH - y;
 	}
@@ -325,7 +325,7 @@ bool NumberRenderer::AddFloatNumberInternal(double val,
 	int x, int y, const RenderParams & rp,
 	TextAnchor anchor, TextType type)
 {
-	if (this->axisYOrigin == AbstractRenderer::AxisYOrigin::DOWN)
+	if (this->axisYOrigin == AbstractGLRenderer::AxisYOrigin::DOWN)
 	{
 		y = this->rs.deviceH - y;
 	}
@@ -380,7 +380,7 @@ bool NumberRenderer::AddFloatNumberInternal(double val,
 bool NumberRenderer::AddNumber(NumberInfo & n, int x, int y, const RenderParams & rp,
 	TextAnchor anchor, TextType type)
 {
-	AbstractRenderer::AABB aabb = this->CalcNumberAABB(n.val, x, y, n.negative, 
+	AbstractGLRenderer::AABB aabb = this->CalcNumberAABB(n.val, x, y, n.negative,
 		n.intPart, n.intPartOrder, n.fractPartReverse);
 
 	//test if entire string is outside visible area
@@ -527,7 +527,7 @@ uint64_t NumberRenderer::GetIntDivisor(const uint32_t x) const noexcept
 /// <param name="intPart"></param>
 /// <param name="fractPartReversed"></param>
 /// <returns></returns>
-AbstractRenderer::AABB NumberRenderer::CalcNumberAABB(double val, int x, int y,
+AbstractGLRenderer::AABB NumberRenderer::CalcNumberAABB(double val, int x, int y,
 	bool negative, uint32_t intPart, uint64_t intPartOrder, uint32_t fractPartReversed)
 {	
 	//store offsets
@@ -538,7 +538,7 @@ AbstractRenderer::AABB NumberRenderer::CalcNumberAABB(double val, int x, int y,
 	y = 0; //not used
 	x = 0;
 
-	AbstractRenderer::AABB aabb;
+	AbstractGLRenderer::AABB aabb;
 	
 	if (negative)
 	{
@@ -654,7 +654,7 @@ bool NumberRenderer::GenerateGeometry()
 	}
 			
 	//Build geometry	
-    AbstractRenderer::Clear();
+	AbstractGLRenderer::Clear();
 	this->geom.reserve(400);
 	
 	for (const NumberRenderer::NumberInfo & si : this->nmbrs)

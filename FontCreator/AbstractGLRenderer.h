@@ -1,5 +1,5 @@
-#ifndef ABSTRACT_RENDERER_H
-#define ABSTRACT_RENDERER_H
+#ifndef ABSTRACT_GL_RENDERER_H
+#define ABSTRACT_GL_RENDERER_H
 
 class FontBuilder;
 class IFontShaderManager;
@@ -16,7 +16,7 @@ class IFontShaderManager;
 #include "./Externalncludes.h"
 
 
-class AbstractRenderer
+class AbstractGLRenderer
 {
 public:
 	enum class TextAlign {ALIGN_LEFT, ALIGN_CENTER};
@@ -51,12 +51,12 @@ public:
 
 	static std::vector<std::string> GetFontsInDirectory(const std::string & fontDir);
 
-	AbstractRenderer(const FontBuilderSettings& fs, const RenderSettings& r, int glVersion);
-    AbstractRenderer(const FontBuilderSettings& fs, const RenderSettings& r, int glVersion,
+	AbstractGLRenderer(const FontBuilderSettings& fs, const RenderSettings& r, int glVersion);
+	AbstractGLRenderer(const FontBuilderSettings& fs, const RenderSettings& r, int glVersion,
                      const char * vSource, const char * pSource, std::shared_ptr<IFontShaderManager> sm);
    
 	
-	virtual ~AbstractRenderer();
+	virtual ~AbstractGLRenderer();
 
 	std::shared_ptr<FontBuilder> GetFontBuilder();
 	void SetCanvasSize(int w, int h);
@@ -174,11 +174,11 @@ protected:
     int quadsCount;
 	std::vector<float> geom;
 	
-	float psW; //pixel size in width
-	float psH; //pixel size in height
+	float psW; //1.0 / pixel size in width
+	float psH; //1.0 / pixel size in height
 
-	float tW; //pixel size in width
-	float tH; //pixel size in height
+	float tW; //1.0 / pixel size in width
+	float tH; //1.0 / pixel size in height
 
 
 	bool strChanged;
@@ -194,8 +194,8 @@ protected:
 	
 	bool renderEnabled;
 
-	AbstractRenderer(std::shared_ptr<FontBuilder> fb, const RenderSettings& r, int glVersion);
-	AbstractRenderer(std::shared_ptr<FontBuilder> fb, const RenderSettings& r, int glVersion,
+	AbstractGLRenderer(std::shared_ptr<FontBuilder> fb, const RenderSettings& r, int glVersion);
+	AbstractGLRenderer(std::shared_ptr<FontBuilder> fb, const RenderSettings& r, int glVersion,
 		const char* vSource, const char* pSource, std::shared_ptr<IFontShaderManager> sm);
 
 

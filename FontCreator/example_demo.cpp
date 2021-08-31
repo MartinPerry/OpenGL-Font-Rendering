@@ -190,16 +190,16 @@ void display() {
 		//UTF8_TEXT("Ahoj\nsvete\nsvetg kuk"),
 		//UTF8_TEXT("H\n1023hPa"),
 		0.5f, 0.85f,
-		{ 1,1,0,1, 1.0 });
+		{ /*color*/ 1,1,0,1, /*scale*/ 1.0});
 
 	//=================================
 	//debug
 	auto & si = fr->GetLastStringInfo();	
 	if (si.lines.size() > 1)
 	{
-		si.lines[0].renderParams.scale = 2.0;
-		if (si.lines.size() > 1) si.lines[1].renderParams.scale = 0.8;
-		if (si.lines.size() > 2) si.lines[2].renderParams.scale = 3.0;
+		//si.lines[0].renderParams.scale = 2.0;
+		//if (si.lines.size() > 1) si.lines[1].renderParams.scale = 0.8;
+		//if (si.lines.size() > 2) si.lines[2].renderParams.scale = 3.0;
 	}
 	else
 	{
@@ -321,7 +321,7 @@ void initGL() {
 	f2.size = 16_pt;
 	*/
 
-	auto fontFiles = AbstractRenderer::GetFontsInDirectory("../fonts2/");
+	auto fontFiles = AbstractGLRenderer::GetFontsInDirectory("../fonts2/");
 
 	std::vector<Font> fonts;
 	for (auto d : fontFiles)
@@ -389,6 +389,7 @@ void initGL() {
 	fr->SetCaption(UTF8_TEXT(u8"\U0001F300"), 10);
 	fr->SetCaption(UTF8_TEXT(u8"\U00002b55"), 0);
 	fr->SetCaption(UTF8_TEXT(u8"*"), 0);
+	
 	
 	
 	//fr->AddStringCaption(u8"Pøíliš\nluouèkı\nkùò", 0.5f, 0.5f, { 1,1,0,1 });

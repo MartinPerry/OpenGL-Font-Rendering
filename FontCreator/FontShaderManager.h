@@ -4,7 +4,7 @@
 #include <vector>
 
 #include "./Externalncludes.h"
-#include "./AbstractRenderer.h"
+#include "./AbstractGLRenderer.h"
 
 class IFontShaderManager
 {
@@ -20,9 +20,9 @@ public:
     virtual void GetAttributtesUniforms() = 0;
     virtual void BindVertexAtribs() = 0;
     
-    virtual void FillVertexData(const AbstractRenderer::Vertex & minVertex,
-                                const AbstractRenderer::Vertex & maxVertex,
-                                const AbstractRenderer::RenderParams & rp,
+    virtual void FillVertexData(const AbstractGLRenderer::Vertex & minVertex,
+                                const AbstractGLRenderer::Vertex & maxVertex,
+                                const AbstractGLRenderer::RenderParams & rp,
                                 std::vector<float> & vec) = 0;
 
 	virtual void PreRender() {	}
@@ -42,9 +42,9 @@ public:
     void GetAttributtesUniforms() override;
     void BindVertexAtribs() override;
     
-    void FillVertexData(const AbstractRenderer::Vertex & minVertex,
-                        const AbstractRenderer::Vertex & maxVertex,
-                        const AbstractRenderer::RenderParams & rp,
+    void FillVertexData(const AbstractGLRenderer::Vertex & minVertex,
+                        const AbstractGLRenderer::Vertex & maxVertex,
+                        const AbstractGLRenderer::RenderParams & rp,
                         std::vector<float> & vec) override;
     	
 protected:
@@ -64,9 +64,9 @@ public:
 
 	void SetColor(float r, float g, float b, float a);
 
-	void FillVertexData(const AbstractRenderer::Vertex & minVertex,
-						const AbstractRenderer::Vertex & maxVertex,
-						const AbstractRenderer::RenderParams & rp,
+	void FillVertexData(const AbstractGLRenderer::Vertex & minVertex,
+						const AbstractGLRenderer::Vertex & maxVertex,
+						const AbstractGLRenderer::RenderParams & rp,
 						std::vector<float> & vec) override;
 
 	void PreRender() override;
