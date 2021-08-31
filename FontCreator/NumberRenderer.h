@@ -1,9 +1,11 @@
 #ifndef NUMBER_RENDERER_H
 #define NUMBER_RENDERER_H
 
+class GLRenderer;
+
 #include <type_traits>
 
-#include "./AbstractGLRenderer.h"
+#include "./AbstractRenderer.h"
 
 #include "./Externalncludes.h"
 
@@ -12,22 +14,19 @@
 #define IS_FLOAT typename std::enable_if<std::is_floating_point<T>::value, bool>::type
 #define IS_INTEGRAL typename std::enable_if<std::is_integral<T>::value, bool>::type
 
-class NumberRenderer : public AbstractGLRenderer
+class NumberRenderer : public AbstractRenderer
 {
 public:
 
 	static const std::string NUMBERS_STRING;
 
-	static NumberRenderer * CreateSingleColor(Color color, const FontBuilderSettings& fs, const RenderSettings& r, int glVersion = 3);
-	static NumberRenderer* CreateSingleColor(Color color, std::shared_ptr<FontBuilder> fb, const RenderSettings& r, int glVersion = 3);
+	static NumberRenderer * CreateSingleColor(Color color, const FontBuilderSettings& fs, std::unique_ptr<GLRenderer>&& renderer);
+	static NumberRenderer* CreateSingleColor(Color color, std::shared_ptr<FontBuilder> fb, std::unique_ptr<GLRenderer>&& renderer);
 
 
-	NumberRenderer(const FontBuilderSettings& fs, const RenderSettings& r, int glVersion = 3);
-	NumberRenderer(std::shared_ptr<FontBuilder> fb, const RenderSettings& r, int glVersion = 3);
-	NumberRenderer(const FontBuilderSettings& fs, const RenderSettings& r, int glVersion,
-		const char * vSource, const char * pSource, std::shared_ptr<IFontShaderManager> sm);
-	NumberRenderer(std::shared_ptr<FontBuilder> fb, const RenderSettings& r, int glVersion,
-		const char* vSource, const char* pSource, std::shared_ptr<IFontShaderManager> sm);
+	NumberRenderer(const FontBuilderSettings& fs, std::unique_ptr<GLRenderer>&& renderer);
+	NumberRenderer(std::shared_ptr<FontBuilder> fb, std::unique_ptr<GLRenderer>&& renderer);
+	
 	~NumberRenderer();
 
 	void SetExistenceCheck(bool val) noexcept;
@@ -122,7 +121,7 @@ protected:
 	struct Precomputed 
 	{
 		GlyphInfo * gi[2];
-		AbstractGLRenderer::AABB aabb;
+		AbstractRenderer::AABB aabb;
 		int xOffset;
 	};
 
@@ -155,7 +154,7 @@ protected:
 
 	bool GenerateGeometry() override;
 
-	AbstractGLRenderer::AABB CalcNumberAABB(double val, int x, int y,
+	AbstractRenderer::AABB CalcNumberAABB(double val, int x, int y,
 		bool negative, uint32_t intPart, uint64_t intPartOrder, uint32_t fractPartReversed);
 
 	

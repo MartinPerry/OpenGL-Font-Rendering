@@ -51,9 +51,9 @@ void DefaultFontShaderManager::BindVertexAtribs()
     
 }
 
-void DefaultFontShaderManager::FillVertexData(const AbstractGLRenderer::Vertex & minVertex,
-                                              const AbstractGLRenderer::Vertex & maxVertex,
-                                              const AbstractGLRenderer::RenderParams & rp,
+void DefaultFontShaderManager::FillVertexData(const AbstractRenderer::Vertex & minVertex,
+                                              const AbstractRenderer::Vertex & maxVertex,
+                                              const AbstractRenderer::RenderParams & rp,
                                               std::vector<float> & vec)
 {
     
@@ -168,9 +168,9 @@ void SingleColorFontShaderManager::PreRender()
 }
 
 void SingleColorFontShaderManager::FillVertexData(
-    const AbstractGLRenderer::Vertex & minVertex,
-	const AbstractGLRenderer::Vertex & maxVertex,
-	const AbstractGLRenderer::RenderParams & rp,
+    const AbstractRenderer::Vertex & minVertex,
+	const AbstractRenderer::Vertex & maxVertex,
+	const AbstractRenderer::RenderParams & rp,
 	std::vector<float> & vec)
 {
 

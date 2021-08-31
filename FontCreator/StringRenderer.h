@@ -1,13 +1,13 @@
 #ifndef STRING_RENDERER_H
 #define STRING_RENDERER_H
 
-class IFontShaderManager;
+class GLRenderer;
 
-#include "./AbstractGLRenderer.h"
+#include "./AbstractRenderer.h"
 
 #include "./Externalncludes.h"
 
-class StringRenderer : public AbstractGLRenderer
+class StringRenderer : public AbstractRenderer
 {
 public:
 
@@ -88,12 +88,10 @@ public:
 
 	};
 	
-	static StringRenderer* CreateSingleColor(Color color, const FontBuilderSettings& fs, const RenderSettings & r, int glVersion = 3);
+	static StringRenderer* CreateSingleColor(Color color, const FontBuilderSettings& fs, 
+		std::unique_ptr<GLRenderer>&& renderer);
 	
-	StringRenderer(const FontBuilderSettings& fs, const RenderSettings& r, int glVersion = 3);	
-    StringRenderer(const FontBuilderSettings& fs, const RenderSettings& r, int glVersion,
-                   const char * vSource, const char * pSource, std::shared_ptr<IFontShaderManager> sm);
-	
+	StringRenderer(const FontBuilderSettings& fs, std::unique_ptr<GLRenderer>&& renderer);
 	~StringRenderer();
 		
 	void Clear();

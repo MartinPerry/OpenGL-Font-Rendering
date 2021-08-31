@@ -7,6 +7,7 @@
 #include "./FontBuilder.h"
 #include "./FontShaderManager.h"
 
+#include "./GLRenderer.h"
 
 const std::string NumberRenderer::NUMBERS_STRING = "0123456789,.-";
 
@@ -20,27 +21,25 @@ const std::string NumberRenderer::NUMBERS_STRING = "0123456789,.-";
 /// <param name="r"></param>
 /// <param name="glVersion"></param>
 /// <returns></returns>
-NumberRenderer * NumberRenderer::CreateSingleColor(Color color, const FontBuilderSettings& fs, const RenderSettings& r, int glVersion)
+NumberRenderer * NumberRenderer::CreateSingleColor(Color color, const FontBuilderSettings& fs, 
+	std::unique_ptr<GLRenderer>&& renderer)
 {
 	
 	auto sm = std::make_shared<SingleColorFontShaderManager>();
 	sm->SetColor(color.r, color.g, color.b, color.a);
 
-	return new NumberRenderer(fs, r, glVersion,
-		SINGLE_COLOR_VERTEX_SHADER_SOURCE, SINGLE_COLOR_PIXEL_SHADER_SOURCE,
-		sm);
+	return new NumberRenderer(fs, std::move(renderer));
 
 }
 
-NumberRenderer* NumberRenderer::CreateSingleColor(Color color, std::shared_ptr<FontBuilder> fb, const RenderSettings& r, int glVersion)
+NumberRenderer* NumberRenderer::CreateSingleColor(Color color, std::shared_ptr<FontBuilder> fb, 
+	std::unique_ptr<GLRenderer>&& renderer)
 {
 
 	auto sm = std::make_shared<SingleColorFontShaderManager>();
 	sm->SetColor(color.r, color.g, color.b, color.a);
 
-	return new NumberRenderer(fb, r, glVersion,
-		SINGLE_COLOR_VERTEX_SHADER_SOURCE, SINGLE_COLOR_PIXEL_SHADER_SOURCE,
-		sm);
+	return new NumberRenderer(fb, std::move(renderer));
 
 }
 
@@ -50,8 +49,8 @@ NumberRenderer* NumberRenderer::CreateSingleColor(Color color, std::shared_ptr<F
 /// <param name="fs"></param>
 /// <param name="r"></param>
 /// <param name="glVersion"></param>
-NumberRenderer::NumberRenderer(const FontBuilderSettings& fs, const RenderSettings& r, int glVersion) :
-	AbstractGLRenderer(fs, r, glVersion),
+NumberRenderer::NumberRenderer(const FontBuilderSettings& fs, std::unique_ptr<GLRenderer>&& renderer) :
+	AbstractRenderer(fs, std::move(renderer)),
 	decimalPlaces(0),
 	decimalMult(1),
 	checkIfExist(true)
@@ -59,8 +58,8 @@ NumberRenderer::NumberRenderer(const FontBuilderSettings& fs, const RenderSettin
 	this->Init();
 }
 
-NumberRenderer::NumberRenderer(std::shared_ptr<FontBuilder> fb, const RenderSettings& r, int glVersion) :
-	AbstractGLRenderer(fb, r, glVersion),
+NumberRenderer::NumberRenderer(std::shared_ptr<FontBuilder> fb, std::unique_ptr<GLRenderer>&& renderer) :
+	AbstractRenderer(fb, std::move(renderer)),
 	decimalPlaces(0),
 	decimalMult(1),
 	checkIfExist(true)
@@ -68,25 +67,6 @@ NumberRenderer::NumberRenderer(std::shared_ptr<FontBuilder> fb, const RenderSett
 	this->Init();
 }
 
-NumberRenderer::NumberRenderer(const FontBuilderSettings& fs, const RenderSettings& r, int glVersion,
-	const char * vSource, const char * pSource, std::shared_ptr<IFontShaderManager> sm) : 
-	AbstractGLRenderer(fs, r, glVersion, vSource, pSource, sm),
-	decimalPlaces(0),
-	decimalMult(1),
-	checkIfExist(true)
-{
-	this->Init();
-}
-
-NumberRenderer::NumberRenderer(std::shared_ptr<FontBuilder> fb, const RenderSettings& r, int glVersion,
-	const char* vSource, const char* pSource, std::shared_ptr<IFontShaderManager> sm) : 
-	AbstractGLRenderer(fb, r, glVersion, vSource, pSource, sm),
-	decimalPlaces(0),
-	decimalMult(1),
-	checkIfExist(true)
-{
-	this->Init();
-}
 
 /// <summary>
 /// dtor
@@ -118,14 +98,14 @@ void NumberRenderer::Init()
 			//-------
 
 			//Fill font texture
-			this->FillTexture();
+			this->renderer->FillTexture();
 		}
 	}
 	else 
 	{
 		//Fill font texture
 		//from existing font builder
-		this->FillTexture();
+		this->renderer->FillTexture();
 	}
 
 
@@ -264,7 +244,7 @@ void NumberRenderer::Clear()
 	std::lock_guard<std::shared_timed_mutex> lk(m);
 #endif
 
-	AbstractGLRenderer::Clear();
+	AbstractRenderer::Clear();
 	this->nmbrs.clear();
 }
 
@@ -283,9 +263,9 @@ bool NumberRenderer::AddIntegralNumberInternal(long val,
 	int x, int y, const RenderParams & rp,
 	TextAnchor anchor, TextType type)
 {
-	if (this->axisYOrigin == AbstractGLRenderer::AxisYOrigin::DOWN)
+	if (this->axisYOrigin == AbstractRenderer::AxisYOrigin::DOWN)
 	{
-		y = this->rs.deviceH - y;
+		y = this->renderer->GetSettings().deviceH - y;
 	}
 
 	if (this->checkIfExist)
@@ -325,9 +305,9 @@ bool NumberRenderer::AddFloatNumberInternal(double val,
 	int x, int y, const RenderParams & rp,
 	TextAnchor anchor, TextType type)
 {
-	if (this->axisYOrigin == AbstractGLRenderer::AxisYOrigin::DOWN)
+	if (this->axisYOrigin == AbstractRenderer::AxisYOrigin::DOWN)
 	{
-		y = this->rs.deviceH - y;
+		y = this->renderer->GetSettings().deviceH - y;
 	}
 
 	if (this->checkIfExist)
@@ -380,7 +360,7 @@ bool NumberRenderer::AddFloatNumberInternal(double val,
 bool NumberRenderer::AddNumber(NumberInfo & n, int x, int y, const RenderParams & rp,
 	TextAnchor anchor, TextType type)
 {
-	AbstractGLRenderer::AABB aabb = this->CalcNumberAABB(n.val, x, y, n.negative,
+	AbstractRenderer::AABB aabb = this->CalcNumberAABB(n.val, x, y, n.negative,
 		n.intPart, n.intPartOrder, n.fractPartReverse);
 
 	//test if entire string is outside visible area
@@ -401,8 +381,8 @@ bool NumberRenderer::AddNumber(NumberInfo & n, int x, int y, const RenderParams 
 
 	if (aabb.maxX <= 0) return false;
 	if (aabb.maxY <= 0) return false;
-	if (aabb.minX > this->rs.deviceW) return false;
-	if (aabb.minY > this->rs.deviceH) return false;
+	if (aabb.minX > this->renderer->GetSettings().deviceW) return false;
+	if (aabb.minY > this->renderer->GetSettings().deviceH) return false;
 
 
 	//new visible number - add it
@@ -527,7 +507,7 @@ uint64_t NumberRenderer::GetIntDivisor(const uint32_t x) const noexcept
 /// <param name="intPart"></param>
 /// <param name="fractPartReversed"></param>
 /// <returns></returns>
-AbstractGLRenderer::AABB NumberRenderer::CalcNumberAABB(double val, int x, int y,
+AbstractRenderer::AABB NumberRenderer::CalcNumberAABB(double val, int x, int y,
 	bool negative, uint32_t intPart, uint64_t intPartOrder, uint32_t fractPartReversed)
 {	
 	//store offsets
@@ -538,7 +518,7 @@ AbstractGLRenderer::AABB NumberRenderer::CalcNumberAABB(double val, int x, int y
 	y = 0; //not used
 	x = 0;
 
-	AbstractGLRenderer::AABB aabb;
+	AbstractRenderer::AABB aabb;
 	
 	if (negative)
 	{
@@ -654,7 +634,7 @@ bool NumberRenderer::GenerateGeometry()
 	}
 			
 	//Build geometry	
-	AbstractGLRenderer::Clear();
+	AbstractRenderer::Clear();
 	this->geom.reserve(400);
 	
 	for (const NumberRenderer::NumberInfo & si : this->nmbrs)
@@ -743,7 +723,7 @@ bool NumberRenderer::GenerateGeometry()
 
 	this->strChanged = false;
 
-	this->FillVB();
+	this->renderer->FillVB();
 
 	return true;
 }

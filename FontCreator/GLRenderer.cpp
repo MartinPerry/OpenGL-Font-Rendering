@@ -1,4 +1,4 @@
-#include "./AbstractGLRenderer.h"
+#include "./GLRenderer.h"
 
 #include <limits>
 #include <algorithm>
@@ -18,96 +18,28 @@
 
 //=============================================================================
 
-const AbstractGLRenderer::Color AbstractGLRenderer::DEFAULT_COLOR = { 1,1,1,1 };
 
-const AbstractGLRenderer::RenderParams AbstractGLRenderer::DEFAULT_PARAMS = { DEFAULT_COLOR, 1.0f };
-
-std::vector<std::string> AbstractGLRenderer::GetFontsInDirectory(const std::string & fontDir)
-{
-	std::vector<std::string> t;
-
-	DIR * dir = opendir(fontDir.c_str());
-
-	if (dir == nullptr)
-	{
-		printf("Failed to open dir %s\n", fontDir.c_str());
-		return t;
-	}
-
-	struct dirent * ent;
-	std::string fullPath;
-
-	/* print all the files and directories within directory */
-	while ((ent = readdir(dir)) != nullptr)
-	{
-		if (ent->d_name[0] == '.')
-		{
-			continue;
-		}
-		if (ent->d_type == DT_REG)
-		{
-			fullPath = fontDir;
-#ifdef _WIN32
-			fullPath = dir->patt; //full path using Windows dirent
-			fullPath = fullPath.substr(0, fullPath.length() - 1);
-#else
-			if (fullPath[fullPath.length() - 1] != '/')
-			{
-				fullPath += '/';
-			}
-#endif				
-			fullPath += ent->d_name;
-
-
-			t.push_back(std::move(fullPath));
-		}
-	}
-
-
-	closedir(dir);
-
-	return t;
-}
-
-
-AbstractGLRenderer::AbstractGLRenderer(const FontBuilderSettings& fs, const RenderSettings& r, int glVersion) :
-	AbstractGLRenderer(fs, r, glVersion,
+GLRenderer::GLRenderer(const RenderSettings& r, int glVersion) :
+	GLRenderer(r, glVersion,
                        DEFAULT_VERTEX_SHADER_SOURCE, DEFAULT_PIXEL_SHADER_SOURCE,
                        std::make_shared<DefaultFontShaderManager>())
 {
 }
 
-AbstractGLRenderer::AbstractGLRenderer(const FontBuilderSettings& fs, const RenderSettings& r, int glVersion,
-                 const char * vSource, const char * pSource, std::shared_ptr<IFontShaderManager> sm) :
-	AbstractGLRenderer(std::make_shared<FontBuilder>(fs), r, glVersion,
-		vSource, pSource, sm)
-{  	
-}
-
-
-AbstractGLRenderer::AbstractGLRenderer(std::shared_ptr<FontBuilder> fb, const RenderSettings& r, int glVersion) :
-	AbstractGLRenderer(fb, r, glVersion,
-		DEFAULT_VERTEX_SHADER_SOURCE, DEFAULT_PIXEL_SHADER_SOURCE,
-		std::make_shared<DefaultFontShaderManager>())
-{
-}
-
-
-AbstractGLRenderer::AbstractGLRenderer(std::shared_ptr<FontBuilder> fb, const RenderSettings& r, int glVersion,
-	const char* vSource, const char* pSource, std::shared_ptr<IFontShaderManager> sm) : 
+GLRenderer::GLRenderer(const RenderSettings& r, int glVersion,
+	const char* vSource, const char* pSource, std::shared_ptr<IFontShaderManager> sm) :
+	mainRenderer(nullptr),
 	rs(r),
-	fb(fb),
-	renderEnabled(true),
 	glVersion(glVersion),
 	sm(sm),
-	ci({ UTF8_TEXT(u8""), 0 }),
-	axisYOrigin(AxisYOrigin::TOP),
-	quadsCount(0),
-	strChanged(false),
+	enabled(true),
 	vbo(0),
 	vao(0),
 	fontTex(0)
 {
+	this->psW = 1.0f / static_cast<float>(rs.deviceW); //pixel size in width
+	this->psH = 1.0f / static_cast<float>(rs.deviceH); //pixel size in height
+
 	this->shader.program = 0;
 	this->shader.pSource = pSource;
 	this->shader.vSource = vSource;
@@ -121,25 +53,15 @@ AbstractGLRenderer::AbstractGLRenderer(std::shared_ptr<FontBuilder> fb, const Re
 		this->shader.isDefault = false;
 	}
 
-	
-	this->SetCaption(UTF8_TEXT(u8"\u2022"), 10);
-
+		
 	this->InitGL();
-
-	this->psW = 1.0f / static_cast<float>(rs.deviceW); //1.0 / pixel size in width
-	this->psH = 1.0f / static_cast<float>(rs.deviceH); //1.0 / pixel size in height
-
-	this->tW = 1.0f / static_cast<float>(this->fb->GetTextureWidth());  //1.0 / pixel size in width
-	this->tH = 1.0f / static_cast<float>(this->fb->GetTextureHeight()); //1.0 / pixel size in height
-
+	
 }
 
 
-AbstractGLRenderer::~AbstractGLRenderer()
+GLRenderer::~GLRenderer()
 {
-	
-	this->fb =  nullptr;
-
+		
 	//this will end in error, if OpenGL is not initialized during
 	//destruction
 	//however, that should be OK
@@ -158,7 +80,7 @@ AbstractGLRenderer::~AbstractGLRenderer()
 /// <summary>
 /// Init OpenGL
 /// </summary>
-void AbstractGLRenderer::InitGL()
+void GLRenderer::InitGL()
 {
 
 	//create shader
@@ -189,15 +111,25 @@ void AbstractGLRenderer::InitGL()
 
 	//create VAO
 	this->CreateVAO();
+	
+}
 
-
+void GLRenderer::CreateTexture()
+{
+	if (this->fontTex != 0)
+	{
+		FONT_UNBIND_TEXTURE_2D;
+		GL_CHECK(glDeleteTextures(1, &this->fontTex));
+	}
 
 	//create texture
 	GL_CHECK(glGenTextures(1, &this->fontTex));
 	FONT_BIND_TEXTURE_2D(this->fontTex);
 
+	auto fb = mainRenderer->GetFontBuilder();
+
 	GL_CHECK(glTexImage2D(GL_TEXTURE_2D, 0, TEXTURE_SINGLE_CHANNEL,
-		this->fb->GetTextureWidth(), this->fb->GetTextureHeight(), 0,
+		fb->GetTextureWidth(), fb->GetTextureHeight(), 0,
 		TEXTURE_SINGLE_CHANNEL, GL_UNSIGNED_BYTE, nullptr));
 
 	if (this->rs.useTextureLinearFilter)
@@ -209,16 +141,15 @@ void AbstractGLRenderer::InitGL()
 	{
 		GL_CHECK(glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST));
 		GL_CHECK(glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST));
-	}	
+	}
 	GL_CHECK(glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE));
 	GL_CHECK(glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE));
 }
 
-
 /// <summary>
 /// Create VAO
 /// </summary>
-void AbstractGLRenderer::CreateVAO()
+void GLRenderer::CreateVAO()
 {
 #ifdef __ANDROID_API__
 	if (glVersion == 2)
@@ -248,7 +179,7 @@ void AbstractGLRenderer::CreateVAO()
 /// <param name="target"></param>
 /// <param name="shader"></param>
 /// <returns></returns>
-GLuint AbstractGLRenderer::CompileGLSLShader(GLenum target, const char* shader)
+GLuint GLRenderer::CompileGLSLShader(GLenum target, const char* shader)
 {
 	GLuint object;
 
@@ -285,7 +216,7 @@ GLuint AbstractGLRenderer::CompileGLSLShader(GLenum target, const char* shader)
 /// <param name="vertexShader"></param>
 /// <param name="fragmentShader"></param>
 /// <returns></returns>
-GLuint AbstractGLRenderer::LinkGLSLProgram(GLuint vertexShader, GLuint fragmentShader)
+GLuint GLRenderer::LinkGLSLProgram(GLuint vertexShader, GLuint fragmentShader)
 {
 	GLuint program = 0;
 	GL_CHECK(program = glCreateProgram());
@@ -320,24 +251,14 @@ GLuint AbstractGLRenderer::LinkGLSLProgram(GLuint vertexShader, GLuint fragmentS
 	return program;
 }
 
-void AbstractGLRenderer::SetCaption(const UnicodeString& mark)
+
+void GLRenderer::SetMainRenderer(AbstractRenderer* mainRenderer)
 {
-	ci.mark = mark;
+	this->mainRenderer = mainRenderer;
+	this->CreateTexture();
 }
 
-void AbstractGLRenderer::SetCaption(const UnicodeString & mark, int offsetInPixels)
-{
-	this->SetCaption(mark);
-	this->SetCaptionOffset(offsetInPixels);
-}
-
-void AbstractGLRenderer::SetCaptionOffset(int offsetInPixels)
-{
-	//take half of new line offset and add extra 20%
-	ci.offset = offsetInPixels;// static_cast<int>(this->fb->GetNewLineOffsetBasedOnGlyph(ci.mark[0]) * 0.5 * 1.2);	
-}
-
-void AbstractGLRenderer::SetFontTextureLinearFiler(bool val)
+void GLRenderer::SetFontTextureLinearFiler(bool val)
 {
 	this->rs.useTextureLinearFilter = val;	
 
@@ -357,7 +278,19 @@ void AbstractGLRenderer::SetFontTextureLinearFiler(bool val)
 	FONT_UNBIND_TEXTURE_2D;
 }
 
-void AbstractGLRenderer::SetCanvasSize(int w, int h)
+
+const RenderSettings& GLRenderer::GetSettings() const
+{
+	return this->rs;
+}
+
+std::shared_ptr<IFontShaderManager> GLRenderer::GetShaderManager() const
+{
+	return this->sm;
+}
+
+
+void GLRenderer::SetCanvasSize(int w, int h)
 {
 	this->rs.deviceW = w;
 	this->rs.deviceH = h;
@@ -365,97 +298,40 @@ void AbstractGLRenderer::SetCanvasSize(int w, int h)
 	this->psW = 1.0f / static_cast<float>(rs.deviceW); //pixel size in width
 	this->psH = 1.0f / static_cast<float>(rs.deviceH); //pixel size in height
 
-	this->strChanged = true;
 }
 
-void AbstractGLRenderer::SwapCanvasWidthHeight()
+void GLRenderer::SwapCanvasWidthHeight()
 {
 	std::swap(this->rs.deviceW, this->rs.deviceH);
 
 	this->psW = 1.0f / static_cast<float>(rs.deviceW); //pixel size in width
 	this->psH = 1.0f / static_cast<float>(rs.deviceH); //pixel size in height
 
-	this->strChanged = true;
-}
-
-void AbstractGLRenderer::SetAxisYOrigin(AxisYOrigin axisY)
-{
-	this->axisYOrigin = axisY;
-}
-
-void AbstractGLRenderer::SetEnabled(bool val)
-{
-	this->renderEnabled = val;
-}
-
-bool AbstractGLRenderer::IsEnabled() const
-{
-	return this->renderEnabled;
-}
-
-std::shared_ptr<FontBuilder> AbstractGLRenderer::GetFontBuilder()
-{
-	return this->fb;
-}
-
-const RenderSettings& AbstractGLRenderer::GetRenderSettings() const
-{
-	return this->rs;
-}
-
-int AbstractGLRenderer::GetCanvasWidth() const
-{
-	return this->rs.deviceW;
-}
-
-int AbstractGLRenderer::GetCanvasHeight() const
-{
-	return this->rs.deviceH;
-}
-
-int AbstractGLRenderer::GetCaptionOffset() const
-{
-	return this->ci.offset;
-}
-
-std::shared_ptr<IFontShaderManager> AbstractGLRenderer::GetShaderManager() const
-{
-	return this->sm;
-}
-
-/// <summary>
-/// Remove all added strings
-/// </summary>
-void AbstractGLRenderer::Clear()
-{
-	this->strChanged = true;
-	this->geom.clear();
-    this->quadsCount = 0;
 }
 
 /// <summary>
 /// Render all fonts
 /// </summary>
-void AbstractGLRenderer::Render()
+void GLRenderer::Render()
 {
 	this->Render(nullptr, nullptr);
 }
 
-void AbstractGLRenderer::Render(std::function<void(GLuint)> preDrawCallback, 
+void GLRenderer::Render(std::function<void(GLuint)> preDrawCallback, 
 	std::function<void()> postDrawCallback)
 {
-	if (this->renderEnabled == false)
+	if (this->enabled == false)
 	{
 		return;
 	}
 
 #ifdef THREAD_SAFETY
-	std::shared_lock<std::shared_timed_mutex> lk(m);
+	std::shared_lock<std::shared_timed_mutex> lk(mainRenderer->m);
 #endif
 
-	bool vboChanged = this->GenerateGeometry();
+	bool vboChanged = this->mainRenderer->GenerateGeometry();
 
-	if (geom.empty())
+	if (mainRenderer->geom.empty())
 	{
 		return;
 	}
@@ -492,7 +368,7 @@ void AbstractGLRenderer::Render(std::function<void(GLuint)> preDrawCallback,
         preDrawCallback(shader.program);
     }
     
-	GL_CHECK(glDrawArrays(GL_TRIANGLES, 0, quadsCount * 6));
+	GL_CHECK(glDrawArrays(GL_TRIANGLES, 0, mainRenderer->quadsCount * 6));
 
 	if (postDrawCallback != nullptr)
 	{
@@ -514,14 +390,16 @@ void AbstractGLRenderer::Render(std::function<void(GLuint)> preDrawCallback,
 
 
 
-void AbstractGLRenderer::FillTexture()
+void GLRenderer::FillTexture()
 {
+	auto fb = mainRenderer->GetFontBuilder();
+
 	FONT_BIND_TEXTURE_2D(this->fontTex);
 
 	GL_CHECK(glTexSubImage2D(GL_TEXTURE_2D, 0,
 		0, 0,
-		this->fb->GetTextureWidth(), this->fb->GetTextureHeight(),
-		TEXTURE_SINGLE_CHANNEL, GL_UNSIGNED_BYTE, this->fb->GetTextureData()));
+		fb->GetTextureWidth(), fb->GetTextureHeight(),
+		TEXTURE_SINGLE_CHANNEL, GL_UNSIGNED_BYTE, fb->GetTextureData()));
 
 	FONT_UNBIND_TEXTURE_2D;
 }
@@ -532,38 +410,41 @@ void AbstractGLRenderer::FillTexture()
 /// <param name="gi"></param>
 /// <param name="x"></param>
 /// <param name="y"></param>
-void AbstractGLRenderer::AddQuad(const GlyphInfo & gi, float x, float y, const RenderParams & rp)
+void GLRenderer::AddQuad(const GlyphInfo & gi, float x, float y, const AbstractRenderer::RenderParams & rp)
 {    
     float fx = x + gi.bmpX * rp.scale;
 	float fy = y - gi.bmpY * rp.scale;
     	
     //build geometry
-    Vertex min, max;
+	AbstractRenderer::Vertex min, max;
     
     min.x = fx * psW;
     min.y = fy * psH;
-    min.u = static_cast<float>(gi.tx) * tW;
-    min.v = static_cast<float>(gi.ty) * tH;
+    min.u = static_cast<float>(gi.tx) * mainRenderer->tW;
+    min.v = static_cast<float>(gi.ty) * mainRenderer->tH;
     
     max.x = (fx + gi.bmpW * rp.scale) * psW;
     max.y = (fy + gi.bmpH * rp.scale) * psH;
-    max.u = static_cast<float>(gi.tx + gi.bmpW) * tW;
-    max.v = static_cast<float>(gi.ty + gi.bmpH) * tH;
+    max.u = static_cast<float>(gi.tx + gi.bmpW) * mainRenderer->tW;
+    max.v = static_cast<float>(gi.ty + gi.bmpH) * mainRenderer->tH;
     
-    this->sm->FillVertexData(min, max, rp, this->geom);
+    this->sm->FillVertexData(min, max, rp, mainRenderer->geom);
     
-    this->quadsCount++;
+	mainRenderer->quadsCount++;
 }
 
 
-void AbstractGLRenderer::FillVB()
+void GLRenderer::FillVB()
 {
-    if (this->geom.empty())
+    if (mainRenderer->geom.empty())
     {
         return;
     }
     
 	FONT_BIND_ARRAY_BUFFER(this->vbo);
-	GL_CHECK(glBufferData(GL_ARRAY_BUFFER, this->geom.size() * sizeof(float), this->geom.data(), GL_STREAM_DRAW));
+	GL_CHECK(glBufferData(GL_ARRAY_BUFFER, 
+		mainRenderer->geom.size() * sizeof(float), 
+		mainRenderer->geom.data(), 
+		GL_STREAM_DRAW));
 	FONT_UNBIND_ARRAY_BUFFER;
 }

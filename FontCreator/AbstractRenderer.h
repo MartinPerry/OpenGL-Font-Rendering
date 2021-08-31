@@ -1,8 +1,8 @@
-#ifndef ABSTRACT_GL_RENDERER_H
-#define ABSTRACT_GL_RENDERER_H
+#ifndef ABSTRACT_RENDERER_H
+#define ABSTRACT_RENDERER_H
 
 class FontBuilder;
-class IFontShaderManager;
+class GLRenderer;
 
 #include <vector>
 #include <list>
@@ -16,30 +16,30 @@ class IFontShaderManager;
 #include "./Externalncludes.h"
 
 
-class AbstractGLRenderer
+class AbstractRenderer
 {
 public:
-	enum class TextAlign {ALIGN_LEFT, ALIGN_CENTER};
+	enum class TextAlign { ALIGN_LEFT, ALIGN_CENTER };
 	enum class TextAnchor { LEFT_TOP, CENTER, LEFT_DOWN };
 	enum class TextType { TEXT, CAPTION };
 	enum class AxisYOrigin { TOP, DOWN };
 
-    struct Vertex
-    {
-        float x, y;
-        float u, v;
-    };
+	struct Vertex
+	{
+		float x, y;
+		float u, v;
+	};
 
 	struct Color
-    {
-        float r, g, b, a;
-        bool IsSame(const Color & c) const noexcept 
+	{
+		float r, g, b, a;
+		bool IsSame(const Color& c) const noexcept
 		{
-            return (c.r == r) && (c.g == g) &&
-				   (c.b == b) && (c.a == a); 
+			return (c.r == r) && (c.g == g) &&
+				(c.b == b) && (c.a == a);
 		}
-    };
-	
+	};
+
 	struct RenderParams
 	{
 		Color color;
@@ -49,21 +49,21 @@ public:
 	static const Color DEFAULT_COLOR;
 	static const RenderParams DEFAULT_PARAMS;
 
-	static std::vector<std::string> GetFontsInDirectory(const std::string & fontDir);
+	static std::vector<std::string> GetFontsInDirectory(const std::string& fontDir);
 
-	AbstractGLRenderer(const FontBuilderSettings& fs, const RenderSettings& r, int glVersion);
-	AbstractGLRenderer(const FontBuilderSettings& fs, const RenderSettings& r, int glVersion,
-                     const char * vSource, const char * pSource, std::shared_ptr<IFontShaderManager> sm);
-   
+	AbstractRenderer(const FontBuilderSettings& fs, std::unique_ptr<GLRenderer>&& renderer);
+
+
+	virtual ~AbstractRenderer();
 	
-	virtual ~AbstractGLRenderer();
+	GLRenderer* GetRenderer() const;
 
 	std::shared_ptr<FontBuilder> GetFontBuilder();
 	void SetCanvasSize(int w, int h);
-	void SetFontTextureLinearFiler(bool val);
+	
 	void SetAxisYOrigin(AxisYOrigin axisY);
 	void SetCaption(const UnicodeString& mark);
-	void SetCaption(const UnicodeString & mark, int offsetInPixels);
+	void SetCaption(const UnicodeString& mark, int offsetInPixels);
 	void SetCaptionOffset(int offsetInPixels);
 
 	const RenderSettings& GetRenderSettings() const;
@@ -71,22 +71,18 @@ public:
 	int GetCanvasHeight() const;
 	int GetCaptionOffset() const;
 
-	std::shared_ptr<IFontShaderManager> GetShaderManager() const;
-
+	
 	void SwapCanvasWidthHeight();
 
 	void Clear();
 
-	void SetEnabled(bool val);
-	bool IsEnabled() const;
-
-	void Render();
-    void Render(std::function<void(GLuint)> preDrawCallback, std::function<void()> postDrawCallback);
 	
-
+	virtual void Render();
 	
+	friend class GLRenderer;
+
 protected:
-	        
+
 	struct CaptionInfo
 	{
 		UnicodeString mark;
@@ -101,9 +97,9 @@ protected:
 
 		float minY;
 		float maxY;
-		
 
-		AABB() noexcept : 
+
+		AABB() noexcept :
 			minX(static_cast<float>(std::numeric_limits<int>::max())),
 			minY(static_cast<float>(std::numeric_limits<int>::max())),
 			maxX(static_cast<float>(std::numeric_limits<int>::min())),
@@ -125,7 +121,7 @@ protected:
 			return maxY - minY;
 		}
 
-		void GetCenter(float & x, float & y) const noexcept
+		void GetCenter(float& x, float& y) const noexcept
 		{
 			x = minX + this->GetWidth() * 0.5f;
 			y = minY + this->GetHeight() * 0.5f;
@@ -139,7 +135,7 @@ protected:
 			if (y + h > maxY) maxY = y + h;
 		}
 
-		void UnionWithOffset(const AABB & b, float xOffset) noexcept
+		void UnionWithOffset(const AABB& b, float xOffset) noexcept
 		{
 			minX = std::min(minX, b.minX + xOffset);
 			minY = std::min(minY, b.minY);
@@ -147,36 +143,21 @@ protected:
 			maxX = std::max(maxX, b.maxX + xOffset);
 			maxY = std::max(maxY, b.maxY);
 		}
-		
+
 
 	};
-	
-	struct Shader
-	{
-        GLuint program;
 
-		const char * vSource;
-		const char * pSource;
-        bool isDefault;        
-	};
-
-
-
-    std::shared_ptr<IFontShaderManager> sm;
-    RenderSettings rs;
-    
 	std::shared_ptr<FontBuilder> fb;
-	
+	std::unique_ptr<GLRenderer> renderer;
+
 	CaptionInfo ci;
 
 	AxisYOrigin axisYOrigin;
 
-    int quadsCount;
+	int quadsCount;
 	std::vector<float> geom;
-	
-	float psW; //1.0 / pixel size in width
-	float psH; //1.0 / pixel size in height
 
+	
 	float tW; //1.0 / pixel size in width
 	float tH; //1.0 / pixel size in height
 
@@ -185,31 +166,14 @@ protected:
 #ifdef THREAD_SAFETY
 	std::shared_timed_mutex m;
 #endif
-
-	GLuint vbo;
-	GLuint vao;
-	GLuint fontTex;
-	Shader shader;
-	int glVersion;
-	
-	bool renderEnabled;
-
-	AbstractGLRenderer(std::shared_ptr<FontBuilder> fb, const RenderSettings& r, int glVersion);
-	AbstractGLRenderer(std::shared_ptr<FontBuilder> fb, const RenderSettings& r, int glVersion,
-		const char* vSource, const char* pSource, std::shared_ptr<IFontShaderManager> sm);
-
+		
+	AbstractRenderer(std::shared_ptr<FontBuilder> fb, std::unique_ptr<GLRenderer>&& renderer);
 
 	virtual bool GenerateGeometry() = 0;
-	 
-	void InitGL();
-	
-	void CreateVAO();
-	GLuint CompileGLSLShader(GLenum target, const char* shader);
-	GLuint LinkGLSLProgram(GLuint vertexShader, GLuint fragmentShader);
 
-    void AddQuad(const GlyphInfo & gi, float x, float y, const RenderParams & rp);
-	void FillTexture();
-	void FillVB();
+	
+	virtual void AddQuad(const GlyphInfo& gi, float x, float y, const RenderParams& rp);
+
 };
 
 #endif

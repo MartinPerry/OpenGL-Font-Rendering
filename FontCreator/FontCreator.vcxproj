@@ -154,10 +154,11 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="AbstractGLRenderer.cpp" />
+    <ClCompile Include="AbstractRenderer.cpp" />
     <ClCompile Include="FontBuilder.cpp" />
     <ClCompile Include="FontCache.cpp" />
     <ClCompile Include="FontShaderManager.cpp" />
+    <ClCompile Include="GLRenderer.cpp" />
     <ClCompile Include="lodepng.cpp" />
     <ClCompile Include="example_demo.cpp" />
     <ClCompile Include="NumberRenderer.cpp" />
@@ -170,12 +171,13 @@
     <ClCompile Include="Utils\cJSON_JS.c" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="AbstractGLRenderer.h" />
+    <ClInclude Include="AbstractRenderer.h" />
     <ClInclude Include="Externalncludes.h" />
     <ClInclude Include="FontBuilder.h" />
     <ClInclude Include="FontCache.h" />
     <ClInclude Include="FontShaderManager.h" />
     <ClInclude Include="FontStructures.h" />
+    <ClInclude Include="GLRenderer.h" />
     <ClInclude Include="lodepng.h" />
     <ClInclude Include="NumberRenderer.h" />
     <ClInclude Include="Shaders.h" />

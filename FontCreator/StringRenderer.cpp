@@ -6,6 +6,8 @@
 #include "./FontBuilder.h"
 #include "./FontShaderManager.h"
 
+#include "./GLRenderer.h"
+
 #include "./Externalncludes.h"
 
 /// <summary>
@@ -18,34 +20,24 @@
 /// <param name="r"></param>
 /// <param name="glVersion"></param>
 /// <returns></returns>
-StringRenderer * StringRenderer::CreateSingleColor(Color color, const FontBuilderSettings& fs, const RenderSettings & r, int glVersion)
+StringRenderer * StringRenderer::CreateSingleColor(Color color, 
+	const FontBuilderSettings& fs, 
+	std::unique_ptr<GLRenderer>&& renderer)
 {
 	auto sm = std::make_shared<SingleColorFontShaderManager>();
 	sm->SetColor(color.r, color.g, color.b, color.a);
 
-	return new StringRenderer(fs, r, glVersion, 
-		SINGLE_COLOR_VERTEX_SHADER_SOURCE, SINGLE_COLOR_PIXEL_SHADER_SOURCE,
-		sm);
+	return new StringRenderer(fs, std::move(renderer));
 
 }
 
 
-StringRenderer::StringRenderer(const FontBuilderSettings& fs, const RenderSettings& r, int glVersion) :
-	AbstractGLRenderer(fs, r, glVersion),
+StringRenderer::StringRenderer(const FontBuilderSettings& fs, 
+	std::unique_ptr<GLRenderer>&& renderer) :
+	AbstractRenderer(fs, std::move(renderer)),
 	isBidiEnabled(true), 
 	nlOffsetPx(0),
 	spaceSizeExist(false),
-	spaceSize(10)
-{
-}
-
-StringRenderer::StringRenderer(const FontBuilderSettings& fs, const RenderSettings& r, int glVersion,
-				const char * vSource, const char * pSource, 
-				std::shared_ptr<IFontShaderManager> sm) : 
-	AbstractGLRenderer(fs, r, glVersion, vSource, pSource, sm),
-	isBidiEnabled(true), 
-	nlOffsetPx(0),
-	spaceSizeExist(false), 
 	spaceSize(10)
 {
 }
@@ -66,7 +58,7 @@ void StringRenderer::Clear()
 	std::lock_guard<std::shared_timed_mutex> lk(m);
 #endif
 
-	AbstractGLRenderer::Clear();
+	AbstractRenderer::Clear();
 	this->strs.clear();
 }
 
@@ -100,8 +92,8 @@ void StringRenderer::SetBidiEnabled(bool val)
 bool StringRenderer::AddStringCaption(const char * str,
 	double x, double y, const RenderParams & rp)
 {
-	int xx = static_cast<int>(x * this->rs.deviceW);
-	int yy = static_cast<int>(y * this->rs.deviceH);
+	int xx = static_cast<int>(x * this->renderer->GetSettings().deviceW);
+	int yy = static_cast<int>(y * this->renderer->GetSettings().deviceH);
 
 	return this->AddStringCaption(UTF8_TEXT(str), xx, yy, rp);
 }
@@ -109,8 +101,8 @@ bool StringRenderer::AddStringCaption(const char * str,
 bool StringRenderer::AddStringCaption(const UnicodeString & str,
 	double x, double y, const RenderParams & rp)
 {
-	int xx = static_cast<int>(x * this->rs.deviceW);
-	int yy = static_cast<int>(y * this->rs.deviceH);
+	int xx = static_cast<int>(x * this->renderer->GetSettings().deviceW);
+	int yy = static_cast<int>(y * this->renderer->GetSettings().deviceH);
 
 	return this->AddStringCaption(str, xx, yy, rp);
 }
@@ -144,8 +136,8 @@ bool StringRenderer::AddString(const char * str,
 	double x, double y, const RenderParams & rp,
 	TextAnchor anchor, TextAlign align)
 {
-	int xx = static_cast<int>(x * this->rs.deviceW);
-	int yy = static_cast<int>(y * this->rs.deviceH);
+	int xx = static_cast<int>(x * this->renderer->GetSettings().deviceW);
+	int yy = static_cast<int>(y * this->renderer->GetSettings().deviceH);
 
 	return this->AddStringInternal(UTF8_TEXT(str), xx, yy, rp, anchor, align, TextType::TEXT);
 }
@@ -163,8 +155,8 @@ bool StringRenderer::AddString(const UnicodeString & str,
 	double x, double y, const RenderParams & rp,
 	TextAnchor anchor, TextAlign align)
 {
-	int xx = static_cast<int>(x * this->rs.deviceW);
-	int yy = static_cast<int>(y * this->rs.deviceH);
+	int xx = static_cast<int>(x * this->renderer->GetSettings().deviceW);
+	int yy = static_cast<int>(y * this->renderer->GetSettings().deviceH);
 
 	return this->AddStringInternal(str, xx, yy, rp, anchor, align, TextType::TEXT);
 }
@@ -205,9 +197,9 @@ bool StringRenderer::AddStringInternal(const UnicodeString & str,
 	int x, int y, const RenderParams & rp,
 	TextAnchor anchor, TextAlign align, TextType type)
 {
-	if (this->axisYOrigin == AbstractGLRenderer::AxisYOrigin::DOWN)
+	if (this->axisYOrigin == AbstractRenderer::AxisYOrigin::DOWN)
 	{
-		y = this->rs.deviceH - y;
+		y = this->renderer->GetSettings().deviceH - y;
 	}
 
 	UnicodeString uniStr = (this->isBidiEnabled) ? BIDI(str) : str;
@@ -291,7 +283,7 @@ bool StringRenderer::CanAddString(const UnicodeString & uniStr,
 		}
 	}
 
-	AbstractGLRenderer::AABB estimAABB = this->EstimateStringAABB(uniStr,
+	AbstractRenderer::AABB estimAABB = this->EstimateStringAABB(uniStr,
 		static_cast<float>(x), static_cast<float>(y), rp.scale);
 
 	//test if entire string is outside visible area	
@@ -310,8 +302,8 @@ bool StringRenderer::CanAddString(const UnicodeString & uniStr,
 	{
 		if ((estimAABB.maxX <= 0) ||
 			(estimAABB.maxY <= 0) ||
-			(estimAABB.minX > this->rs.deviceW) ||
-			(estimAABB.minY > this->rs.deviceH))
+			(estimAABB.minX > this->renderer->GetSettings().deviceW) ||
+			(estimAABB.minY > this->renderer->GetSettings().deviceH))
 		{
 			return false;
 		}
@@ -329,10 +321,10 @@ bool StringRenderer::CanAddString(const UnicodeString & uniStr,
 /// <param name="x"></param>
 /// <param name="y"></param>
 /// <returns></returns>
-AbstractGLRenderer::AABB StringRenderer::EstimateStringAABB(const UnicodeString & str,
+AbstractRenderer::AABB StringRenderer::EstimateStringAABB(const UnicodeString & str,
 	float x, float y, float scale) const
 {
-	AbstractGLRenderer::AABB aabb;
+	AbstractRenderer::AABB aabb;
 	
 	float maxGlyphHeight = this->fb->GetMaxFontPixelHeight() * scale;
     
@@ -684,7 +676,7 @@ bool StringRenderer::GenerateGeometry()
 		//-------
 
 		//Fill font texture
-		this->FillTexture();
+		this->renderer->FillTexture();
 	}
 
 
@@ -698,7 +690,7 @@ bool StringRenderer::GenerateGeometry()
 
 	//Build geometry
 	
-	AbstractGLRenderer::Clear();
+    AbstractRenderer::Clear();
 	
 	this->geom.reserve(this->strs.size() * 80);
 
@@ -751,9 +743,9 @@ bool StringRenderer::GenerateGeometry()
 
 	this->strChanged = false;
 
-	this->SaveToFile();
+	//this->SaveToFile();
 
-	this->FillVB();
+	this->renderer->FillVB();
 
 	return true;
 }
@@ -789,11 +781,11 @@ void StringRenderer::SaveToFile()
 	{
 		const Quad& q = quads[i];
 
-		float minX = ((q.a.x + 1.0) / 2.0) / this->psW;
-		float minY = ((-q.a.y + 1.0) / 2.0) / this->psH;
+		float minX = ((q.a.x + 1.0) / 2.0) / this->renderer->psW;
+		float minY = ((-q.a.y + 1.0) / 2.0) / this->renderer->psH;
 
-		float maxX = ((q.c.x + 1.0) / 2.0) / this->psW;
-		float maxY = ((-q.c.y + 1.0) / 2.0) / this->psH;
+		float maxX = ((q.c.x + 1.0) / 2.0) / this->renderer->psW;
+		float maxY = ((-q.c.y + 1.0) / 2.0) / this->renderer->psH;
 
 		float minU = q.a.u / this->tW;
 		float minV = q.a.v / this->tH;
