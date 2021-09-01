@@ -285,10 +285,10 @@ struct Wrapper
 };
 
 //------------------------------------------------------------------------------
-void initGL() {	
-		
+void initGL() {
+
 	//http://dpi.lv
-	
+
 	Wrapper<std::string> strA;
 	strA.str = "ahaoj";
 	CustromAsciiIterator it2 = CustromIteratorCreator::Create(strA.str);
@@ -316,15 +316,15 @@ void initGL() {
 	printf("\n");
 	/*
 	Font f;
-	//f.name = "test.ttf";	
+	//f.name = "test.ttf";
 	f.name = "f1.ttf";
-	//f.name = "NotoSansCJKtc-Regular.otf";	
+	//f.name = "NotoSansCJKtc-Regular.otf";
 	f.size = 16_pt;
 
 	Font f2;
-	//f.name = "test.ttf";	
+	//f.name = "test.ttf";
 	f2.name = "f2.otf";
-	//f.name = "NotoSansCJKtc-Regular.otf";	
+	//f.name = "NotoSansCJKtc-Regular.otf";
 	f2.size = 16_pt;
 	*/
 
@@ -334,30 +334,30 @@ void initGL() {
 	for (auto d : fontFiles)
 	{
 		Font f(d, 12_pt);
-		
+
 		fonts.push_back(f);
 	}
-	
-	Font ft("../fonts2/merged_out_2048_94.ttf", 12_pt);	
+
+	Font ft("../fonts2/merged_out_2048_94.ttf", 12_pt);
 	//fonts.push_back(ft);
-	
+
 	Font fArial("../fonts/arial_unicode.ttf", 12_pt);
 	//fonts.clear();
 	//fonts.push_back(fArial);
 
 	/*
-	Font f4;	
-	f4.name = "arial.ttf";	
+	Font f4;
+	f4.name = "arial.ttf";
 	f4.size = 16_pt;
-	
 
-	
-	Font f;	
-	f.name = "merged_out_1000.otf";	
+
+
+	Font f;
+	f.name = "merged_out_1000.otf";
 	f.size = 16_pt;
 
-	Font f2;	
-	f2.name = "merged_out_1000.ttf";	
+	Font f2;
+	f2.name = "merged_out_1000.ttf";
 	f2.size = 16_pt;
 
 
@@ -371,39 +371,56 @@ void initGL() {
 	//fNum.name = "../fonts/NotoSans-Regular.ttf";
 
 
-	RenderSettings r;	
+	RenderSettings r;
 	r.deviceW = g_width;
 	r.deviceH = g_height;
-	
+
 	FontBuilderSettings fs;
 	fs.screenDpi = 260;
 	fs.textureW = 512;
 	fs.textureH = 512;
 	fs.screenScale = 1.0;
 	fs.fonts = fonts;
-		
+
 	//fs.fonts = { f, f2, f3 };
 	//fr = new StringRenderer(fs, r);
 	//fr = new StringRenderer(fs, r);
-	fr = StringRenderer::CreateSingleColor({ 1,0,1,1 }, fs, std::make_unique<BackendImage>(r));
+	fr = StringRenderer::CreateSingleColor({ 1,0,1,1 }, fs, std::make_unique<BackendOpenGL>(r));
 	//fr = new StringRenderer({ fNum }, r);
 	//fr = new StringRenderer({ f4 }, r);
 
 	fs.fonts = { fArial };
 	fn = new NumberRenderer(fs, std::make_unique<BackendOpenGL>(r));
 
-	
+
 	fr->SetCaption(UTF8_TEXT(u8"\U0001F300"), 10);
 	fr->SetCaption(UTF8_TEXT(u8"\U00002b55"), 0);
 	fr->SetCaption(UTF8_TEXT(u8"*"), 0);
-	
-	
-	
+
+
+
 	//fr->AddStringCaption(u8"Pøíliš\nžluouèký\nkùò", 0.5f, 0.5f, { 1,1,0,1 });
 	//fr->AddStringCaption(u8"AbBd", 0.5f, 0.5f, { 1,1,0,1 });
 	//fr->Render();
 	//fr->GetFontBuilder()->Save("D://88.png");
 	fr->SetNewLineOffset(0);
+
+
+
+	RenderSettings ri;
+	ri.deviceW = 512;
+	ri.deviceH = 256;
+
+
+	StringRenderer* imageSr = StringRenderer::CreateSingleColor({ 1,0,1,1 }, fs, std::make_unique<BackendImage>(ri, false));
+	imageSr->AddString(
+		//UTF8_TEXT(CreateRandomString(10).c_str()),		
+		UTF8_TEXT("ECMWF (Claudette)"),
+		0.0f, 0.1f,
+		{ /*color*/ 1,1,0,1, /*scale*/ 1.0 },
+		AbstractRenderer::TextAnchor::LEFT_TOP);
+
+	imageSr->Render();
 }
 
 

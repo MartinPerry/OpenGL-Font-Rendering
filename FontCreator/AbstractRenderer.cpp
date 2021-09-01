@@ -174,6 +174,8 @@ void AbstractRenderer::Clear()
 	this->strChanged = true;
 	this->geom.clear();
 	this->quadsCount = 0;
+
+	this->backend->Clear();
 }
 
 /// <summary>

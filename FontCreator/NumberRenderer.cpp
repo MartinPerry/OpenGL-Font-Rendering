@@ -98,14 +98,14 @@ void NumberRenderer::Init()
 			//-------
 
 			//Fill font texture
-			this->backend->FillTexture();
+			this->backend->FillFontTexture();
 		}
 	}
 	else 
 	{
 		//Fill font texture
 		//from existing font builder
-		this->backend->FillTexture();
+		this->backend->FillFontTexture();
 	}
 
 

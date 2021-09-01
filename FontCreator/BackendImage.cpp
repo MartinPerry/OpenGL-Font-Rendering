@@ -1,6 +1,7 @@
 #include "./BackendImage.h"
 
 #include <limits>
+#include <array>
 #include <algorithm>
 
 #include "./Shaders.h"
@@ -10,8 +11,9 @@
 //=============================================================================
 
 
-BackendImage::BackendImage(const RenderSettings& r) :
-	BackendBase(r)
+BackendImage::BackendImage(const RenderSettings& r, bool grayScale) :
+	BackendBase(r),
+	isColored(grayScale == false)
 {
 }
 
@@ -21,17 +23,58 @@ BackendImage::~BackendImage()
 
 }
 
+const std::vector<uint8_t>& BackendImage::GetRawData() const
+{
+	return this->rawData;
+}
+
+std::vector<uint8_t> BackendImage::GetTightClampedRawData() const
+{	
+	int minY = static_cast<int>(this->quadsAABB.minY);
+	int maxY = static_cast<int>(this->quadsAABB.maxY);
+	
+	int minX = static_cast<int>(this->quadsAABB.minX);
+	int maxX = static_cast<int>(this->quadsAABB.maxX);
+
+	int clampW = maxX - minX;
+	int clampH = maxY - minY;
+	std::vector<uint8_t> v(clampW * clampH * 3 * this->isColored);
+
+
+	for (int y = minY, yy = 0; y < maxY; y++, yy++)
+	{
+		int yW = y * this->rs.deviceW;
+
+		std::copy(
+			rawData.data() + (minX + yW) * 3 * this->isColored,
+			rawData.data() + (maxX + yW) * 3 * this->isColored,
+			v.data() + (yy * clampW) * 3 * this->isColored
+		);
+		
+	}
+
+	LodePNGColorType colorType = (this->isColored) ? LodePNGColorType::LCT_RGB : LodePNGColorType::LCT_GREY;
+
+	lodepng::encode("D://clamp.png",
+		v.data(), clampW, clampH,
+		colorType, 8 * sizeof(uint8_t));
+
+	return v;
+}
+
 void BackendImage::SaveToFile(const char* fileName)
 {
+	LodePNGColorType colorType = (this->isColored) ? LodePNGColorType::LCT_RGB : LodePNGColorType::LCT_GREY;
+	
 	lodepng::encode(fileName,
 		rawData.data(), this->rs.deviceW, this->rs.deviceH,
-		LodePNGColorType::LCT_GREY, 8 * sizeof(uint8_t));
+		colorType, 8 * sizeof(uint8_t));
 }
 
 void BackendImage::CreateTexture()
 {
 	rawData.clear();
-	rawData.resize(this->rs.deviceW * this->rs.deviceH, 0);
+	rawData.resize(this->rs.deviceW * this->rs.deviceH * (3 * this->isColored), 0);
 }
 
 
@@ -49,7 +92,11 @@ void BackendImage::Render()
 
 	auto texData = this->mainRenderer->fb->GetTextureData();
 	
-	for (size_t i = 0; i < mainRenderer->geom.size(); i += 8)
+	int nextQuadOffset = (this->isColored) ? 12 : 8;
+
+	std::array<float, 3> rgb = { 1.0f, 1.0f, 1.0f };
+	
+	for (size_t i = 0; i < mainRenderer->geom.size(); i += nextQuadOffset)
 	{
 		//
 
@@ -65,40 +112,62 @@ void BackendImage::Render()
 		float maxU = mainRenderer->geom[i + 6];
 		float maxV = mainRenderer->geom[i + 7];
 
+		if (this->isColored)
+		{
+			rgb[0] = mainRenderer->geom[i + 8];
+			rgb[1] = mainRenderer->geom[i + 9];
+			rgb[2] = mainRenderer->geom[i + 10];
+		}
+
+		//clamp to prevent being outside window
+
+		if (minX < 0)
+		{
+			//move texture U
+			minU = minU - minX;
+		}
+		if (minY < 0)
+		{
+			//move texture V
+			minV = minV - minY;
+		}
+
+		minX = std::clamp<float>(minX, 0, this->rs.deviceW);
+		maxX = std::clamp<float>(maxX, 0, this->rs.deviceW);
+
+		minY = std::clamp<float>(minY, 0, this->rs.deviceH);
+		maxY = std::clamp<float>(maxY, 0, this->rs.deviceH);
 		//
-		/*
-		float minX = ((q.a.x + 1.0) / 2.0) / this->psW;
-		float minY = ((-q.a.y + 1.0) / 2.0) / this->psH;
-
-		float maxX = ((q.c.x + 1.0) / 2.0) / this->psW;
-		float maxY = ((-q.c.y + 1.0) / 2.0) / this->psH;
-
-		float minU = q.a.u / this->tW;
-		float minV = q.a.v / this->tH;
-
-		float maxU = q.c.u / this->tW;
-		float maxV = q.c.v / this->tH;
-		*/
 
 		for (int y = minY, v = minV; y < maxY; y++, v++)
-		{
+		{			
 			for (int x = minX, u = minU; x < maxX; x++, u++)
-			{
-				rawData[x + y * this->rs.deviceW] = texData[u + v * this->mainRenderer->fb->GetTextureWidth()];
+			{				
+				int index = (x + y * this->rs.deviceW) * 3 * this->isColored;
+				auto texVal = texData[u + v * this->mainRenderer->fb->GetTextureWidth()];
+
+				for (int c = 0; c < 3 * this->isColored; c++)
+				{
+					rawData[index + c] = rgb[c] * texVal;
+				}
 			}
 		}
 	}
 
 	this->SaveToFile("D://test.png");
+	this->GetTightClampedRawData();	
 }
 
 
 
-void BackendImage::FillTexture()
+void BackendImage::FillFontTexture()
 {
-	
+	//empty, not used
 }
 
+/// <summary>
+/// Called after strings are cleared
+/// </summary>
 void BackendImage::Clear()
 {
 	quadsAABB = AbstractRenderer::AABB();
@@ -137,6 +206,11 @@ void BackendImage::AddQuad(const GlyphInfo& gi, float x, float y, const Abstract
 	mainRenderer->geom.push_back(max.x); mainRenderer->geom.push_back(max.y);
 	mainRenderer->geom.push_back(max.u); mainRenderer->geom.push_back(max.v);
 
+	if (this->isColored)
+	{
+		mainRenderer->geom.push_back(rp.color.r); mainRenderer->geom.push_back(rp.color.g);
+		mainRenderer->geom.push_back(rp.color.b); mainRenderer->geom.push_back(rp.color.a);
+	}
 
 	if (min.x < quadsAABB.minX) quadsAABB.minX = min.x;
 	if (min.y < quadsAABB.minY) quadsAABB.minY = min.y;
@@ -150,5 +224,5 @@ void BackendImage::AddQuad(const GlyphInfo& gi, float x, float y, const Abstract
 
 void BackendImage::FillGeometry()
 {
-	
+	//not used
 }

@@ -283,6 +283,11 @@ void BackendOpenGL::Render()
 	this->Render(nullptr, nullptr);
 }
 
+/// <summary>
+/// Render all fonts with pre and post render callbacks
+/// </summary>
+/// <param name="preDrawCallback"></param>
+/// <param name="postDrawCallback"></param>
 void BackendOpenGL::Render(std::function<void(GLuint)> preDrawCallback,
 	std::function<void()> postDrawCallback)
 {
@@ -355,8 +360,11 @@ void BackendOpenGL::Render(std::function<void(GLuint)> preDrawCallback,
 }
 
 
-
-void BackendOpenGL::FillTexture()
+/// <summary>
+/// Fill texture from font builder to OpenGL texture
+/// so that it can be used in shader
+/// </summary>
+void BackendOpenGL::FillFontTexture()
 {
 	auto fb = mainRenderer->GetFontBuilder();
 
@@ -370,6 +378,9 @@ void BackendOpenGL::FillTexture()
 	FONT_UNBIND_TEXTURE_2D;
 }
 
+/// <summary>
+/// Called after strings are cleared
+/// </summary>
 void BackendOpenGL::Clear()
 {
 }

@@ -33,7 +33,7 @@ public:
 	void Clear() override;
 	void AddQuad(const GlyphInfo& gi, float x, float y, const AbstractRenderer::RenderParams& rp) override;
 	
-	void FillTexture() override;
+	void FillFontTexture() override;
 	void FillGeometry() override;
 	
 	void Render() override;

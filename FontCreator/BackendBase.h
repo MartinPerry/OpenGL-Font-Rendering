@@ -28,7 +28,7 @@ public:
 	virtual void AddQuad(const GlyphInfo& gi, float x, float y, const AbstractRenderer::RenderParams& rp) = 0;
 
 	virtual void FillGeometry() = 0;
-	virtual void FillTexture() = 0;
+	virtual void FillFontTexture() = 0;
 
 	virtual void Render() = 0;
   

@@ -1,28 +1,40 @@
 ﻿# OpenGL-Font-Rendering
-Rendering UNICODE fonts with OpenGL 
+Rendering UNICODE fonts
 
 This library is still work-in-progress. This is a working beta version.
 
 Overview
 ------------------------------------------
 
-There are plenty of FontRendering libraries. 
+The library offers a simple font rendering system. 
+The user can change rendering backend to a different systems - OpenGL and offline, image-based, rendering is suuported out of the box.
+However, DirectX, Vulkan and other systems can be simply added.
+
+Why to create another font rendering library, if there are plenty of FontRendering libraries. 
+To name some of them:
 * https://github.com/rougier/freetype-gl - also with UNICODE, too complex and not easily "bend" to specified task
 * https://github.com/tlorach/OpenGLText - only ASCII
 
 
-However, many of them are only for ASCII characters, they are too complex, do not support multiple fonts at once or are not suitable for OpenGL ES.
+Some disadvantages of existing solutions are:
+* only support for ASCII characters
+* too complex solutions
+* not supporting multiple font families at once 
+* not suitable for OpenGL ES
+* not an easy possibility to change rendering backend
+
 This library is using FreeType to generate glyphs. 
-Unlike other libraries, the font texture is not generated once. Due to the UNICODE, they can be very large amount of characters and
-they cannot be stored in one texture. Generate many textures for different alphabets is also not possible, 
-because we can render letters from different alphabets together.
-This library generates texture in runtime. There is caching, so texture is updated only if new characters are added. 
-Also, the geometry of entire text is generated in runtime and stored in VBO. 
+Unlike other libraries, the font texture is not generated once. 
+Due to the UNICODE, there can be very large amount of characters and these cannot be stored in one texture. 
+Generate many textures for different alphabets is also not possible, because we can render letters from different alphabets together.
+This library generates texture in runtime. There is a caching, so texture is updated only if new characters are added. 
+Also, the geometry of entire text is generated in runtime (for OpenGL, it is stored for example in VBO). 
 Based on this, final rendering is done with only one draw-call.
 
-This library is created with ICU (http://site.icu-project.org/) for handling bidirectional texts and Arabis shaping. We are aware, that not everyone want to use ICU (building it is not straightdorward).
+This library is created with ICU (http://site.icu-project.org/) for handling bidirectional texts and Arabis shaping. 
+We are aware, that not everyone want to use ICU (building this library from source is not straightdorward).
 For this reason, ICU can be turned-off and replaced with any string library, that supports Unicode.
-We have included TinyUTF8. In ExternalIncludes.h, undefine `USE_ICU_LIBRARY` to turn-off ICU.
+We have included TinyUTF8. In `ExternalIncludes.h`, undefine `USE_ICU_LIBRARY` to turn-off ICU.
 
 Also, you have to change the following lines:
 
@@ -48,8 +60,9 @@ typedef utf8_string UnicodeString;
 #define UTF8_UNESCAPE(x) utf8_string::build_from_escaped(x.c_str())
 ````
 
-Any text, that is being passed to font rendering, must be wrapped inside `UTF8_TEXT(u8"....")`. `UTF8_UNESCAPE` is used only in `CharacterExtractor class`. If you want to 
-use elsewhere, use library specific calls.
+Any text, that is being passed to font rendering, must be wrapped inside `UTF8_TEXT(u8"....")`. 
+`UTF8_UNESCAPE` is used only in `CharacterExtractor class`. 
+If you want to use elsewhere, use library specific calls.
 
 This library supports multiple fonts to be loaded at once. If multiple fonts are used, the order at which they are added is used as their priority. 
 If letter is look for, fonts are iterated by priority. First occurrence is returned even if the same letter can be in multiple fonts.
@@ -73,26 +86,38 @@ f3.name = "some_other_font.ttf";
 f3.size = 1.0_em; //em size of font -> pixel size = size_em * defaultFontSizeInPx
 f3.defaultFontSizeInPx = 16; //default font size for OS, can usually be obtained via OS API
 
+std::vector<Font> fonts;
+fonts.push_back(f);
+fonts.push_back(f2);
+fonts.push_back(f3);
+
 RenderSettings r;
-r.screenDpi = 0; //if 0 => will use size directly in pixels, otherwise use dpi and size is in pt
-r.screenScale = 1.0; //usually used on iOS devices - screen scale is taken from UIScreen.main.nativeScale
-r.textureW = 512; //cache texture width
-r.textureH = 512; //cache texture height
 r.deviceW = 1024; //screen width in pixels
 r.deviceH = 768; //screen height in pixels
+r.useTextureLinearFilter = true; //use linear filtering for texture in OpenGL
 
-StringRenderer * fr = new StringRenderer({f, f2}, r);
+FontBuilderSettings fs;
+fs.fonts = fonts;
+fs.screenDpi = 0; //if 0 => will use size directly in pixels, otherwise use dpi and size is in pt
+fs.screenScale = 1.0; //usually used on iOS devices - screen scale is taken from UIScreen.main.nativeScale
+fs.textureW = 512; //cache texture width
+fs.textureH = 512; //cache texture height
+
+StringRenderer* fr = StringRenderer::CreateSingleColor({ 1,0,1,1 }, fs, std::make_unique<BackendOpenGL>(r));	
 fr->AddString(UTF8_TEXT(u8"Příliš\nžluťoučký\nkůň"), posX, posY, { 1,1,0,1 }, AbstractRenderer::CENTER, AbstractRenderer::ALIGN_CENTER);
 fr->AddStringCaption(UTF8_TEXT(u8"\u0633\u0644\u0627\u0645"), posX, posY, { 1,1,0,1 }); //Some Arabic text
 fr->Render();
 
 
-NumberRenderer * nr = new NumberRenderer(f, r);
+NumberRenderer* nr = new NumberRenderer(fs, std::make_unique<BackendOpenGL>(r));
 nr->AddNumber(-45.75, posX, posY, { 1,1,0,1 }, AbstractRenderer::CENTER);		
 nr->Render();
 
 ````
 
+For OpenGL rendering, there is `BackendOpenGL` class. 
+For the offline, image-based, output, `BackendImage` class can be used.
+If user want to add another output system, it is extended from `BackendBase` class.
 
 Texture packing
 ------------------------------------------
@@ -116,7 +141,7 @@ cr.SetOutputDir("./output/"); //set output directory (must exist)
 cr.AddText(UTF8_TEXT(u8"žluťoučký")); //add text
 cr.AddDirectory("./data/"); //add all files from directory (load all files as UTF8 texts)
 cr.GenerateScript("run.sh"); //generate script and save it to run.sh
-	
+cr.Release();	
 ````	
 
 For emojis:

@@ -676,7 +676,7 @@ bool StringRenderer::GenerateGeometry()
 		//-------
 
 		//Fill font texture
-		this->backend->FillTexture();
+		this->backend->FillFontTexture();
 	}
 
 
