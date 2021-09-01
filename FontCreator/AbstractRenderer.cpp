@@ -7,7 +7,7 @@
 #include "./FontBuilder.h"
 #include "./FontShaderManager.h"
 
-#include "./GLRenderer.h"
+#include "./BackendBase.h"
 
 //=============================================================================
 
@@ -63,22 +63,22 @@ std::vector<std::string> AbstractRenderer::GetFontsInDirectory(const std::string
 }
 
 AbstractRenderer::AbstractRenderer(const FontBuilderSettings& fs, 
-	std::unique_ptr<GLRenderer>&& renderer) :
-	AbstractRenderer(std::make_shared<FontBuilder>(fs), std::move(renderer))
+	std::unique_ptr<BackendBase>&& backend) :
+	AbstractRenderer(std::make_shared<FontBuilder>(fs), std::move(backend))
 {
 }
 
 AbstractRenderer::AbstractRenderer(std::shared_ptr<FontBuilder> fb,
-	std::unique_ptr<GLRenderer>&& renderer) :
+	std::unique_ptr<BackendBase>&& backend) :
 	fb(fb),
-	renderer(std::move(renderer)),	
+	backend(std::move(backend)),
 	ci({ UTF8_TEXT(u8""), 0 }),
 	axisYOrigin(AxisYOrigin::TOP),
 	quadsCount(0),
 	strChanged(false)
 {
 
-	this->renderer->SetMainRenderer(this);
+	this->backend->SetMainRenderer(this);
 
 	this->SetCaption(UTF8_TEXT(u8"\u2022"), 10);
 		
@@ -96,9 +96,9 @@ AbstractRenderer::~AbstractRenderer()
 }
 
 
-GLRenderer* AbstractRenderer::GetRenderer() const
+BackendBase* AbstractRenderer::GetBackend() const
 {
-	return this->renderer.get();
+	return this->backend.get();
 }
 
 
@@ -122,14 +122,14 @@ void AbstractRenderer::SetCaptionOffset(int offsetInPixels)
 
 void AbstractRenderer::SetCanvasSize(int w, int h)
 {
-	this->renderer->SetCanvasSize(w, h);
+	this->backend->SetCanvasSize(w, h);
 
 	this->strChanged = true;
 }
 
 void AbstractRenderer::SwapCanvasWidthHeight()
 {
-	this->renderer->SwapCanvasWidthHeight();
+	this->backend->SwapCanvasWidthHeight();
 	
 	this->strChanged = true;
 }
@@ -147,17 +147,17 @@ std::shared_ptr<FontBuilder> AbstractRenderer::GetFontBuilder()
 
 const RenderSettings& AbstractRenderer::GetRenderSettings() const
 {
-	return this->renderer->GetSettings();
+	return this->backend->GetSettings();
 }
 
 int AbstractRenderer::GetCanvasWidth() const
 {
-	return this->renderer->GetSettings().deviceW;
+	return this->backend->GetSettings().deviceW;
 }
 
 int AbstractRenderer::GetCanvasHeight() const
 {
-	return this->renderer->GetSettings().deviceH;
+	return this->backend->GetSettings().deviceH;
 }
 
 int AbstractRenderer::GetCaptionOffset() const
@@ -181,7 +181,7 @@ void AbstractRenderer::Clear()
 /// </summary>
 void AbstractRenderer::Render()
 {
-	this->renderer->Render();
+	this->backend->Render();
 }
 
 
@@ -196,7 +196,7 @@ void AbstractRenderer::Render()
 /// <param name="y"></param>
 void AbstractRenderer::AddQuad(const GlyphInfo& gi, float x, float y, const RenderParams& rp)
 {
-	this->renderer->AddQuad(gi, x, y, rp);	
+	this->backend->AddQuad(gi, x, y, rp);
 }
 
 

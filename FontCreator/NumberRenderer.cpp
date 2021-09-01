@@ -7,7 +7,7 @@
 #include "./FontBuilder.h"
 #include "./FontShaderManager.h"
 
-#include "./GLRenderer.h"
+#include "./BackendBase.h"
 
 const std::string NumberRenderer::NUMBERS_STRING = "0123456789,.-";
 
@@ -22,7 +22,7 @@ const std::string NumberRenderer::NUMBERS_STRING = "0123456789,.-";
 /// <param name="glVersion"></param>
 /// <returns></returns>
 NumberRenderer * NumberRenderer::CreateSingleColor(Color color, const FontBuilderSettings& fs, 
-	std::unique_ptr<GLRenderer>&& renderer)
+	std::unique_ptr<BackendBase>&& renderer)
 {
 	
 	auto sm = std::make_shared<SingleColorFontShaderManager>();
@@ -32,14 +32,14 @@ NumberRenderer * NumberRenderer::CreateSingleColor(Color color, const FontBuilde
 
 }
 
-NumberRenderer* NumberRenderer::CreateSingleColor(Color color, std::shared_ptr<FontBuilder> fb, 
-	std::unique_ptr<GLRenderer>&& renderer)
+NumberRenderer* NumberRenderer::CreateSingleColor(Color color, std::shared_ptr<FontBuilder> fb,
+	std::unique_ptr<BackendBase>&& backend)
 {
 
 	auto sm = std::make_shared<SingleColorFontShaderManager>();
 	sm->SetColor(color.r, color.g, color.b, color.a);
 
-	return new NumberRenderer(fb, std::move(renderer));
+	return new NumberRenderer(fb, std::move(backend));
 
 }
 
@@ -49,8 +49,8 @@ NumberRenderer* NumberRenderer::CreateSingleColor(Color color, std::shared_ptr<F
 /// <param name="fs"></param>
 /// <param name="r"></param>
 /// <param name="glVersion"></param>
-NumberRenderer::NumberRenderer(const FontBuilderSettings& fs, std::unique_ptr<GLRenderer>&& renderer) :
-	AbstractRenderer(fs, std::move(renderer)),
+NumberRenderer::NumberRenderer(const FontBuilderSettings& fs, std::unique_ptr<BackendBase>&& backend) :
+	AbstractRenderer(fs, std::move(backend)),
 	decimalPlaces(0),
 	decimalMult(1),
 	checkIfExist(true)
@@ -58,8 +58,8 @@ NumberRenderer::NumberRenderer(const FontBuilderSettings& fs, std::unique_ptr<GL
 	this->Init();
 }
 
-NumberRenderer::NumberRenderer(std::shared_ptr<FontBuilder> fb, std::unique_ptr<GLRenderer>&& renderer) :
-	AbstractRenderer(fb, std::move(renderer)),
+NumberRenderer::NumberRenderer(std::shared_ptr<FontBuilder> fb, std::unique_ptr<BackendBase>&& backend) :
+	AbstractRenderer(fb, std::move(backend)),
 	decimalPlaces(0),
 	decimalMult(1),
 	checkIfExist(true)
@@ -98,14 +98,14 @@ void NumberRenderer::Init()
 			//-------
 
 			//Fill font texture
-			this->renderer->FillTexture();
+			this->backend->FillTexture();
 		}
 	}
 	else 
 	{
 		//Fill font texture
 		//from existing font builder
-		this->renderer->FillTexture();
+		this->backend->FillTexture();
 	}
 
 
@@ -265,7 +265,7 @@ bool NumberRenderer::AddIntegralNumberInternal(long val,
 {
 	if (this->axisYOrigin == AbstractRenderer::AxisYOrigin::DOWN)
 	{
-		y = this->renderer->GetSettings().deviceH - y;
+		y = this->backend->GetSettings().deviceH - y;
 	}
 
 	if (this->checkIfExist)
@@ -307,7 +307,7 @@ bool NumberRenderer::AddFloatNumberInternal(double val,
 {
 	if (this->axisYOrigin == AbstractRenderer::AxisYOrigin::DOWN)
 	{
-		y = this->renderer->GetSettings().deviceH - y;
+		y = this->backend->GetSettings().deviceH - y;
 	}
 
 	if (this->checkIfExist)
@@ -381,8 +381,8 @@ bool NumberRenderer::AddNumber(NumberInfo & n, int x, int y, const RenderParams 
 
 	if (aabb.maxX <= 0) return false;
 	if (aabb.maxY <= 0) return false;
-	if (aabb.minX > this->renderer->GetSettings().deviceW) return false;
-	if (aabb.minY > this->renderer->GetSettings().deviceH) return false;
+	if (aabb.minX > this->backend->GetSettings().deviceW) return false;
+	if (aabb.minY > this->backend->GetSettings().deviceH) return false;
 
 
 	//new visible number - add it
@@ -723,7 +723,7 @@ bool NumberRenderer::GenerateGeometry()
 
 	this->strChanged = false;
 
-	this->renderer->FillVB();
+	this->backend->FillGeometry();
 
 	return true;
 }

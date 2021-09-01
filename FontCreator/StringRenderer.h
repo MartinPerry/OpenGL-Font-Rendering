@@ -1,7 +1,7 @@
 #ifndef STRING_RENDERER_H
 #define STRING_RENDERER_H
 
-class GLRenderer;
+class BackendBase;
 
 #include "./AbstractRenderer.h"
 
@@ -89,9 +89,9 @@ public:
 	};
 	
 	static StringRenderer* CreateSingleColor(Color color, const FontBuilderSettings& fs, 
-		std::unique_ptr<GLRenderer>&& renderer);
+		std::unique_ptr<BackendBase>&& backend);
 	
-	StringRenderer(const FontBuilderSettings& fs, std::unique_ptr<GLRenderer>&& renderer);
+	StringRenderer(const FontBuilderSettings& fs, std::unique_ptr<BackendBase>&& backend);
 	~StringRenderer();
 		
 	void Clear();
@@ -170,7 +170,6 @@ protected:
 		TextType type = TextType::TEXT);
 
 	bool GenerateGeometry() override;
-	void SaveToFile();
 
 	AABB EstimateStringAABB(const UnicodeString & str, float x, float y, float scale) const;
 	void CalcStringAABB(StringInfo & str, const UsedGlyphCache * gc) const;

@@ -1,4 +1,4 @@
-#include "./GLRenderer.h"
+#include "./BackendOpenGL.h"
 
 #include <limits>
 #include <algorithm>
@@ -19,27 +19,22 @@
 //=============================================================================
 
 
-GLRenderer::GLRenderer(const RenderSettings& r, int glVersion) :
-	GLRenderer(r, glVersion,
+BackendOpenGL::BackendOpenGL(const RenderSettings& r, int glVersion) :
+	BackendOpenGL(r, glVersion,
                        DEFAULT_VERTEX_SHADER_SOURCE, DEFAULT_PIXEL_SHADER_SOURCE,
                        std::make_shared<DefaultFontShaderManager>())
 {
 }
 
-GLRenderer::GLRenderer(const RenderSettings& r, int glVersion,
-	const char* vSource, const char* pSource, std::shared_ptr<IFontShaderManager> sm) :
-	mainRenderer(nullptr),
-	rs(r),
+BackendOpenGL::BackendOpenGL(const RenderSettings& r, int glVersion,
+	const char* vSource, const char* pSource, std::shared_ptr<IFontShaderManager> sm) :		
+	BackendBase(r),
 	glVersion(glVersion),
-	sm(sm),
-	enabled(true),
+	sm(sm),	
 	vbo(0),
 	vao(0),
 	fontTex(0)
-{
-	this->psW = 1.0f / static_cast<float>(rs.deviceW); //pixel size in width
-	this->psH = 1.0f / static_cast<float>(rs.deviceH); //pixel size in height
-
+{	
 	this->shader.program = 0;
 	this->shader.pSource = pSource;
 	this->shader.vSource = vSource;
@@ -59,7 +54,7 @@ GLRenderer::GLRenderer(const RenderSettings& r, int glVersion,
 }
 
 
-GLRenderer::~GLRenderer()
+BackendOpenGL::~BackendOpenGL()
 {
 		
 	//this will end in error, if OpenGL is not initialized during
@@ -80,7 +75,7 @@ GLRenderer::~GLRenderer()
 /// <summary>
 /// Init OpenGL
 /// </summary>
-void GLRenderer::InitGL()
+void BackendOpenGL::InitGL()
 {
 
 	//create shader
@@ -114,7 +109,7 @@ void GLRenderer::InitGL()
 	
 }
 
-void GLRenderer::CreateTexture()
+void BackendOpenGL::CreateTexture()
 {
 	if (this->fontTex != 0)
 	{
@@ -149,7 +144,7 @@ void GLRenderer::CreateTexture()
 /// <summary>
 /// Create VAO
 /// </summary>
-void GLRenderer::CreateVAO()
+void BackendOpenGL::CreateVAO()
 {
 #ifdef __ANDROID_API__
 	if (glVersion == 2)
@@ -179,7 +174,7 @@ void GLRenderer::CreateVAO()
 /// <param name="target"></param>
 /// <param name="shader"></param>
 /// <returns></returns>
-GLuint GLRenderer::CompileGLSLShader(GLenum target, const char* shader)
+GLuint BackendOpenGL::CompileGLSLShader(GLenum target, const char* shader)
 {
 	GLuint object;
 
@@ -216,7 +211,7 @@ GLuint GLRenderer::CompileGLSLShader(GLenum target, const char* shader)
 /// <param name="vertexShader"></param>
 /// <param name="fragmentShader"></param>
 /// <returns></returns>
-GLuint GLRenderer::LinkGLSLProgram(GLuint vertexShader, GLuint fragmentShader)
+GLuint BackendOpenGL::LinkGLSLProgram(GLuint vertexShader, GLuint fragmentShader)
 {
 	GLuint program = 0;
 	GL_CHECK(program = glCreateProgram());
@@ -252,13 +247,7 @@ GLuint GLRenderer::LinkGLSLProgram(GLuint vertexShader, GLuint fragmentShader)
 }
 
 
-void GLRenderer::SetMainRenderer(AbstractRenderer* mainRenderer)
-{
-	this->mainRenderer = mainRenderer;
-	this->CreateTexture();
-}
-
-void GLRenderer::SetFontTextureLinearFiler(bool val)
+void BackendOpenGL::SetFontTextureLinearFiler(bool val)
 {
 	this->rs.useTextureLinearFilter = val;	
 
@@ -279,45 +268,22 @@ void GLRenderer::SetFontTextureLinearFiler(bool val)
 }
 
 
-const RenderSettings& GLRenderer::GetSettings() const
-{
-	return this->rs;
-}
 
-std::shared_ptr<IFontShaderManager> GLRenderer::GetShaderManager() const
+std::shared_ptr<IFontShaderManager> BackendOpenGL::GetShaderManager() const
 {
 	return this->sm;
 }
 
 
-void GLRenderer::SetCanvasSize(int w, int h)
-{
-	this->rs.deviceW = w;
-	this->rs.deviceH = h;
-
-	this->psW = 1.0f / static_cast<float>(rs.deviceW); //pixel size in width
-	this->psH = 1.0f / static_cast<float>(rs.deviceH); //pixel size in height
-
-}
-
-void GLRenderer::SwapCanvasWidthHeight()
-{
-	std::swap(this->rs.deviceW, this->rs.deviceH);
-
-	this->psW = 1.0f / static_cast<float>(rs.deviceW); //pixel size in width
-	this->psH = 1.0f / static_cast<float>(rs.deviceH); //pixel size in height
-
-}
-
 /// <summary>
 /// Render all fonts
 /// </summary>
-void GLRenderer::Render()
+void BackendOpenGL::Render()
 {
 	this->Render(nullptr, nullptr);
 }
 
-void GLRenderer::Render(std::function<void(GLuint)> preDrawCallback, 
+void BackendOpenGL::Render(std::function<void(GLuint)> preDrawCallback,
 	std::function<void()> postDrawCallback)
 {
 	if (this->enabled == false)
@@ -390,7 +356,7 @@ void GLRenderer::Render(std::function<void(GLuint)> preDrawCallback,
 
 
 
-void GLRenderer::FillTexture()
+void BackendOpenGL::FillTexture()
 {
 	auto fb = mainRenderer->GetFontBuilder();
 
@@ -404,13 +370,17 @@ void GLRenderer::FillTexture()
 	FONT_UNBIND_TEXTURE_2D;
 }
 
+void BackendOpenGL::Clear()
+{
+}
+
 /// <summary>
 /// Add single "letter" quad to geom buffer
 /// </summary>
 /// <param name="gi"></param>
 /// <param name="x"></param>
 /// <param name="y"></param>
-void GLRenderer::AddQuad(const GlyphInfo & gi, float x, float y, const AbstractRenderer::RenderParams & rp)
+void BackendOpenGL::AddQuad(const GlyphInfo & gi, float x, float y, const AbstractRenderer::RenderParams & rp)
 {    
     float fx = x + gi.bmpX * rp.scale;
 	float fy = y - gi.bmpY * rp.scale;
@@ -434,7 +404,7 @@ void GLRenderer::AddQuad(const GlyphInfo & gi, float x, float y, const AbstractR
 }
 
 
-void GLRenderer::FillVB()
+void BackendOpenGL::FillGeometry()
 {
     if (mainRenderer->geom.empty())
     {

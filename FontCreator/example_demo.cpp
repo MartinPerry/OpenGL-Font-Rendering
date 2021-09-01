@@ -4,7 +4,9 @@
 #include "./FontBuilder.h"
 #include "./StringRenderer.h"
 #include "./NumberRenderer.h"
-#include "./GLRenderer.h"
+
+#include "./BackendOpenGL.h"
+#include "./BackendImage.h"
 
 #include "./Unicode/utf8.h"
 #include "./Unicode/uninorms.h"
@@ -159,7 +161,11 @@ void display() {
 	//fr->AddString(UTF8_TEXT(u8"MLQp\U0001F300x"), 0.5f, 0.5f, { 1,1,1,1 }, AbstractRenderer::TextAnchor::CENTER);
 	//fr->AddString(UTF8_TEXT(u8"\U0001F600"), 0.5f, 0.5f);
 	//fr->AddString(UTF8_TEXT(u8"x"), 0.5f, 0.5f);
-	fr->GetRenderer()->SetFontTextureLinearFiler(true);
+	auto backend = fr->GetBackend();
+	if (auto glBack = dynamic_cast<BackendOpenGL *>(backend))
+	{
+		glBack->SetFontTextureLinearFiler(true);
+	}
 	
 	/*
 	FontSize f1(12_pt);
@@ -379,12 +385,12 @@ void initGL() {
 	//fs.fonts = { f, f2, f3 };
 	//fr = new StringRenderer(fs, r);
 	//fr = new StringRenderer(fs, r);
-	fr = StringRenderer::CreateSingleColor({ 1,0,1,1 }, fs, std::make_unique<GLRenderer>(r));
+	fr = StringRenderer::CreateSingleColor({ 1,0,1,1 }, fs, std::make_unique<BackendImage>(r));
 	//fr = new StringRenderer({ fNum }, r);
 	//fr = new StringRenderer({ f4 }, r);
 
 	fs.fonts = { fArial };
-	fn = new NumberRenderer(fs, std::make_unique<GLRenderer>(r));
+	fn = new NumberRenderer(fs, std::make_unique<BackendOpenGL>(r));
 
 	
 	fr->SetCaption(UTF8_TEXT(u8"\U0001F300"), 10);

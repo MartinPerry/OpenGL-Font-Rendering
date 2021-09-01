@@ -2,7 +2,7 @@
 #define ABSTRACT_RENDERER_H
 
 class FontBuilder;
-class GLRenderer;
+class BackendBase;
 
 #include <vector>
 #include <list>
@@ -51,12 +51,12 @@ public:
 
 	static std::vector<std::string> GetFontsInDirectory(const std::string& fontDir);
 
-	AbstractRenderer(const FontBuilderSettings& fs, std::unique_ptr<GLRenderer>&& renderer);
+	AbstractRenderer(const FontBuilderSettings& fs, std::unique_ptr<BackendBase>&& backend);
 
 
 	virtual ~AbstractRenderer();
 	
-	GLRenderer* GetRenderer() const;
+	BackendBase* GetBackend() const;
 
 	std::shared_ptr<FontBuilder> GetFontBuilder();
 	void SetCanvasSize(int w, int h);
@@ -79,7 +79,9 @@ public:
 	
 	virtual void Render();
 	
-	friend class GLRenderer;
+	friend class BackendBase;
+	friend class BackendImage;
+	friend class BackendOpenGL;
 
 protected:
 
@@ -148,7 +150,7 @@ protected:
 	};
 
 	std::shared_ptr<FontBuilder> fb;
-	std::unique_ptr<GLRenderer> renderer;
+	std::unique_ptr<BackendBase> backend;
 
 	CaptionInfo ci;
 
@@ -167,7 +169,7 @@ protected:
 	std::shared_timed_mutex m;
 #endif
 		
-	AbstractRenderer(std::shared_ptr<FontBuilder> fb, std::unique_ptr<GLRenderer>&& renderer);
+	AbstractRenderer(std::shared_ptr<FontBuilder> fb, std::unique_ptr<BackendBase>&& backend);
 
 	virtual bool GenerateGeometry() = 0;
 

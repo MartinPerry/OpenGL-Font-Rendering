@@ -1,5 +1,5 @@
-#ifndef GL_RENDERER_H
-#define GL_RENDERER_H
+#ifndef BACKEND_OPENGL_H
+#define BACKEND_OPENGL_H
 
 class IFontShaderManager;
 
@@ -10,37 +10,33 @@ class IFontShaderManager;
 #include <shared_mutex>
 #include <algorithm>
 
-#include "./AbstractRenderer.h"
+#include "./BackendBase.h"
 
 #include "./Externalncludes.h"
 
 
-class GLRenderer
+class BackendOpenGL : public BackendBase
 {
 public:
 	
-	GLRenderer(const RenderSettings& r, int glVersion = 3);
-	GLRenderer(const RenderSettings& r, int glVersion,
+	BackendOpenGL(const RenderSettings& r, int glVersion = 3);
+	BackendOpenGL(const RenderSettings& r, int glVersion,
                      const char * vSource, const char * pSource, std::shared_ptr<IFontShaderManager> sm);
    	
-	virtual ~GLRenderer();
+	virtual ~BackendOpenGL();
 
-	void SetMainRenderer(AbstractRenderer* mainRenderer);
-
-	const RenderSettings& GetSettings() const;
-
-	void SetCanvasSize(int w, int h);
-	void SwapCanvasWidthHeight();
-
+	
 	void SetFontTextureLinearFiler(bool val);
 	
 	std::shared_ptr<IFontShaderManager> GetShaderManager() const;
 
-	void AddQuad(const GlyphInfo& gi, float x, float y, const AbstractRenderer::RenderParams& rp);
-	void FillTexture();
-	void FillVB();
+	void Clear() override;
+	void AddQuad(const GlyphInfo& gi, float x, float y, const AbstractRenderer::RenderParams& rp) override;
 	
-	void Render();
+	void FillTexture() override;
+	void FillGeometry() override;
+	
+	void Render() override;
     void Render(std::function<void(GLuint)> preDrawCallback, std::function<void()> postDrawCallback);
 	
 	friend class AbstractRenderer;
@@ -57,26 +53,18 @@ protected:
 		const char * pSource;
         bool isDefault;        
 	};
-
-	AbstractRenderer* mainRenderer;
-
-	RenderSettings rs;
-
+	
     std::shared_ptr<IFontShaderManager> sm;
     	
-	bool enabled;
 	GLuint vbo;
 	GLuint vao;
 	GLuint fontTex;
 	Shader shader;
 	int glVersion;
 	
-	float psW; //1.0 / pixel size in width
-	float psH; //1.0 / pixel size in height
-
 	void InitGL();
 	
-	void CreateTexture();	
+	void CreateTexture() override;	
 	void CreateVAO();
 
 	GLuint CompileGLSLShader(GLenum target, const char* shader);

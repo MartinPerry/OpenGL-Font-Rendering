@@ -155,10 +155,12 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="AbstractRenderer.cpp" />
+    <ClCompile Include="BackendBase.cpp" />
+    <ClCompile Include="BackendImage.cpp" />
+    <ClCompile Include="BackendOpenGL.cpp" />
     <ClCompile Include="FontBuilder.cpp" />
     <ClCompile Include="FontCache.cpp" />
     <ClCompile Include="FontShaderManager.cpp" />
-    <ClCompile Include="GLRenderer.cpp" />
     <ClCompile Include="lodepng.cpp" />
     <ClCompile Include="example_demo.cpp" />
     <ClCompile Include="NumberRenderer.cpp" />
@@ -172,12 +174,14 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="AbstractRenderer.h" />
+    <ClInclude Include="BackendBase.h" />
+    <ClInclude Include="BackendImage.h" />
+    <ClInclude Include="BackendOpenGL.h" />
     <ClInclude Include="Externalncludes.h" />
     <ClInclude Include="FontBuilder.h" />
     <ClInclude Include="FontCache.h" />
     <ClInclude Include="FontShaderManager.h" />
     <ClInclude Include="FontStructures.h" />
-    <ClInclude Include="GLRenderer.h" />
     <ClInclude Include="lodepng.h" />
     <ClInclude Include="NumberRenderer.h" />
     <ClInclude Include="Shaders.h" />

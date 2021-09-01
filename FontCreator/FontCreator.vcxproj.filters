@@ -69,7 +69,13 @@
     <ClCompile Include="AbstractRenderer.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="GLRenderer.cpp">
+    <ClCompile Include="BackendOpenGL.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="BackendBase.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="BackendImage.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -134,7 +140,13 @@
     <ClInclude Include="AbstractRenderer.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="GLRenderer.h">
+    <ClInclude Include="BackendBase.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="BackendOpenGL.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="BackendImage.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

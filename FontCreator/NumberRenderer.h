@@ -1,7 +1,7 @@
 #ifndef NUMBER_RENDERER_H
 #define NUMBER_RENDERER_H
 
-class GLRenderer;
+class BackendBase;
 
 #include <type_traits>
 
@@ -20,12 +20,12 @@ public:
 
 	static const std::string NUMBERS_STRING;
 
-	static NumberRenderer * CreateSingleColor(Color color, const FontBuilderSettings& fs, std::unique_ptr<GLRenderer>&& renderer);
-	static NumberRenderer* CreateSingleColor(Color color, std::shared_ptr<FontBuilder> fb, std::unique_ptr<GLRenderer>&& renderer);
+	static NumberRenderer * CreateSingleColor(Color color, const FontBuilderSettings& fs, std::unique_ptr<BackendBase>&& backend);
+	static NumberRenderer* CreateSingleColor(Color color, std::shared_ptr<FontBuilder> fb, std::unique_ptr<BackendBase>&& backend);
 
 
-	NumberRenderer(const FontBuilderSettings& fs, std::unique_ptr<GLRenderer>&& renderer);
-	NumberRenderer(std::shared_ptr<FontBuilder> fb, std::unique_ptr<GLRenderer>&& renderer);
+	NumberRenderer(const FontBuilderSettings& fs, std::unique_ptr<BackendBase>&& backend);
+	NumberRenderer(std::shared_ptr<FontBuilder> fb, std::unique_ptr<BackendBase>&& backend);
 	
 	~NumberRenderer();
 
