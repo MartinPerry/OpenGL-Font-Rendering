@@ -409,6 +409,7 @@ void initGL() {
 
 	RenderSettings ri;
 	ri.deviceW = 512;
+
 	ri.deviceH = 256;
 
 	auto image = std::make_unique<BackendImage>(ri, false);

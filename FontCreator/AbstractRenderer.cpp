@@ -81,18 +81,14 @@ AbstractRenderer::AbstractRenderer(std::shared_ptr<FontBuilder> fb,
 	this->backend->SetMainRenderer(this);
 
 	this->SetCaption(UTF8_TEXT(u8"\u2022"), 10);
-		
-	this->tW = 1.0f / static_cast<float>(this->fb->GetTextureWidth());  //1.0 / pixel size in width
-	this->tH = 1.0f / static_cast<float>(this->fb->GetTextureHeight()); //1.0 / pixel size in height
-
+			
 }
 
 
 AbstractRenderer::~AbstractRenderer()
 {
-
 	this->fb = nullptr;
-	
+	this->backend = nullptr;
 }
 
 

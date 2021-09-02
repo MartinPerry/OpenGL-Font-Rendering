@@ -111,6 +111,11 @@ void BackendOpenGL::InitGL()
 
 void BackendOpenGL::InitFontTexture()
 {
+	auto fb = mainRenderer->GetFontBuilder();
+
+	this->tW = 1.0f / static_cast<float>(fb->GetTextureWidth());  //1.0 / pixel size in width
+	this->tH = 1.0f / static_cast<float>(fb->GetTextureHeight()); //1.0 / pixel size in height
+
 	if (this->fontTex != 0)
 	{
 		FONT_UNBIND_TEXTURE_2D;
@@ -120,9 +125,7 @@ void BackendOpenGL::InitFontTexture()
 	//create texture
 	GL_CHECK(glGenTextures(1, &this->fontTex));
 	FONT_BIND_TEXTURE_2D(this->fontTex);
-
-	auto fb = mainRenderer->GetFontBuilder();
-
+	
 	GL_CHECK(glTexImage2D(GL_TEXTURE_2D, 0, TEXTURE_SINGLE_CHANNEL,
 		fb->GetTextureWidth(), fb->GetTextureHeight(), 0,
 		TEXTURE_SINGLE_CHANNEL, GL_UNSIGNED_BYTE, nullptr));
@@ -410,13 +413,13 @@ void BackendOpenGL::AddQuad(const GlyphInfo & gi, float x, float y, const Abstra
     
     min.x = fx * psW;
     min.y = fy * psH;
-    min.u = static_cast<float>(gi.tx) * mainRenderer->tW;
-    min.v = static_cast<float>(gi.ty) * mainRenderer->tH;
+    min.u = static_cast<float>(gi.tx) * this->tW;
+    min.v = static_cast<float>(gi.ty) * this->tH;
     
     max.x = (fx + gi.bmpW * rp.scale) * psW;
     max.y = (fy + gi.bmpH * rp.scale) * psH;
-    max.u = static_cast<float>(gi.tx + gi.bmpW) * mainRenderer->tW;
-    max.v = static_cast<float>(gi.ty + gi.bmpH) * mainRenderer->tH;
+    max.u = static_cast<float>(gi.tx + gi.bmpW) * this->tW;
+    max.v = static_cast<float>(gi.ty + gi.bmpH) * this->tH;
     
     this->sm->FillVertexData(min, max, rp, mainRenderer->geom);
     

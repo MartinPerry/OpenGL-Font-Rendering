@@ -159,10 +159,7 @@ protected:
 	int quadsCount;
 	std::vector<float> geom;
 
-	
-	float tW; //1.0 / pixel size in width
-	float tH; //1.0 / pixel size in height
-
+		
 
 	bool strChanged;
 #ifdef THREAD_SAFETY

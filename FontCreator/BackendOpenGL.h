@@ -63,6 +63,9 @@ protected:
 	Shader shader;
 	int glVersion;
 	
+	float tW; //1.0 / pixel size in width
+	float tH; //1.0 / pixel size in height
+
 	void InitGL();
 	
 	void InitFontTexture();

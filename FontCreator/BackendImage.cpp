@@ -24,12 +24,12 @@ BackendImage::~BackendImage()
 
 }
 
-const std::vector<uint8_t>& BackendImage::GetRawData() const
+const BackendImage::ImageData& BackendImage::GetRawData() const
 {
-	return this->rawData;
+	return this->img;
 }
 
-BackendImage::ClampedImage BackendImage::GetTightClampedRawData() const
+BackendImage::ImageData BackendImage::GetTightClampedRawData() const
 {		
 	int minY = static_cast<int>(this->quadsAABB.minY);
 	int maxY = static_cast<int>(this->quadsAABB.maxY);
@@ -37,7 +37,7 @@ BackendImage::ClampedImage BackendImage::GetTightClampedRawData() const
 	int minX = static_cast<int>(this->quadsAABB.minX);
 	int maxX = static_cast<int>(this->quadsAABB.maxX);
 
-	ClampedImage img;
+	ImageData img;
 	img.grayScale = (this->isColored == false);
 	img.w = maxX - minX;
 	img.h = maxY - minY;
@@ -49,8 +49,8 @@ BackendImage::ClampedImage BackendImage::GetTightClampedRawData() const
 		int yW = y * this->rs.deviceW;
 
 		std::copy(
-			rawData.data() + (minX + yW) * 3 * this->isColored,
-			rawData.data() + (maxX + yW) * 3 * this->isColored,
+			img.rawData.data() + (minX + yW) * 3 * this->isColored,
+			img.rawData.data() + (maxX + yW) * 3 * this->isColored,
 			img.rawData.data() + (yy * img.w) * 3 * this->isColored
 		);
 		
@@ -71,7 +71,7 @@ void BackendImage::SaveToFile(const char* fileName)
 	LodePNGColorType colorType = (this->isColored) ? LodePNGColorType::LCT_RGB : LodePNGColorType::LCT_GREY;
 	
 	lodepng::encode(fileName,
-		rawData.data(), this->rs.deviceW, this->rs.deviceH,
+		img.rawData.data(), img.w, img.h,
 		colorType, 8 * sizeof(uint8_t));
 }
 
@@ -107,8 +107,11 @@ void BackendImage::UpdateTightCanvasSize()
 
 void BackendImage::OnCanvasSizeChanges()
 {
-	rawData.clear();
-	rawData.resize(this->rs.deviceW * this->rs.deviceH * (3 * this->isColored), 0);
+	img.w = this->rs.deviceW;
+	img.h = this->rs.deviceH;
+	img.grayScale = (this->isColored == false);
+	img.rawData.clear();
+	img.rawData.resize(img.w * img.h * (3 * this->isColored), 0);
 }
 
 
@@ -188,7 +191,7 @@ void BackendImage::Render()
 
 				for (int c = 0; c < 3 * this->isColored; c++)
 				{
-					rawData[index + c] = uint8_t(rgb[c] * texVal);
+					img.rawData[index + c] = uint8_t(rgb[c] * texVal);
 				}
 			}
 		}

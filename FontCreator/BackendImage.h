@@ -18,7 +18,7 @@ class BackendImage : public BackendBase
 {
 public:
 
-	struct ClampedImage 
+	struct ImageData
 	{
 		bool grayScale;
 		int w;
@@ -30,8 +30,8 @@ public:
 	
 	virtual ~BackendImage();
 
-	const std::vector<uint8_t>& GetRawData() const;
-	ClampedImage GetTightClampedRawData() const;
+	const ImageData& GetRawData() const;
+	ImageData GetTightClampedRawData() const;
 
 	void SaveToFile(const char* fileName);
 	
@@ -48,7 +48,7 @@ public:
 
 protected:
 	bool isColored;
-	std::vector<uint8_t> rawData;
+	ImageData img;
 	
 	bool enableTightCanvas;
 	AbstractRenderer::AABB quadsAABB;
