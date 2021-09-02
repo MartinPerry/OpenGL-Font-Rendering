@@ -13,7 +13,7 @@
 
 BackendImage::BackendImage(const RenderSettings& r, bool grayScale) :
 	BackendBase(r),
-	isColored(grayScale == false),
+	channelsCount(grayScale ? 1 : 3),
 	enableTightCanvas(false)
 {
 }
@@ -38,10 +38,10 @@ BackendImage::ImageData BackendImage::GetTightClampedRawData() const
 	int maxX = static_cast<int>(this->quadsAABB.maxX);
 
 	ImageData img;
-	img.grayScale = (this->isColored == false);
+	img.grayScale = (channelsCount == 1);
 	img.w = maxX - minX;
 	img.h = maxY - minY;
-	img.rawData = std::vector<uint8_t>(img.w * img.h * 3 * this->isColored);
+	img.rawData = std::vector<uint8_t>(img.w * img.h * channelsCount);
 
 
 	for (int y = minY, yy = 0; y < maxY; y++, yy++)
@@ -49,9 +49,9 @@ BackendImage::ImageData BackendImage::GetTightClampedRawData() const
 		int yW = y * this->rs.deviceW;
 
 		std::copy(
-			img.rawData.data() + (minX + yW) * 3 * this->isColored,
-			img.rawData.data() + (maxX + yW) * 3 * this->isColored,
-			img.rawData.data() + (yy * img.w) * 3 * this->isColored
+			img.rawData.data() + (minX + yW) * channelsCount,
+			img.rawData.data() + (maxX + yW) * channelsCount,
+			img.rawData.data() + (yy * img.w) * channelsCount
 		);
 		
 	}
@@ -68,7 +68,7 @@ BackendImage::ImageData BackendImage::GetTightClampedRawData() const
 
 void BackendImage::SaveToFile(const char* fileName)
 {
-	LodePNGColorType colorType = (this->isColored) ? LodePNGColorType::LCT_RGB : LodePNGColorType::LCT_GREY;
+	LodePNGColorType colorType = (channelsCount == 3) ? LodePNGColorType::LCT_RGB : LodePNGColorType::LCT_GREY;
 	
 	lodepng::encode(fileName,
 		img.rawData.data(), img.w, img.h,
@@ -91,7 +91,7 @@ void BackendImage::UpdateTightCanvasSize()
 
 	this->SetCanvasSize(maxX - minX, maxY - minY);
 	
-	int nextQuadOffset = (this->isColored) ? 12 : 8;
+	int nextQuadOffset = (channelsCount == 3) ? 12 : 8;
 
 	for (size_t i = 0; i < mainRenderer->geom.size(); i += nextQuadOffset)
 	{		
@@ -109,9 +109,9 @@ void BackendImage::OnCanvasSizeChanges()
 {
 	img.w = this->rs.deviceW;
 	img.h = this->rs.deviceH;
-	img.grayScale = (this->isColored == false);
+	img.grayScale = (channelsCount == 1);
 	img.rawData.clear();
-	img.rawData.resize(img.w * img.h * (3 * this->isColored), 0);
+	img.rawData.resize(img.w * img.h * channelsCount, 0);
 }
 
 
@@ -135,7 +135,7 @@ void BackendImage::Render()
 
 	auto texData = this->mainRenderer->fb->GetTextureData();
 	
-	int nextQuadOffset = (this->isColored) ? 12 : 8;
+	int nextQuadOffset = (channelsCount == 3) ? 12 : 8;
 
 	std::array<float, 3> rgb = { 1.0f, 1.0f, 1.0f };
 	
@@ -155,7 +155,7 @@ void BackendImage::Render()
 		int maxU = static_cast<int>(mainRenderer->geom[i + 6]);
 		int maxV = static_cast<int>(mainRenderer->geom[i + 7]);
 
-		if (this->isColored)
+		if (channelsCount == 3)
 		{
 			rgb[0] = mainRenderer->geom[i + 8];
 			rgb[1] = mainRenderer->geom[i + 9];
@@ -186,10 +186,10 @@ void BackendImage::Render()
 		{			
 			for (int x = minX, u = minU; x < maxX; x++, u++)
 			{				
-				int index = (x + y * this->rs.deviceW) * 3 * this->isColored;
+				int index = (x + y * this->rs.deviceW) * channelsCount;
 				auto texVal = texData[u + v * this->mainRenderer->fb->GetTextureWidth()];
 
-				for (int c = 0; c < 3 * this->isColored; c++)
+				for (int c = 0; c < channelsCount; c++)
 				{
 					img.rawData[index + c] = uint8_t(rgb[c] * texVal);
 				}
@@ -249,7 +249,7 @@ void BackendImage::AddQuad(const GlyphInfo& gi, float x, float y, const Abstract
 	mainRenderer->geom.push_back(max.x); mainRenderer->geom.push_back(max.y);
 	mainRenderer->geom.push_back(max.u); mainRenderer->geom.push_back(max.v);
 
-	if (this->isColored)
+	if (channelsCount == 3)
 	{
 		mainRenderer->geom.push_back(rp.color.r); mainRenderer->geom.push_back(rp.color.g);
 		mainRenderer->geom.push_back(rp.color.b); mainRenderer->geom.push_back(rp.color.a);

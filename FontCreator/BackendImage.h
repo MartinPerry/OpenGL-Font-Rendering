@@ -47,7 +47,7 @@ public:
 	
 
 protected:
-	bool isColored;
+	int channelsCount;
 	ImageData img;
 	
 	bool enableTightCanvas;
