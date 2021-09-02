@@ -13,7 +13,8 @@
 
 BackendImage::BackendImage(const RenderSettings& r, bool grayScale) :
 	BackendBase(r),
-	isColored(grayScale == false)
+	isColored(grayScale == false),
+	enableTightCanvas(false)
 {
 }
 
@@ -74,7 +75,37 @@ void BackendImage::SaveToFile(const char* fileName)
 		colorType, 8 * sizeof(uint8_t));
 }
 
-void BackendImage::CreateTexture()
+
+void BackendImage::SetTightDynamicCanvasEnabled(bool val)
+{
+	this->enableTightCanvas = val;
+}
+
+void BackendImage::UpdateTightCanvasSize()
+{
+	int minY = static_cast<int>(this->quadsAABB.minY);
+	int maxY = static_cast<int>(this->quadsAABB.maxY);
+
+	int minX = static_cast<int>(this->quadsAABB.minX);
+	int maxX = static_cast<int>(this->quadsAABB.maxX);
+
+	this->SetCanvasSize(maxX - minX, maxY - minY);
+	
+	int nextQuadOffset = (this->isColored) ? 12 : 8;
+
+	for (size_t i = 0; i < mainRenderer->geom.size(); i += nextQuadOffset)
+	{		
+		mainRenderer->geom[i] -= minX;
+		mainRenderer->geom[i + 1] -= minY;
+
+		mainRenderer->geom[i + 4] -= minX;
+		mainRenderer->geom[i + 5] -= minY;
+
+	}
+
+}
+
+void BackendImage::OnCanvasSizeChanges()
 {
 	rawData.clear();
 	rawData.resize(this->rs.deviceW * this->rs.deviceH * (3 * this->isColored), 0);
@@ -93,6 +124,12 @@ void BackendImage::Render()
 		return;
 	}
 
+	if (this->enableTightCanvas)
+	{
+		this->UpdateTightCanvasSize();
+	}
+
+
 	auto texData = this->mainRenderer->fb->GetTextureData();
 	
 	int nextQuadOffset = (this->isColored) ? 12 : 8;
@@ -103,17 +140,17 @@ void BackendImage::Render()
 	{
 		//
 
-		float minX = mainRenderer->geom[i];
-		float minY = mainRenderer->geom[i + 1];
+		int minX = static_cast<int>(mainRenderer->geom[i]);
+		int minY = static_cast<int>(mainRenderer->geom[i + 1]);
 
-		float minU = mainRenderer->geom[i + 2];
-		float minV = mainRenderer->geom[i + 3];
+		int minU = static_cast<int>(mainRenderer->geom[i + 2]);
+		int minV = static_cast<int>(mainRenderer->geom[i + 3]);
 
-		float maxX = mainRenderer->geom[i + 4];
-		float maxY = mainRenderer->geom[i + 5];
+		int maxX = static_cast<int>(mainRenderer->geom[i + 4]);
+		int maxY = static_cast<int>(mainRenderer->geom[i + 5]);
 
-		float maxU = mainRenderer->geom[i + 6];
-		float maxV = mainRenderer->geom[i + 7];
+		int maxU = static_cast<int>(mainRenderer->geom[i + 6]);
+		int maxV = static_cast<int>(mainRenderer->geom[i + 7]);
 
 		if (this->isColored)
 		{
@@ -135,11 +172,11 @@ void BackendImage::Render()
 			minV = minV - minY;
 		}
 
-		minX = std::clamp<float>(minX, 0, this->rs.deviceW);
-		maxX = std::clamp<float>(maxX, 0, this->rs.deviceW);
+		minX = std::clamp(minX, 0, this->rs.deviceW);
+		maxX = std::clamp(maxX, 0, this->rs.deviceW);
 
-		minY = std::clamp<float>(minY, 0, this->rs.deviceH);
-		maxY = std::clamp<float>(maxY, 0, this->rs.deviceH);
+		minY = std::clamp(minY, 0, this->rs.deviceH);
+		maxY = std::clamp(maxY, 0, this->rs.deviceH);
 		//
 
 		for (int y = minY, v = minV; y < maxY; y++, v++)
@@ -151,13 +188,13 @@ void BackendImage::Render()
 
 				for (int c = 0; c < 3 * this->isColored; c++)
 				{
-					rawData[index + c] = rgb[c] * texVal;
+					rawData[index + c] = uint8_t(rgb[c] * texVal);
 				}
 			}
 		}
 	}
 
-	//this->SaveToFile("D://test.png");
+	//this->SaveToFile("D://test2.png");
 	//this->GetTightClampedRawData();	
 }
 

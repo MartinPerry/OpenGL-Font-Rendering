@@ -35,6 +35,8 @@ public:
 
 	void SaveToFile(const char* fileName);
 	
+	void SetTightDynamicCanvasEnabled(bool val);
+
 	void Clear();
 	void AddQuad(const GlyphInfo& gi, float x, float y, const AbstractRenderer::RenderParams& rp) override;
 
@@ -48,11 +50,13 @@ protected:
 	bool isColored;
 	std::vector<uint8_t> rawData;
 	
+	bool enableTightCanvas;
 	AbstractRenderer::AABB quadsAABB;
 
-	void CreateTexture() override;
-	
+		
+	void UpdateTightCanvasSize();
 
+	void OnCanvasSizeChanges() override;
 };
 
 #endif

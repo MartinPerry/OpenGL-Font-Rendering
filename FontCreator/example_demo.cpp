@@ -411,11 +411,11 @@ void initGL() {
 	ri.deviceW = 512;
 	ri.deviceH = 256;
 
-
-	StringRenderer* imageSr = StringRenderer::CreateSingleColor({ 1,0,1,1 }, fs, std::make_unique<BackendImage>(ri, false));
+	auto image = std::make_unique<BackendImage>(ri, false);
+	image->SetTightDynamicCanvasEnabled(true);
+	StringRenderer* imageSr = StringRenderer::CreateSingleColor({ 1,0,1,1 }, fs, std::move(image));	
 	imageSr->AddString(
-		//UTF8_TEXT(CreateRandomString(10).c_str()),		
-		UTF8_TEXT("ECMWF (Claudette)"),
+		UTF8_TEXT(CreateRandomString(10).c_str()),				
 		0.0f, 0.1f,
 		{ /*color*/ 1,1,0,1, /*scale*/ 1.0 },
 		AbstractRenderer::TextAnchor::LEFT_TOP);

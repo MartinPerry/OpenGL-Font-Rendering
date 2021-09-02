@@ -105,11 +105,11 @@ void BackendOpenGL::InitGL()
 	GL_CHECK(glGenBuffers(1, &this->vbo));
 
 	//create VAO
-	this->CreateVAO();
+	this->InitVAO();
 	
 }
 
-void BackendOpenGL::CreateTexture()
+void BackendOpenGL::InitFontTexture()
 {
 	if (this->fontTex != 0)
 	{
@@ -144,7 +144,7 @@ void BackendOpenGL::CreateTexture()
 /// <summary>
 /// Create VAO
 /// </summary>
-void BackendOpenGL::CreateVAO()
+void BackendOpenGL::InitVAO()
 {
 #ifdef __ANDROID_API__
 	if (glVersion == 2)
@@ -268,6 +268,15 @@ void BackendOpenGL::SetFontTextureLinearFiler(bool val)
 }
 
 
+void BackendOpenGL::SetMainRenderer(AbstractRenderer* mainRenderer)
+{
+	BackendBase::SetMainRenderer(mainRenderer);
+	this->InitFontTexture();
+}
+
+void BackendOpenGL::OnCanvasSizeChanges()
+{
+}
 
 std::shared_ptr<IFontShaderManager> BackendOpenGL::GetShaderManager() const
 {

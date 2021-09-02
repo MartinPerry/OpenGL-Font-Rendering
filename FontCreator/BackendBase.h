@@ -19,7 +19,7 @@ public:
 	
 	virtual ~BackendBase();
 
-	void SetMainRenderer(AbstractRenderer* mainRenderer);
+	virtual void SetMainRenderer(AbstractRenderer* mainRenderer);
 
 	const RenderSettings& GetSettings() const;
 
@@ -51,8 +51,8 @@ protected:
 	//since we must redraw fonts
 	void SetCanvasSize(int w, int h);
 	void SwapCanvasWidthHeight();
-
-	virtual void CreateTexture() = 0;	
+	virtual void OnCanvasSizeChanges() = 0;
+	
    
 };
 

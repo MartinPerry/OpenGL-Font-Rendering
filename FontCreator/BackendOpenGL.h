@@ -25,6 +25,7 @@ public:
    	
 	virtual ~BackendOpenGL();
 
+	void SetMainRenderer(AbstractRenderer* mainRenderer);
 	
 	void SetFontTextureLinearFiler(bool val);
 	
@@ -64,13 +65,13 @@ protected:
 	
 	void InitGL();
 	
-	void CreateTexture() override;	
-	void CreateVAO();
+	void InitFontTexture();
+	void InitVAO();
 
 	GLuint CompileGLSLShader(GLenum target, const char* shader);
 	GLuint LinkGLSLProgram(GLuint vertexShader, GLuint fragmentShader);
 
-   
+	void OnCanvasSizeChanges() override;
 };
 
 #endif
