@@ -18,12 +18,20 @@ class BackendImage : public BackendBase
 {
 public:
 
+	struct ClampedImage 
+	{
+		bool grayScale;
+		int w;
+		int h;
+		std::vector<uint8_t> rawData;
+	};
+
 	BackendImage(const RenderSettings& r, bool grayScale);
 	
 	virtual ~BackendImage();
 
 	const std::vector<uint8_t>& GetRawData() const;
-	std::vector<uint8_t> GetTightClampedRawData() const;
+	ClampedImage GetTightClampedRawData() const;
 
 	void SaveToFile(const char* fileName);
 	

@@ -28,17 +28,19 @@ const std::vector<uint8_t>& BackendImage::GetRawData() const
 	return this->rawData;
 }
 
-std::vector<uint8_t> BackendImage::GetTightClampedRawData() const
-{	
+BackendImage::ClampedImage BackendImage::GetTightClampedRawData() const
+{		
 	int minY = static_cast<int>(this->quadsAABB.minY);
 	int maxY = static_cast<int>(this->quadsAABB.maxY);
 	
 	int minX = static_cast<int>(this->quadsAABB.minX);
 	int maxX = static_cast<int>(this->quadsAABB.maxX);
 
-	int clampW = maxX - minX;
-	int clampH = maxY - minY;
-	std::vector<uint8_t> v(clampW * clampH * 3 * this->isColored);
+	ClampedImage img;
+	img.grayScale = (this->isColored == false);
+	img.w = maxX - minX;
+	img.h = maxY - minY;
+	img.rawData = std::vector<uint8_t>(img.w * img.h * 3 * this->isColored);
 
 
 	for (int y = minY, yy = 0; y < maxY; y++, yy++)
@@ -48,18 +50,19 @@ std::vector<uint8_t> BackendImage::GetTightClampedRawData() const
 		std::copy(
 			rawData.data() + (minX + yW) * 3 * this->isColored,
 			rawData.data() + (maxX + yW) * 3 * this->isColored,
-			v.data() + (yy * clampW) * 3 * this->isColored
+			img.rawData.data() + (yy * img.w) * 3 * this->isColored
 		);
 		
 	}
 
+	/*
 	LodePNGColorType colorType = (this->isColored) ? LodePNGColorType::LCT_RGB : LodePNGColorType::LCT_GREY;
 
 	lodepng::encode("D://clamp.png",
-		v.data(), clampW, clampH,
+		img.rawData.data(), img.w, img.h,
 		colorType, 8 * sizeof(uint8_t));
-
-	return v;
+	*/
+	return img;
 }
 
 void BackendImage::SaveToFile(const char* fileName)
@@ -154,8 +157,8 @@ void BackendImage::Render()
 		}
 	}
 
-	this->SaveToFile("D://test.png");
-	this->GetTightClampedRawData();	
+	//this->SaveToFile("D://test.png");
+	//this->GetTightClampedRawData();	
 }
 
 
