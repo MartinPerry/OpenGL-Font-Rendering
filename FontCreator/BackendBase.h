@@ -23,6 +23,8 @@ public:
 
 	const RenderSettings& GetSettings() const;
 
+	void SetEnabled(bool val);
+	bool IsEnabled() const;
 		
 	virtual void Clear() = 0;
 	virtual void AddQuad(const GlyphInfo& gi, float x, float y, const AbstractRenderer::RenderParams& rp) = 0;

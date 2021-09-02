@@ -60,7 +60,7 @@ public:
 
 	std::shared_ptr<FontBuilder> GetFontBuilder();
 	void SetCanvasSize(int w, int h);
-	
+		
 	void SetAxisYOrigin(AxisYOrigin axisY);
 	void SetCaption(const UnicodeString& mark);
 	void SetCaption(const UnicodeString& mark, int offsetInPixels);

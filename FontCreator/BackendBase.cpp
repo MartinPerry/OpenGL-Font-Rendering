@@ -25,6 +25,16 @@ const RenderSettings& BackendBase::GetSettings() const
 	return this->rs;
 }
 
+void BackendBase::SetEnabled(bool val)
+{
+	this->enabled = val;
+}
+
+bool BackendBase::IsEnabled() const
+{
+	return this->enabled;
+}
+
 void BackendBase::SetCanvasSize(int w, int h)
 {
 	this->rs.deviceW = w;
