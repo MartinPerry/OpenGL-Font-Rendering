@@ -11,11 +11,23 @@
 //=============================================================================
 
 
-BackendImage::BackendImage(const RenderSettings& r, bool grayScale) :
+BackendImage::BackendImage(const RenderSettings& r, Format format) :
 	BackendBase(r),
-	channelsCount(grayScale ? 1 : 3),
-	enableTightCanvas(false)
+	format(format),
+	enableTightCanvas(false),
+	bgValue({0,0,0,0})
 {
+
+	this->colorBlend = [](uint8_t texVal, uint8_t* px, const std::array<float, 4>& textColor, int channelsCount) {
+		float alpha = texVal / 255.0;
+
+		for (int c = 0; c < channelsCount; c++)
+		{
+			uint8_t v = uint8_t(textColor[c] * texVal);
+			px[c] = (v * alpha) + (px[c] * (1.0 - alpha));
+
+		}
+	};
 }
 
 
@@ -38,10 +50,10 @@ BackendImage::ImageData BackendImage::GetTightClampedRawData() const
 	int maxX = static_cast<int>(this->quadsAABB.maxX);
 
 	ImageData img;
-	img.grayScale = (channelsCount == 1);
+	img.format = format;
 	img.w = maxX - minX;
 	img.h = maxY - minY;
-	img.rawData = std::vector<uint8_t>(img.w * img.h * channelsCount);
+	img.rawData = std::vector<uint8_t>(img.w * img.h * static_cast<int>(format));
 
 
 	for (int y = minY, yy = 0; y < maxY; y++, yy++)
@@ -49,9 +61,9 @@ BackendImage::ImageData BackendImage::GetTightClampedRawData() const
 		int yW = y * this->rs.deviceW;
 
 		std::copy(
-			img.rawData.data() + (minX + yW) * channelsCount,
-			img.rawData.data() + (maxX + yW) * channelsCount,
-			img.rawData.data() + (yy * img.w) * channelsCount
+			img.rawData.data() + (minX + yW) * static_cast<int>(format),
+			img.rawData.data() + (maxX + yW) * static_cast<int>(format),
+			img.rawData.data() + (yy * img.w) * static_cast<int>(format)
 		);
 		
 	}
@@ -68,17 +80,37 @@ BackendImage::ImageData BackendImage::GetTightClampedRawData() const
 
 void BackendImage::SaveToFile(const char* fileName)
 {
-	LodePNGColorType colorType = (channelsCount == 3) ? LodePNGColorType::LCT_RGB : LodePNGColorType::LCT_GREY;
+	LodePNGColorType colorType = LodePNGColorType::LCT_GREY;
+	if (format == Format::RGB) colorType = LodePNGColorType::LCT_RGB;
+	else if (format == Format::RGBA) colorType = LodePNGColorType::LCT_RGBA;
 	
 	lodepng::encode(fileName,
 		img.rawData.data(), img.w, img.h,
 		colorType, 8 * sizeof(uint8_t));
 }
 
+void BackendImage::SetBackgroundValue(uint8_t r, uint8_t g, uint8_t b, uint8_t a)
+{
+	bgValue[0] = r;
+	bgValue[1] = g;
+	bgValue[2] = b;
+	bgValue[3] = a;
+}
+
+void BackendImage::SetColorBlend(std::function<void(uint8_t, uint8_t*, const std::array<float, 4>&, int)>& blend)
+{
+	this->colorBlend = blend;
+}
 
 void BackendImage::SetTightDynamicCanvasEnabled(bool val)
 {
+	this->SetTightDynamicCanvasEnabled(val, TightCanvasSettings());
+}
+
+void BackendImage::SetTightDynamicCanvasEnabled(bool val, const TightCanvasSettings& ts)
+{
 	this->enableTightCanvas = val;
+	this->tightSettings = ts;
 }
 
 void BackendImage::UpdateTightCanvasSize()
@@ -89,18 +121,20 @@ void BackendImage::UpdateTightCanvasSize()
 	int minX = static_cast<int>(this->quadsAABB.minX);
 	int maxX = static_cast<int>(this->quadsAABB.maxX);
 
-	this->SetCanvasSize(maxX - minX, maxY - minY);
+	this->SetCanvasSize(
+		tightSettings.borderLeft + (maxX - minX) + tightSettings.borderRight, 
+		tightSettings.borderTop + (maxY - minY) + tightSettings.borderBottom
+	);
 	
-	int nextQuadOffset = (channelsCount == 3) ? 12 : 8;
+	int nextQuadOffset = (format == Format::GRAYSCALE) ? 8 : 12;
 
 	for (size_t i = 0; i < mainRenderer->geom.size(); i += nextQuadOffset)
 	{		
-		mainRenderer->geom[i] -= minX;
-		mainRenderer->geom[i + 1] -= minY;
+		mainRenderer->geom[i] = mainRenderer->geom[i] - minX + tightSettings.borderLeft;
+		mainRenderer->geom[i + 1] = mainRenderer->geom[i + 1] - minY + tightSettings.borderTop;
 
-		mainRenderer->geom[i + 4] -= minX;
-		mainRenderer->geom[i + 5] -= minY;
-
+		mainRenderer->geom[i + 4] = mainRenderer->geom[i + 4] - minX + tightSettings.borderLeft;
+		mainRenderer->geom[i + 5] = mainRenderer->geom[i + 5] - minY + tightSettings.borderTop;
 	}
 
 }
@@ -109,9 +143,23 @@ void BackendImage::OnCanvasSizeChanges()
 {
 	img.w = this->rs.deviceW;
 	img.h = this->rs.deviceH;
-	img.grayScale = (channelsCount == 1);
+	img.format = format;
 	img.rawData.clear();
-	img.rawData.resize(img.w * img.h * channelsCount, 0);
+	img.rawData.resize(img.w * img.h * static_cast<int>(format));
+
+	for (int y = 0; y < img.h; y++)
+	{
+		for (int x = 0; x < img.w; x++)
+		{
+			int index = (x + y * this->rs.deviceW) * static_cast<int>(format);
+			
+			for (int c = 0; c < static_cast<int>(format); c++)
+			{				
+				img.rawData[index + c] = bgValue[c];
+			}
+		}
+	}
+
 }
 
 
@@ -135,9 +183,9 @@ void BackendImage::Render()
 
 	auto texData = this->mainRenderer->fb->GetTextureData();
 	
-	int nextQuadOffset = (channelsCount == 3) ? 12 : 8;
+	int nextQuadOffset = (format == Format::GRAYSCALE) ? 8 : 12;
 
-	std::array<float, 3> rgb = { 1.0f, 1.0f, 1.0f };
+	std::array<float, 4> rgba = { 1.0f, 1.0f, 1.0f, 1.0f };
 	
 	for (size_t i = 0; i < mainRenderer->geom.size(); i += nextQuadOffset)
 	{
@@ -155,11 +203,12 @@ void BackendImage::Render()
 		int maxU = static_cast<int>(mainRenderer->geom[i + 6]);
 		int maxV = static_cast<int>(mainRenderer->geom[i + 7]);
 
-		if (channelsCount == 3)
+		if (format != Format::GRAYSCALE)
 		{
-			rgb[0] = mainRenderer->geom[i + 8];
-			rgb[1] = mainRenderer->geom[i + 9];
-			rgb[2] = mainRenderer->geom[i + 10];
+			rgba[0] = mainRenderer->geom[i + 8];
+			rgba[1] = mainRenderer->geom[i + 9];
+			rgba[2] = mainRenderer->geom[i + 10];
+			rgba[3] = mainRenderer->geom[i + 11];
 		}
 
 		//clamp to prevent being outside window
@@ -186,13 +235,19 @@ void BackendImage::Render()
 		{			
 			for (int x = minX, u = minU; x < maxX; x++, u++)
 			{				
-				int index = (x + y * this->rs.deviceW) * channelsCount;
+				int index = (x + y * this->rs.deviceW) * static_cast<int>(format);
 				auto texVal = texData[u + v * this->mainRenderer->fb->GetTextureWidth()];
+				
+				this->colorBlend(texVal, img.rawData.data() + index, rgba, static_cast<int>(format));
 
-				for (int c = 0; c < channelsCount; c++)
+				/*
+				float alpha = texVal / 255.0;
+				for (int c = 0; c < static_cast<int>(format); c++)
 				{
-					img.rawData[index + c] = uint8_t(rgb[c] * texVal);
+					uint8_t v = uint8_t(rgba[c] * texVal);
+					img.rawData[index + c] = (v * alpha) + (img.rawData[index + c] * (1.0 - alpha));
 				}
+				*/
 			}
 		}
 	}
@@ -249,7 +304,7 @@ void BackendImage::AddQuad(const GlyphInfo& gi, float x, float y, const Abstract
 	mainRenderer->geom.push_back(max.x); mainRenderer->geom.push_back(max.y);
 	mainRenderer->geom.push_back(max.u); mainRenderer->geom.push_back(max.v);
 
-	if (channelsCount == 3)
+	if (format != Format::GRAYSCALE)
 	{
 		mainRenderer->geom.push_back(rp.color.r); mainRenderer->geom.push_back(rp.color.g);
 		mainRenderer->geom.push_back(rp.color.b); mainRenderer->geom.push_back(rp.color.a);

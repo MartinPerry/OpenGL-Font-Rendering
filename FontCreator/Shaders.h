@@ -92,15 +92,11 @@ static const char* DEFAULT_PIXEL_SHADER_SOURCE = {
     uniform sampler2D fontTex;\n\
     varying vec2 texCoord;\n\
 	varying vec4 color;\n\
-    //out vec4 fragColor;\n\
 	\n\
     void main()\n\
     {\n\
-        float distance = texture2D( fontTex, texCoord.xy ).x; \n\
         gl_FragColor.rgb = color.xyz; \n\
-		//gl_FragColor.rgb = vec3(distance); \n\
-        gl_FragColor.a = color.w * distance;\n\
-		//gl_FragColor.a += 0.5;\n\
+        gl_FragColor.a = color.w * texture2D( fontTex, texCoord.xy ).x;\n\
     }\n\
 " };
 

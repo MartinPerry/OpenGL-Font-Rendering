@@ -3,6 +3,7 @@
 
 
 #include <vector>
+#include <array>
 #include <list>
 #include <unordered_set>
 #include <functional>
@@ -13,20 +14,34 @@
 
 #include "./Externalncludes.h"
 
-
 class BackendImage : public BackendBase
 {
 public:
 
+	enum class Format 
+	{
+		GRAYSCALE = 1,
+		RGB = 3,
+		RGBA = 4
+	};
+
+	struct TightCanvasSettings 
+	{
+		int borderLeft = 0;
+		int borderRight = 0;
+		int borderTop = 0;
+		int borderBottom = 0;
+	};
+
 	struct ImageData
 	{
-		bool grayScale;
+		Format format;
 		int w;
 		int h;
 		std::vector<uint8_t> rawData;
 	};
 
-	BackendImage(const RenderSettings& r, bool grayScale);
+	BackendImage(const RenderSettings& r, Format format);
 	
 	virtual ~BackendImage();
 
@@ -35,7 +50,11 @@ public:
 
 	void SaveToFile(const char* fileName);
 	
+	void SetBackgroundValue(uint8_t r, uint8_t g, uint8_t b, uint8_t a);
+	void SetColorBlend(std::function<void(uint8_t, uint8_t*, const std::array<float, 4>&, int)>& blend);
+
 	void SetTightDynamicCanvasEnabled(bool val);
+	void SetTightDynamicCanvasEnabled(bool val, const TightCanvasSettings& ts);
 
 	void Clear();
 	void AddQuad(const GlyphInfo& gi, float x, float y, const AbstractRenderer::RenderParams& rp) override;
@@ -47,10 +66,15 @@ public:
 	
 
 protected:
-	int channelsCount;
+	Format format;
 	ImageData img;
 	
+	std::array<uint8_t, 4> bgValue;
+	std::function<void(uint8_t, uint8_t*, const std::array<float, 4>&, int)> colorBlend;
+
 	bool enableTightCanvas;
+	TightCanvasSettings tightSettings;
+
 	AbstractRenderer::AABB quadsAABB;
 
 		

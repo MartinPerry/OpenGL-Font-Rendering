@@ -411,17 +411,22 @@ void initGL() {
 	ri.deviceW = 512;
 
 	ri.deviceH = 256;
-
-	auto image = std::make_unique<BackendImage>(ri, false);
+	
+	StringRenderer* imageSr = StringRenderer::CreateSingleColor({ 1,0,1,1 }, fs, std::make_unique<BackendImage>(ri, BackendImage::Format::RGBA));
+	
+	BackendImage* image = dynamic_cast<BackendImage*>(imageSr->GetBackend());
 	image->SetTightDynamicCanvasEnabled(true);
-	StringRenderer* imageSr = StringRenderer::CreateSingleColor({ 1,0,1,1 }, fs, std::move(image));	
+	image->SetBackgroundValue(255, 0, 0, 255);
+
 	imageSr->AddString(
-		UTF8_TEXT(CreateRandomString(10).c_str()),				
+		//UTF8_TEXT(CreateRandomString(10).c_str()),				
+		UTF8_TEXT(u8"Pøílíš málo qqq"),
 		0.0f, 0.1f,
 		{ /*color*/ 1,1,0,1, /*scale*/ 1.0 },
 		AbstractRenderer::TextAnchor::LEFT_TOP);
 
 	imageSr->Render();
+	image->SaveToFile("D://test2.png");
 }
 
 
