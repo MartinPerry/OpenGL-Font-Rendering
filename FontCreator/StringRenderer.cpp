@@ -202,7 +202,19 @@ bool StringRenderer::AddStringInternal(const UnicodeString & str,
 		y = this->backend->GetSettings().deviceH - y;
 	}
 
-	UnicodeString uniStr = (this->isBidiEnabled) ? BIDI(str) : str;
+    //check if string contains only ASCII letters
+    //if so - we dont need BIDI changing of the string
+    
+    //383 - end of Latin Extended-A
+    //https://en.wikipedia.org/wiki/List_of_Unicode_characters
+    
+    bool needBidi = false;
+    if (this->isBidiEnabled)
+    {
+        needBidi = NEED_BIDI(str);
+    }
+    
+	UnicodeString uniStr = (this->isBidiEnabled && needBidi) ? BIDI(str) : str;
 	
 	
 	if (this->CanAddString(uniStr, x, y, rp, anchor, align, type) == false)
@@ -225,9 +237,9 @@ bool StringRenderer::AddStringInternal(const UnicodeString & str,
 
 	int len = 0;
 	int start = 0;
-
+    
 	auto it = CustromIteratorCreator::Create(added.str);
-	uint32_t c;
+    uint32_t c;
 	while ((c = it.GetCurrentAndAdvance()) != it.DONE)
 	{		
 		this->fb->AddCharacter(c);

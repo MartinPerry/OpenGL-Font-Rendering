@@ -142,6 +142,8 @@ typedef utf8_string UnicodeString;
 
 #	define BIDI(x) BidiHelper::ConvertOneLine(x)
 
+#   define NEED_BIDI(x) IcuUtils::RequiresBidi(x)
+
 #	define UTF8_TEXT(x) icu::UnicodeString::fromUTF8(x)
 
 #	define UTF8_UNESCAPE(x) icu::UnicodeString::fromUTF8(x).unescape()

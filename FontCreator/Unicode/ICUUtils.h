@@ -4,14 +4,20 @@
 
 #ifdef USE_ICU_LIBRARY
 
-#include <vector>
-
 //This is for ICU library
+
+#include <vector>
 
 #include <unicode/ustring.h>
 #include <unicode/ubidi.h>
 #include <unicode/ushape.h>
 #include <unicode/normlzr.h>
+#include <unicode/schriter.h>
+
+#define FOREACH_32_CHAR_ITERATION(c, str) icu::StringCharacterIterator iter = icu::StringCharacterIterator(str); \
+										  for (UChar32 c = iter.first32(); iter.hasNext(); c = iter.next32())
+
+
 
 //http://icu-project.org/apiref/icu4c/ubidi_8h.html
 class BidiHelper
@@ -58,7 +64,7 @@ public:
 
 	void RunOneLine()
 	{
-		UBiDiLevel paraLevel = 1 & ubidi_getParaLevel(para);
+		//UBiDiLevel paraLevel = 1 & ubidi_getParaLevel(para);
 
 		this->ProcessLine(para, 0, str.length());
 
@@ -224,9 +230,14 @@ private:
 };
 
 
-class IcuUtils
+class IcuUtils 
 {
 public:
+	static int GetPackSize(const icu::UnicodeString& str)
+	{
+		return (sizeof(int) + sizeof(uint16_t) * str.length());
+	}
+
 	static uint8_t * PackToMemory(const icu::UnicodeString & str, uint8_t * memory)
 	{
 		//store unicode string raw length
@@ -241,18 +252,52 @@ public:
 		return memory;
 	};
 
-	static uint8_t * UnpackFromMemory(uint8_t * memory, icu::UnicodeString & str)
+	static uint8_t* UnpackFromMemory(uint8_t* memory, icu::UnicodeString& str)
 	{
 		//restore unicode string
 		int strBufferSize = 0;
 		memcpy(&strBufferSize, memory, sizeof(int));
 		memory += sizeof(int);
 
-		str = icu::UnicodeString((char16_t *)memory, strBufferSize / sizeof(char16_t));
+		str = icu::UnicodeString((char16_t*)memory, strBufferSize / sizeof(char16_t));
 		memory += (strBufferSize);
 
 		return memory;
-	}
+	};
+
+
+	static bool AllInRange(const icu::UnicodeString& str, int32_t start, int32_t end)
+	{
+		FOREACH_32_CHAR_ITERATION(c, str)
+		{			
+			if (c < 'A')
+			{
+				//ignore non-letters before 'A' in ASCII
+				continue;
+			}
+			if (c < start) return false;
+			if (c > end) return false;
+		}
+
+		return true;
+	};
+
+    static bool RequiresBidi(const icu::UnicodeString& str)
+    {
+        //383 - end of Latin Extended-A
+        //https://en.wikipedia.org/wiki/List_of_Unicode_characters
+        
+        FOREACH_32_CHAR_ITERATION(c, str)
+        {
+            if (c > 383)
+            {
+                return true;
+            }
+        }
+        
+        return false;
+    }
+    
 };
 
 #endif
