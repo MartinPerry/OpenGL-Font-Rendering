@@ -25,7 +25,7 @@ public:
    	
 	virtual ~BackendOpenGL();
 
-	void SetMainRenderer(AbstractRenderer* mainRenderer);
+	void SetMainRenderer(AbstractRenderer* mainRenderer) override;
 	
 	void SetFontTextureLinearFiler(bool val);
 	

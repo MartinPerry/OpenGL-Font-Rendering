@@ -97,14 +97,15 @@ public:
 	void Clear();
 
 	size_t GetStringsCount() const;
-	StringInfo & GetStringInfo(size_t index);
-	StringInfo & GetLastStringInfo();
+	StringInfo* GetStringInfo(size_t index);
+	StringInfo* GetLastStringInfo();
 
 
 	void SetNewLineOffset(int offsetInPixels);
 
 	void SetBidiEnabled(bool val);
 	
+    void SetStringDeadzone(int radiusPx);
 	
 	//=========================================================
 
@@ -153,6 +154,8 @@ protected:
 
 	bool isBidiEnabled;		
 	bool spaceSizeExist;
+	
+	int deadzoneRadius2;
 
 	int nlOffsetPx;
 	long spaceSize;

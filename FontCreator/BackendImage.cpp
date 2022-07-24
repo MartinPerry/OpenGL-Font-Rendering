@@ -19,12 +19,12 @@ BackendImage::BackendImage(const RenderSettings& r, Format format) :
 {
 
 	this->colorBlend = [](uint8_t texVal, uint8_t* px, const std::array<float, 4>& textColor, int channelsCount) {
-		float alpha = texVal / 255.0;
+		float alpha = texVal / 255.0f;
 
 		for (int c = 0; c < channelsCount; c++)
 		{
 			uint8_t v = uint8_t(textColor[c] * texVal);
-			px[c] = (v * alpha) + (px[c] * (1.0 - alpha));
+			px[c] = (v * alpha) + (px[c] * (1.0f - alpha));
 
 		}
 	};

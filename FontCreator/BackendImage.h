@@ -56,7 +56,7 @@ public:
 	void SetTightDynamicCanvasEnabled(bool val);
 	void SetTightDynamicCanvasEnabled(bool val, const TightCanvasSettings& ts);
 
-	void Clear();
+	void Clear() override;
 	void AddQuad(const GlyphInfo& gi, float x, float y, const AbstractRenderer::RenderParams& rp) override;
 
 	void FillFontTexture() override;

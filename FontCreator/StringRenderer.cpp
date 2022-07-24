@@ -35,7 +35,8 @@ StringRenderer * StringRenderer::CreateSingleColor(Color color,
 StringRenderer::StringRenderer(const FontBuilderSettings& fs, 
 	std::unique_ptr<BackendBase>&& backend) :
 	AbstractRenderer(fs, std::move(backend)),
-	isBidiEnabled(true), 
+	isBidiEnabled(true),
+	deadzoneRadius2(0.0f),
 	nlOffsetPx(0),
 	spaceSizeExist(false),
 	spaceSize(10)
@@ -67,14 +68,33 @@ size_t StringRenderer::GetStringsCount() const
 	return strs.size();
 }
 
-StringRenderer::StringInfo & StringRenderer::GetStringInfo(size_t index)
+StringRenderer::StringInfo* StringRenderer::GetStringInfo(size_t index)
 {
-	return this->strs[index];
+	if (this->strs.size() <= index)
+	{
+		return nullptr;
+	}
+
+	return &this->strs[index];
 }
 
-StringRenderer::StringInfo & StringRenderer::GetLastStringInfo()
+StringRenderer::StringInfo* StringRenderer::GetLastStringInfo()
 {
-	return this->strs.back();
+	if (this->strs.size() == 0)
+	{
+		return nullptr;
+	}
+
+    auto it = this->strs.end() - 1;
+    
+    if (it->type == TextType::CAPTION_SYMBOL)
+    {
+        //if text is caption, we want to return text, not the caption
+        //caption is last, return pre-last string
+        //with caption, there are two lines (text, mark)
+        it--;
+    }
+    return &(*it);
 }
 
 void StringRenderer::SetNewLineOffset(int offsetInPixels)
@@ -85,6 +105,17 @@ void StringRenderer::SetNewLineOffset(int offsetInPixels)
 void StringRenderer::SetBidiEnabled(bool val)
 {
 	this->isBidiEnabled = val;
+}
+
+/// <summary>
+/// Set deadzone radius in pixels 
+/// If new string is added and its position is within this radius
+/// of already added string, new one is not added
+/// </summary>
+/// <param name="radiusPx"></param>
+void StringRenderer::SetStringDeadzone(int radiusPx)
+{
+    this->deadzoneRadius2 = radiusPx * radiusPx;
 }
 
 //=========================================================
@@ -110,15 +141,24 @@ bool StringRenderer::AddStringCaption(const UnicodeString & str,
 bool StringRenderer::AddStringCaption(const char * str,
 	int x, int y, const RenderParams & rp)
 {
-	this->AddStringInternal(ci.mark, x, y, rp, TextAnchor::CENTER, TextAlign::ALIGN_CENTER, TextType::CAPTION);
-	return this->AddStringInternal(UTF8_TEXT(str), x, y, rp, TextAnchor::CENTER, TextAlign::ALIGN_CENTER, TextType::CAPTION);
+	bool added = this->AddStringInternal(UTF8_TEXT(str), x, y, rp, TextAnchor::CENTER, TextAlign::ALIGN_CENTER, TextType::CAPTION_TEXT);
+    
+    if (added)
+    {
+        this->AddStringInternal(ci.mark, x, y, rp, TextAnchor::CENTER, TextAlign::ALIGN_CENTER, TextType::CAPTION_SYMBOL);
+    }
+    return added;
 }
 
 bool StringRenderer::AddStringCaption(const UnicodeString & str,
 	int x, int y, const RenderParams & rp)
 {
-    this->AddStringInternal(ci.mark, x, y, rp, TextAnchor::CENTER, TextAlign::ALIGN_CENTER, TextType::CAPTION);
-    return this->AddStringInternal(str, x, y, rp, TextAnchor::CENTER, TextAlign::ALIGN_CENTER, TextType::CAPTION);	
+    bool added = this->AddStringInternal(str, x, y, rp, TextAnchor::CENTER, TextAlign::ALIGN_CENTER, TextType::CAPTION_TEXT);
+    if (added)
+    {
+        this->AddStringInternal(ci.mark, x, y, rp, TextAnchor::CENTER, TextAlign::ALIGN_CENTER, TextType::CAPTION_SYMBOL);
+    }
+    return added;
 }
 
 //=========================================================
@@ -298,28 +338,76 @@ bool StringRenderer::CanAddString(const UnicodeString & uniStr,
 	AbstractRenderer::AABB estimAABB = this->EstimateStringAABB(uniStr,
 		static_cast<float>(x), static_cast<float>(y), rp.scale);
 
-	//test if entire string is outside visible area	
-	if (anchor == TextAnchor::CENTER)
-	{
-		float w = estimAABB.maxX - estimAABB.minX;
-		float h = estimAABB.maxY - estimAABB.minY;
+    //test if entire string is outside visible area
+    if (anchor == TextAnchor::CENTER)
+    {
+        float w = estimAABB.maxX - estimAABB.minX;
+        float h = estimAABB.maxY - estimAABB.minY;
 
-		estimAABB.minX -= (w / 2);
-		estimAABB.maxX -= (w / 2);
-		estimAABB.minY -= (h / 2);
-		estimAABB.maxY -= (h / 2);
-	}
-
-	if (uniStr != ci.mark)
+        estimAABB.minX -= (w / 2);
+        estimAABB.maxX -= (w / 2);
+        estimAABB.minY -= (h / 2);
+        estimAABB.maxY -= (h / 2);
+    }
+    
+    if (uniStr != ci.mark)
+    {
+        if ((estimAABB.maxX <= 0) ||
+            (estimAABB.maxY <= 0) ||
+            (estimAABB.minX > this->backend->GetSettings().deviceW) ||
+            (estimAABB.minY > this->backend->GetSettings().deviceH))
+        {
+            return false;
+        }
+    }
+    
+	if ((deadzoneRadius2 > 0) && (uniStr != ci.mark))
 	{
-		if ((estimAABB.maxX <= 0) ||
-			(estimAABB.maxY <= 0) ||
-			(estimAABB.minX > this->backend->GetSettings().deviceW) ||
-			(estimAABB.minY > this->backend->GetSettings().deviceH))
+		const int upVectorX = 0;
+		const int upVectorY = (this->axisYOrigin == AbstractRenderer::AxisYOrigin::DOWN) ? -1 : 1;
+
+		//test if new string is in "dead zone" of existing strings
+		//if yes - do not add it
+		for (const StringInfo& s : this->strs)
 		{
-			return false;
+			if (s.type == TextType::CAPTION_SYMBOL)
+			{
+				continue;
+			}
+
+			int dx = (s.x - x);
+			int dy = (s.y - y);
+
+			int dist2 = dx * dx + dy * dy;
+			if (dist2 < deadzoneRadius2)
+			{
+				if (dist2 == 0)
+				{
+					return false;
+				}
+
+				//update distance based on dot product
+				//if new string is in line with existing, we want higher radius
+				//if new string is above, we are ok with a smaller radius
+
+				float lenInv = 1.0 / std::sqrt(dist2);
+
+				float dot = (upVectorX * (dx * lenInv) + upVectorY * (dy * lenInv));
+
+				//upper weight is shorter.. based on string estimated length
+				//the longer the string is, the thinner deadzone is
+				const float minWeight = (1.0 / s.str.length()) * s.lines.size();
+				const float maxWeight = 1.0;
+				float dist2Weighted = dist2 * (maxWeight + dot * (minWeight - maxWeight));
+
+				if (dist2Weighted < deadzoneRadius2)
+				{
+					return false;
+				}
+			}
 		}
 	}
+
 
 	return true;
 }
@@ -533,49 +621,17 @@ void StringRenderer::CalcAnchoredPosition()
 			si.anchorY = si.y - si.global.GetHeight();
 		}
 
-		
-		if (si.type == TextType::CAPTION)
+		if (si.type == TextType::CAPTION_SYMBOL)
+		{
+			captionMarkHeight = si.global.GetHeight();
+		}
+		else if (si.type == TextType::CAPTION_TEXT)
 		{	
-			if (si.str == ci.mark)
-			{
-				//captionMarkAnchorY = si.anchorY + si.global.GetHeight() + ci.offset;
-				//captionMarkAnchorY = -si.global.minY;
-				captionMarkHeight = si.global.GetHeight();
-			}
-			else
-			{
-				float h = si.global.GetHeight() + captionMarkHeight;
-				h *= 0.5;
-				
-				si.anchorY -= h;
-				si.anchorY -= ci.offset;
-			}
+			float h = si.global.GetHeight() + captionMarkHeight;
+			h *= 0.5;
 
-			/*
-			if (si.str == ci.mark)
-			{								
-				captionMarkAnchorY = si.anchorY + si.global.GetHeight() + ci.offset;
-				//captionMarkAnchorY = -si.global.minY;
-			}
-			else
-			{								
-				//si.anchorY -= (captionMarkAnchorY - si.anchorY);								
-				//si.anchorY +=  std::max(captionMarkAnchorY, si.global.minY);
-				//si.anchorY -= (captionMarkAnchorY - si.global.minY);
-				captionMarkAnchorY = 0;
-
-				float h = 0;
-				for (auto & li : si.lines)
-				{
-					h += li.maxNewLineOffset;
-				}
-
-				h = si.global.GetHeight() + si.lines.back().maxNewLineOffset;
-				h *= 0.5;
-
-				si.anchorY += (captionMarkAnchorY - h);
-			}	
-			*/
+			si.anchorY -= h;
+			si.anchorY -= ci.offset;
 		}		
 		
 	}

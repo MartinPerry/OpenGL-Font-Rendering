@@ -613,7 +613,7 @@ void NumberRenderer::GetAnchoredPosition(const NumberRenderer::NumberInfo & si,
 											//and calc center from all lines and move TOP_LEFT down
 	}
 	
-	if (si.type == TextType::CAPTION)
+	if ((si.type == TextType::CAPTION_TEXT) || (si.type == TextType::CAPTION_SYMBOL))
 	{				
 		y -= (si.h / 2 + ci.offset);	
 		y -= 2 * this->captionMark.bmpH;
@@ -642,7 +642,7 @@ bool NumberRenderer::GenerateGeometry()
 		int x, y;
 		this->GetAnchoredPosition(si, x, y);
 		
-		if (si.type == TextType::CAPTION)
+		if ((si.type == TextType::CAPTION_TEXT) || (si.type == TextType::CAPTION_SYMBOL))
 		{						
 			const int xx = si.x - (this->captionMark.bmpW) / 2;
 			const int yy = si.y + (this->captionMark.bmpH);

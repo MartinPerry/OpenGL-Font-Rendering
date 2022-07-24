@@ -177,9 +177,8 @@ protected:
 template <typename T>
 IS_FLOAT NumberRenderer::AddNumberCaption(T val,
 	int x, int y, const RenderParams & rp)
-{
-	//this->AddNumberInternal(ci.mark, x, y, color, TextAnchor::CENTER, TextAlign::ALIGN_CENTER, TextType::CAPTION);
-	return this->AddFloatNumberInternal(val, x, y, rp, TextAnchor::CENTER, TextType::CAPTION);
+{	
+	return this->AddFloatNumberInternal(val, x, y, rp, TextAnchor::CENTER, TextType::CAPTION_TEXT);
 }
 
 /// <summary>
@@ -195,9 +194,8 @@ IS_FLOAT NumberRenderer::AddNumberCaption(T val,
 {
 	int xx = static_cast<int>(x * this->GetRenderSettings().deviceW);
 	int yy = static_cast<int>(y * this->GetRenderSettings().deviceH);
-
-	//this->AddNumberInternal(ci.mark, x, y, color, TextAnchor::CENTER, TextAlign::ALIGN_CENTER, TextType::CAPTION);
-	return this->AddFloatNumberInternal(val, xx, yy, rp, TextAnchor::CENTER, TextType::CAPTION);
+	
+	return this->AddFloatNumberInternal(val, xx, yy, rp, TextAnchor::CENTER, TextType::CAPTION_TEXT);
 }
 
 /// <summary>
@@ -250,9 +248,8 @@ IS_FLOAT NumberRenderer::AddNumber(T val,
 template <typename T>
 IS_INTEGRAL NumberRenderer::AddNumberCaption(T val,
 	int x, int y, const RenderParams & rp)
-{
-	//this->AddNumberInternal(ci.mark, x, y, color, TextAnchor::CENTER, TextAlign::ALIGN_CENTER, TextType::CAPTION);
-	return this->AddIntegralNumberInternal(static_cast<long>(val), x, y, rp, TextAnchor::CENTER, TextType::CAPTION);
+{	
+	return this->AddIntegralNumberInternal(static_cast<long>(val), x, y, rp, TextAnchor::CENTER, TextType::CAPTION_TEXT);
 }
 
 /// <summary>
@@ -268,9 +265,8 @@ IS_INTEGRAL NumberRenderer::AddNumberCaption(T val,
 {
 	int xx = static_cast<int>(x * this->GetRenderSettings().deviceW);
 	int yy = static_cast<int>(y * this->GetRenderSettings().deviceH);
-
-	//this->AddNumberInternal(ci.mark, x, y, color, TextAnchor::CENTER, TextAlign::ALIGN_CENTER, TextType::CAPTION);
-	return this->AddIntegralNumberInternal(static_cast<long>(val), xx, yy, rp, TextAnchor::CENTER, TextType::CAPTION);
+	
+	return this->AddIntegralNumberInternal(static_cast<long>(val), xx, yy, rp, TextAnchor::CENTER, TextType::CAPTION_TEXT);
 }
 
 /// <summary>

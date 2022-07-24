@@ -21,7 +21,7 @@ class AbstractRenderer
 public:
 	enum class TextAlign { ALIGN_LEFT, ALIGN_CENTER };
 	enum class TextAnchor { LEFT_TOP, CENTER, LEFT_DOWN };
-	enum class TextType { TEXT, CAPTION };
+	enum class TextType { TEXT, CAPTION_TEXT, CAPTION_SYMBOL };
 	enum class AxisYOrigin { TOP, DOWN };
 
 	struct Vertex
@@ -146,6 +146,22 @@ protected:
 			maxY = std::max(maxY, b.maxY);
 		}
 
+        bool Intersect(const AABB& bb) const noexcept
+        {
+            if (bb.minX > maxX) return false;
+            if (bb.minY > maxY) return false;
+
+            if (bb.maxX < minX) return false;
+            if (bb.maxY < minY) return false;
+
+            return true;
+        };
+        
+        bool IsInside(float x, float y) const noexcept
+        {
+            return ((x > minX) && (x < maxX) &&
+                (y > minY) && (y < maxY));
+        };
 
 	};
 
