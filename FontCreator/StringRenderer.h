@@ -121,6 +121,9 @@ public:
 	bool AddStringCaption(const UnicodeString & str,
 		int x, int y, const RenderParams & rp = DEFAULT_PARAMS);
 
+	bool AddCaptionOnly(double x, double y, const RenderParams& rp = DEFAULT_PARAMS);
+	bool AddCaptionOnly(int x, int y, const RenderParams& rp = DEFAULT_PARAMS);
+
 	//=========================================================
 
 	bool AddString(const char * str,

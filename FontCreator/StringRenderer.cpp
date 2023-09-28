@@ -161,6 +161,19 @@ bool StringRenderer::AddStringCaption(const UnicodeString & str,
     return added;
 }
 
+bool StringRenderer::AddCaptionOnly(double x, double y, const RenderParams& rp)
+{
+	int xx = static_cast<int>(x * this->backend->GetSettings().deviceW);
+	int yy = static_cast<int>(y * this->backend->GetSettings().deviceH);
+
+	return this->AddStringInternal(ci.mark, xx, yy, rp, TextAnchor::CENTER, TextAlign::ALIGN_CENTER, TextType::CAPTION_SYMBOL);
+}
+
+bool StringRenderer::AddCaptionOnly(int x, int y, const RenderParams& rp)
+{	
+	return this->AddStringInternal(ci.mark, x, y, rp, TextAnchor::CENTER, TextAlign::ALIGN_CENTER, TextType::CAPTION_SYMBOL);
+}
+
 //=========================================================
 
 /// <summary>
