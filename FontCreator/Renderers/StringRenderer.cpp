@@ -35,7 +35,7 @@ StringRenderer::StringRenderer(const FontBuilderSettings& fs,
 	std::unique_ptr<BackendBase>&& backend) :
 	AbstractRenderer(fs, std::move(backend)),
 	isBidiEnabled(true),
-	deadzoneRadius2(0.0f),
+	deadzoneRadius2(0),
 	nlOffsetPx(0),
 	spaceSizeExist(false),
 	spaceSize(10)
@@ -402,13 +402,13 @@ bool StringRenderer::CanAddString(const UnicodeString & uniStr,
 				//if new string is in line with existing, we want higher radius
 				//if new string is above, we are ok with a smaller radius
 
-				float lenInv = 1.0 / std::sqrt(dist2);
+				float lenInv = 1.0f / std::sqrt(static_cast<float>(dist2));
 
 				float dot = (upVectorX * (dx * lenInv) + upVectorY * (dy * lenInv));
 
 				//upper weight is shorter.. based on string estimated length
 				//the longer the string is, the thinner deadzone is
-				const float minWeight = (1.0 / s.str.length()) * s.lines.size();
+				const float minWeight = (1.0f / s.str.length()) * s.lines.size();
 				const float maxWeight = 1.0;
 				float dist2Weighted = dist2 * (maxWeight + dot * (minWeight - maxWeight));
 
@@ -571,7 +571,7 @@ void StringRenderer::CalcStringAABB(StringInfo & si, const UsedGlyphCache * gc) 
 
 			float fx = x + gi.bmpX;
 			float fy = y - gi.bmpY;
-			li.aabb.Update(fx, fy, gi.bmpW, gi.bmpH);
+			li.aabb.Update(fx, fy, static_cast<float>(gi.bmpW), static_cast<float>(gi.bmpH));
 
 			x += (gi.adv >> 6);
 		}
@@ -772,7 +772,7 @@ bool StringRenderer::GenerateGeometry()
 	
     AbstractRenderer::Clear();
 	
-	this->geom.reserve(this->strs.size() * 80);
+	//this->geom.reserve(this->strs.size() * 80);
 
 	
 	for (const StringInfo & si : this->strs)

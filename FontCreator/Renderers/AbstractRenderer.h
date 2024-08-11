@@ -129,6 +129,13 @@ protected:
 			y = minY + this->GetHeight() * 0.5f;
 		}
 
+
+		void Update(int x, int y, int w, int h) noexcept
+		{
+			this->Update(static_cast<float>(x), static_cast<float>(y),
+				static_cast<float>(w), static_cast<float>(h));
+		}
+
 		void Update(float x, float y, float w, float h) noexcept
 		{
 			if (x < minX) minX = x;
@@ -172,9 +179,7 @@ protected:
 
 	AxisYOrigin axisYOrigin;
 
-	int quadsCount;
-	std::vector<float> geom;
-
+	
 		
 
 	bool strChanged;

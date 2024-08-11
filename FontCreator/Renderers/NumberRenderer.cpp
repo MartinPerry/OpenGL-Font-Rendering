@@ -400,10 +400,10 @@ bool NumberRenderer::AddNumber(NumberInfo & n, int x, int y, const RenderParams 
 	n.renderParams = rp;
 	n.anchor = anchor;
 	n.type = type;	
-	n.x = x;
-	n.y = y;
-	n.w = w;
-	n.h = h;
+	n.x = static_cast<int>(x);
+	n.y = static_cast<int>(y);
+	n.w = static_cast<int>(w);
+	n.h = static_cast<int>(h);
 
 #ifdef THREAD_SAFETY
 	std::lock_guard<std::shared_timed_mutex> lk(m);
@@ -643,7 +643,7 @@ bool NumberRenderer::GenerateGeometry()
 			
 	//Build geometry	
 	AbstractRenderer::Clear();
-	this->geom.reserve(400);
+	//this->geom.reserve(400);
 	
 	for (const NumberRenderer::NumberInfo & si : this->nmbrs)
 	{		

@@ -72,8 +72,7 @@ AbstractRenderer::AbstractRenderer(std::shared_ptr<FontBuilder> fb,
 	fb(fb),
 	backend(std::move(backend)),
 	ci({ UTF8_TEXT(u8""), 0 }),
-	axisYOrigin(AxisYOrigin::TOP),
-	quadsCount(0),
+	axisYOrigin(AxisYOrigin::TOP),	
 	strChanged(false)
 {
 
@@ -166,8 +165,6 @@ int AbstractRenderer::GetCaptionOffset() const
 void AbstractRenderer::Clear()
 {
 	this->strChanged = true;
-	this->geom.clear();
-	this->quadsCount = 0;
 
 	this->backend->Clear();
 }

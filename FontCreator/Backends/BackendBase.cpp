@@ -2,6 +2,7 @@
 
 
 BackendBase::BackendBase(const RenderSettings& r) : 
+	quadsCount(0),
 	mainRenderer(nullptr),
 	rs(r),
 	enabled(true)
@@ -12,6 +13,13 @@ BackendBase::BackendBase(const RenderSettings& r) :
 
 BackendBase::~BackendBase()
 {
+	this->Clear();
+}
+
+void BackendBase::Clear()
+{
+	this->geom.clear();
+	this->quadsCount = 0;
 }
 
 void BackendBase::SetMainRenderer(AbstractRenderer* mainRenderer)

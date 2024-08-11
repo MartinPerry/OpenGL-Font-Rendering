@@ -28,7 +28,7 @@ public:
 	void SetEnabled(bool val);
 	bool IsEnabled() const;
 		
-	virtual void Clear() = 0;
+	virtual void Clear();
 	virtual void AddQuad(const GlyphInfo& gi, float x, float y, const AbstractRenderer::RenderParams& rp) = 0;
 
 	virtual void FillGeometry() = 0;
@@ -39,7 +39,10 @@ public:
 	friend class AbstractRenderer;
 
 protected:
-	 		
+	 	
+	int quadsCount;
+	std::vector<float> geom;
+
 	AbstractRenderer* mainRenderer;
 
 	RenderSettings rs;

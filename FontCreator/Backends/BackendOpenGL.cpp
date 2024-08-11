@@ -230,7 +230,7 @@ void BackendOpenGL::Render(std::function<void(GLuint)> preDrawCallback,
 
 	bool vboChanged = this->mainRenderer->GenerateGeometry();
 
-	if (mainRenderer->geom.empty())
+	if (this->geom.empty())
 	{
 		return;
 	}
@@ -267,7 +267,7 @@ void BackendOpenGL::Render(std::function<void(GLuint)> preDrawCallback,
         preDrawCallback(shader.program);
     }
     
-	GL_CHECK(glDrawArrays(GL_TRIANGLES, 0, mainRenderer->quadsCount * 6));
+	GL_CHECK(glDrawArrays(GL_TRIANGLES, 0, this->quadsCount * 6));
 
 	if (postDrawCallback != nullptr)
 	{
@@ -337,28 +337,28 @@ void BackendOpenGL::AddQuad(const GlyphInfo & gi, float x, float y, const Abstra
     max.u = static_cast<float>(gi.tx + gi.bmpW) * this->tW;
     max.v = static_cast<float>(gi.ty + gi.bmpH) * this->tH;
     
-    this->sm->FillVertexData(min, max, rp, mainRenderer->geom);
+    this->sm->FillVertexData(min, max, rp, this->geom);
     
 	if (this->bg)
 	{
 		this->bg->AddQuad(min, max);
 	}
 
-	mainRenderer->quadsCount++;
+	this->quadsCount++;
 }
 
 
 void BackendOpenGL::FillGeometry()
 {
-    if (mainRenderer->geom.empty())
+    if (this->geom.empty())
     {
         return;
     }
     
 	FONT_BIND_ARRAY_BUFFER(this->vbo);
 	GL_CHECK(glBufferData(GL_ARRAY_BUFFER, 
-		mainRenderer->geom.size() * sizeof(float), 
-		mainRenderer->geom.data(), 
+		this->geom.size() * sizeof(float),
+		this->geom.data(),
 		GL_STREAM_DRAW));
 	FONT_UNBIND_ARRAY_BUFFER;
 }

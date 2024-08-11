@@ -127,13 +127,13 @@ void BackendImage::UpdateTightCanvasSize()
 	
 	int nextQuadOffset = (format == Format::GRAYSCALE) ? 8 : 12;
 
-	for (size_t i = 0; i < mainRenderer->geom.size(); i += nextQuadOffset)
+	for (size_t i = 0; i < this->geom.size(); i += nextQuadOffset)
 	{		
-		mainRenderer->geom[i] = mainRenderer->geom[i] - minX + tightSettings.borderLeft;
-		mainRenderer->geom[i + 1] = mainRenderer->geom[i + 1] - minY + tightSettings.borderTop;
+		this->geom[i] = this->geom[i] - minX + tightSettings.borderLeft;
+		this->geom[i + 1] = this->geom[i + 1] - minY + tightSettings.borderTop;
 
-		mainRenderer->geom[i + 4] = mainRenderer->geom[i + 4] - minX + tightSettings.borderLeft;
-		mainRenderer->geom[i + 5] = mainRenderer->geom[i + 5] - minY + tightSettings.borderTop;
+		this->geom[i + 4] = this->geom[i + 4] - minX + tightSettings.borderLeft;
+		this->geom[i + 5] = this->geom[i + 5] - minY + tightSettings.borderTop;
 	}
 
 }
@@ -169,7 +169,7 @@ void BackendImage::Render()
 {
 	bool vboChanged = this->mainRenderer->GenerateGeometry();
 
-	if (mainRenderer->geom.empty())
+	if (this->geom.empty())
 	{
 		return;
 	}
@@ -186,28 +186,28 @@ void BackendImage::Render()
 
 	std::array<float, 4> rgba = { 1.0f, 1.0f, 1.0f, 1.0f };
 	
-	for (size_t i = 0; i < mainRenderer->geom.size(); i += nextQuadOffset)
+	for (size_t i = 0; i < this->geom.size(); i += nextQuadOffset)
 	{
 		//
 
-		int minX = static_cast<int>(mainRenderer->geom[i]);
-		int minY = static_cast<int>(mainRenderer->geom[i + 1]);
+		int minX = static_cast<int>(this->geom[i]);
+		int minY = static_cast<int>(this->geom[i + 1]);
 
-		int minU = static_cast<int>(mainRenderer->geom[i + 2]);
-		int minV = static_cast<int>(mainRenderer->geom[i + 3]);
+		int minU = static_cast<int>(this->geom[i + 2]);
+		int minV = static_cast<int>(this->geom[i + 3]);
 
-		int maxX = static_cast<int>(mainRenderer->geom[i + 4]);
-		int maxY = static_cast<int>(mainRenderer->geom[i + 5]);
+		int maxX = static_cast<int>(this->geom[i + 4]);
+		int maxY = static_cast<int>(this->geom[i + 5]);
 
-		int maxU = static_cast<int>(mainRenderer->geom[i + 6]);
-		int maxV = static_cast<int>(mainRenderer->geom[i + 7]);
+		int maxU = static_cast<int>(this->geom[i + 6]);
+		int maxV = static_cast<int>(this->geom[i + 7]);
 
 		if (format != Format::GRAYSCALE)
 		{
-			rgba[0] = mainRenderer->geom[i + 8];
-			rgba[1] = mainRenderer->geom[i + 9];
-			rgba[2] = mainRenderer->geom[i + 10];
-			rgba[3] = mainRenderer->geom[i + 11];
+			rgba[0] = this->geom[i + 8];
+			rgba[1] = this->geom[i + 9];
+			rgba[2] = this->geom[i + 10];
+			rgba[3] = this->geom[i + 11];
 		}
 
 		//clamp to prevent being outside window
@@ -297,16 +297,16 @@ void BackendImage::AddQuad(const GlyphInfo& gi, float x, float y, const Abstract
 	//=====
 	//store it 
 
-	mainRenderer->geom.push_back(min.x); mainRenderer->geom.push_back(min.y);
-	mainRenderer->geom.push_back(min.u); mainRenderer->geom.push_back(min.v);
+	this->geom.push_back(min.x); this->geom.push_back(min.y);
+	this->geom.push_back(min.u); this->geom.push_back(min.v);
 
-	mainRenderer->geom.push_back(max.x); mainRenderer->geom.push_back(max.y);
-	mainRenderer->geom.push_back(max.u); mainRenderer->geom.push_back(max.v);
+	this->geom.push_back(max.x); this->geom.push_back(max.y);
+	this->geom.push_back(max.u); this->geom.push_back(max.v);
 
 	if (format != Format::GRAYSCALE)
 	{
-		mainRenderer->geom.push_back(rp.color.r); mainRenderer->geom.push_back(rp.color.g);
-		mainRenderer->geom.push_back(rp.color.b); mainRenderer->geom.push_back(rp.color.a);
+		this->geom.push_back(rp.color.r); this->geom.push_back(rp.color.g);
+		this->geom.push_back(rp.color.b); this->geom.push_back(rp.color.a);
 	}
 
 	if (min.x < quadsAABB.minX) quadsAABB.minX = min.x;
@@ -315,7 +315,7 @@ void BackendImage::AddQuad(const GlyphInfo& gi, float x, float y, const Abstract
 	if (max.x > quadsAABB.maxX) quadsAABB.maxX = max.x;
 	if (max.y > quadsAABB.maxY) quadsAABB.maxY = max.y;
 
-	mainRenderer->quadsCount++;
+	this->quadsCount++;
 }
 
 
