@@ -3,10 +3,10 @@
 #include <limits>
 #include <algorithm>
 
-#include "./Backends/Shaders/Shaders.h"
-#include "./FontBuilder.h"
+#include "../Backends/Shaders/Shaders.h"
+#include "../FontBuilder.h"
 
-#include "./Backends/BackendBase.h"
+#include "../Backends/BackendBase.h"
 
 //=============================================================================
 

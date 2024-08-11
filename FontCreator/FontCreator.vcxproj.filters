@@ -37,6 +37,12 @@
     <Filter Include="Source Files\Backends\Shaders">
       <UniqueIdentifier>{d415cc48-8086-4faf-877d-60081730971e}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source Files\Renderers">
+      <UniqueIdentifier>{575ddac3-45c7-4042-a772-2d8b29b076ee}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Renderers">
+      <UniqueIdentifier>{3ee6ec0a-b6b7-40c0-87ba-ffae1037cc98}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="TextureAtlasPack.cpp">
@@ -60,12 +66,6 @@
     <ClCompile Include="Unicode\utf8.cpp">
       <Filter>Source Files\Unicode</Filter>
     </ClCompile>
-    <ClCompile Include="StringRenderer.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="NumberRenderer.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="Utils\cJSON_JS.c">
       <Filter>Source Files\Utils</Filter>
     </ClCompile>
@@ -74,9 +74,6 @@
     </ClCompile>
     <ClCompile Include="Utils\CharacterExtractor.cpp">
       <Filter>Source Files\Utils</Filter>
-    </ClCompile>
-    <ClCompile Include="AbstractRenderer.cpp">
-      <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="Backends\BackendBase.cpp">
       <Filter>Source Files\Backends</Filter>
@@ -101,6 +98,15 @@
     </ClCompile>
     <ClCompile Include="Backends\Shaders\SingleColorFontShaderManager.cpp">
       <Filter>Source Files\Backends\Shaders</Filter>
+    </ClCompile>
+    <ClCompile Include="Renderers\AbstractRenderer.cpp">
+      <Filter>Source Files\Renderers</Filter>
+    </ClCompile>
+    <ClCompile Include="Renderers\NumberRenderer.cpp">
+      <Filter>Source Files\Renderers</Filter>
+    </ClCompile>
+    <ClCompile Include="Renderers\StringRenderer.cpp">
+      <Filter>Source Files\Renderers</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -128,12 +134,6 @@
     <ClInclude Include="Externalncludes.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="StringRenderer.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="NumberRenderer.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="Utils\CharacterExtraxtor.h">
       <Filter>Header Files\Utils</Filter>
     </ClInclude>
@@ -146,9 +146,6 @@
     <ClInclude Include="Unicode\ICUUtils.h">
       <Filter>Header Files\Unicode</Filter>
     </ClInclude>
-    <ClInclude Include="Shaders.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="Utils\cJSON_JS.h">
       <Filter>Header Files\Utils</Filter>
     </ClInclude>
@@ -156,9 +153,6 @@
       <Filter>Header Files\Utils</Filter>
     </ClInclude>
     <ClInclude Include="FontCache.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="AbstractRenderer.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Backends\BackendImage.h">
@@ -187,6 +181,15 @@
     </ClInclude>
     <ClInclude Include="Backends\Shaders\Shaders.h">
       <Filter>Header Files\Backends\Shaders</Filter>
+    </ClInclude>
+    <ClInclude Include="Renderers\AbstractRenderer.h">
+      <Filter>Header Files\Renderers</Filter>
+    </ClInclude>
+    <ClInclude Include="Renderers\NumberRenderer.h">
+      <Filter>Header Files\Renderers</Filter>
+    </ClInclude>
+    <ClInclude Include="Renderers\StringRenderer.h">
+      <Filter>Header Files\Renderers</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

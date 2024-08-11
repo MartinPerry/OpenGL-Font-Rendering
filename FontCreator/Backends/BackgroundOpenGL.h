@@ -3,7 +3,7 @@
 
 class IShaderManager;
 
-#include "../AbstractRenderer.h"
+#include "../Renderers/AbstractRenderer.h"
 
 class BackgroundOpenGL 
 {

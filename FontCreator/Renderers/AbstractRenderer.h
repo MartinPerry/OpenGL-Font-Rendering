@@ -11,9 +11,9 @@ class BackendBase;
 #include <shared_mutex>
 #include <algorithm>
 
-#include "./FontStructures.h"
+#include "../FontStructures.h"
 
-#include "./Externalncludes.h"
+#include "../Externalncludes.h"
 
 
 class AbstractRenderer

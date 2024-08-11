@@ -2,12 +2,12 @@
 
 #include <limits>
 
-#include "./FontBuilder.h"
-#include "./Backends/Shaders/SingleColorFontShaderManager.h"
+#include "../FontBuilder.h"
+#include "../Backends/Shaders/SingleColorFontShaderManager.h"
 
-#include "./Backends/BackendBase.h"
+#include "../Backends/BackendBase.h"
 
-#include "./Externalncludes.h"
+#include "../Externalncludes.h"
 
 /// <summary>
 /// Create optimized String renderer that will use only one color for every string

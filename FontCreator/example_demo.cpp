@@ -2,8 +2,8 @@
 #include "./TextureAtlasPack.h"
 
 #include "./FontBuilder.h"
-#include "./StringRenderer.h"
-#include "./NumberRenderer.h"
+#include "./Renderers/StringRenderer.h"
+#include "./Renderers/NumberRenderer.h"
 
 #include "./Backends/BackendOpenGL.h"
 #include "./Backends/BackendImage.h"

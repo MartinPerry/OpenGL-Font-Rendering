@@ -4,7 +4,7 @@
 #include "./Shaders/BackgroundShaderManager.h"
 
 BackgroundOpenGL::BackgroundOpenGL() : 
-	BackgroundOpenGL(BACKGROUND_PIXEL_SHADER_SOURCE, BACKGROUND_VERTEX_SHADER_SOURCE,
+	BackgroundOpenGL(BACKGROUND_VERTEX_SHADER_SOURCE, BACKGROUND_PIXEL_SHADER_SOURCE,
 						std::make_shared<BackgroundShaderManager>())
 {
 }

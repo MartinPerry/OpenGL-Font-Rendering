@@ -7,9 +7,9 @@ class BackendBase;
 
 #include "./AbstractRenderer.h"
 
-#include "./Externalncludes.h"
+#include "../Externalncludes.h"
 
-#include "./FontStructures.h"
+#include "../FontStructures.h"
 
 #define IS_FLOAT typename std::enable_if<std::is_floating_point<T>::value, bool>::type
 #define IS_INTEGRAL typename std::enable_if<std::is_integral<T>::value, bool>::type

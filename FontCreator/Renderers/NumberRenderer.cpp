@@ -3,10 +3,10 @@
 #include <limits>
 #include <algorithm>
 
-#include "./FontBuilder.h"
-#include "./Backends/Shaders/SingleColorFontShaderManager.h"
+#include "../FontBuilder.h"
+#include "../Backends/Shaders/SingleColorFontShaderManager.h"
 
-#include "./Backends/BackendBase.h"
+#include "../Backends/BackendBase.h"
 
 const std::string NumberRenderer::NUMBERS_STRING = "0123456789,.-";
 
