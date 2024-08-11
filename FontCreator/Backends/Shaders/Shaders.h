@@ -128,6 +128,28 @@ static const char* SINGLE_COLOR_PIXEL_SHADER_SOURCE = {
     }\n\
 " };
 
+//============================================================
+
+static const char* BACKGROUND_VERTEX_SHADER_SOURCE = {
+    "\n\
+    attribute vec2 POSITION;\n\
+	\n\
+    void main()\n\
+    {\n\
+        gl_Position = vec4(POSITION.x, POSITION.y, 0.0, 1.0); \n\
+    }\n\
+" };
+
+static const char* BACKGROUND_PIXEL_SHADER_SOURCE = {
+    "\n\
+    uniform vec4 bgColor;\n\
+	\n\
+    void main()\n\
+    {\n\
+        gl_FragColor.rgba = bgColor; \n\
+    }\n\
+" };
+
 #endif
 
 #endif

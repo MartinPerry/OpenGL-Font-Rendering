@@ -29,6 +29,8 @@ public:
 	
 	~NumberRenderer();
 
+	void SetFontSize(const FontSize& fs, int defaultFontSizeInPx = 0);
+
 	void SetExistenceCheck(bool val) noexcept;
 	void SetDecimalPrecission(int digits) noexcept;
 
@@ -78,7 +80,7 @@ public:
 protected:
 
 	
-	typedef struct NumberInfo
+	struct NumberInfo
 	{
 		double val;
 		bool negative;
@@ -116,7 +118,7 @@ protected:
 			h(0)
 		{}
 
-	} NumberInfo;
+	};
 
 	struct Precomputed 
 	{
@@ -136,7 +138,7 @@ protected:
 	Precomputed precomputed[100];
 	
 
-	void Init();
+	void Init();	
 	void Precompute();
 
 	bool AddFloatNumberInternal(double value,
@@ -166,6 +168,9 @@ protected:
 	uint64_t GetIntDivisor(const uint32_t x) const noexcept;
 };
 
+//====================================================================================
+//====================================================================================
+//====================================================================================
 
 /// <summary>
 /// Add new number as caption

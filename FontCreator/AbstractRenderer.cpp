@@ -3,11 +3,10 @@
 #include <limits>
 #include <algorithm>
 
-#include "./Shaders.h"
+#include "./Backends/Shaders/Shaders.h"
 #include "./FontBuilder.h"
-#include "./FontShaderManager.h"
 
-#include "./BackendBase.h"
+#include "./Backends/BackendBase.h"
 
 //=============================================================================
 
@@ -110,9 +109,8 @@ void AbstractRenderer::SetCaption(const UnicodeString& mark, int offsetInPixels)
 }
 
 void AbstractRenderer::SetCaptionOffset(int offsetInPixels)
-{
-	//take half of new line offset and add extra 20%
-	ci.offset = offsetInPixels;// static_cast<int>(this->fb->GetNewLineOffsetBasedOnGlyph(ci.mark[0]) * 0.5 * 1.2);	
+{	
+	ci.offset = offsetInPixels;
 }
 
 

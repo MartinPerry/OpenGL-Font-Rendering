@@ -2,11 +2,10 @@
 
 #include <limits>
 
-#include "./Shaders.h"
 #include "./FontBuilder.h"
-#include "./FontShaderManager.h"
+#include "./Backends/Shaders/SingleColorFontShaderManager.h"
 
-#include "./BackendBase.h"
+#include "./Backends/BackendBase.h"
 
 #include "./Externalncludes.h"
 

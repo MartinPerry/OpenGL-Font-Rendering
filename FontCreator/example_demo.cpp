@@ -5,8 +5,8 @@
 #include "./StringRenderer.h"
 #include "./NumberRenderer.h"
 
-#include "./BackendOpenGL.h"
-#include "./BackendImage.h"
+#include "./Backends/BackendOpenGL.h"
+#include "./Backends/BackendImage.h"
 
 #include "./Unicode/utf8.h"
 #include "./Unicode/uninorms.h"

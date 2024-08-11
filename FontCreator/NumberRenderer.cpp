@@ -3,11 +3,10 @@
 #include <limits>
 #include <algorithm>
 
-#include "./Shaders.h"
 #include "./FontBuilder.h"
-#include "./FontShaderManager.h"
+#include "./Backends/Shaders/SingleColorFontShaderManager.h"
 
-#include "./BackendBase.h"
+#include "./Backends/BackendBase.h"
 
 const std::string NumberRenderer::NUMBERS_STRING = "0123456789,.-";
 
@@ -109,44 +108,43 @@ void NumberRenderer::Init()
 	}
 
 
-
-	for (const auto & c : NUMBERS_STRING)
+	for (const auto& c : NUMBERS_STRING)
 	{
 		bool exist;
 		auto it = this->fb->GetGlyph(c, exist);
 		if (!exist)
 		{
-			throw std::invalid_argument("Unknown number character");			
+			throw std::invalid_argument("Unknown number character");
 		}
-		
 
-		this->gi[it->first] = *it->second;		
+
+		this->gi[it->first] = *it->second;
 	}
-	
-	
+
+
 	bool exist;
 	auto it = this->fb->GetGlyph(this->ci.mark[0], exist);
 	if (!exist)
-	{		
+	{
 		it = this->fb->GetGlyph('.', exist);
 		if (!exist)
 		{
-			throw std::invalid_argument("Unknown mark character");			
+			throw std::invalid_argument("Unknown mark character");
 		}
 		else
 		{
 			this->SetCaption(UTF8_TEXT(u8"."), 10);
-			this->captionMark = *it->second;			
+			this->captionMark = *it->second;
 		}
 	}
 	else
 	{
 		this->captionMark = *it->second;
 	}
-		
+			
 	this->SetDecimalPrecission(2);
 
-	this->newLineOffset = this->fb->GetMaxNewLineOffset();
+	this->newLineOffset = this->fb->GetMaxNewLineOffset();	
 
 	this->Precompute();
 }
@@ -191,6 +189,16 @@ void NumberRenderer::Precompute()
 		this->precomputed[i].xOffset = x;
 
 	}
+}
+
+void NumberRenderer::SetFontSize(const FontSize& fs, int defaultFontSizeInPx)
+{
+#ifdef THREAD_SAFETY
+	std::lock_guard<std::shared_timed_mutex> lk(m);
+#endif
+	this->fb->SetAllFontSize(fs, defaultFontSizeInPx);
+
+	this->Init();
 }
 
 /// <summary>

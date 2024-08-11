@@ -4,9 +4,8 @@
 #include <array>
 #include <algorithm>
 
-#include "./Shaders.h"
-#include "./FontBuilder.h"
-#include "./FontShaderManager.h"
+#include "../FontBuilder.h"
+
 
 //=============================================================================
 
@@ -24,7 +23,7 @@ BackendImage::BackendImage(const RenderSettings& r, Format format) :
 		for (int c = 0; c < channelsCount; c++)
 		{
 			uint8_t v = uint8_t(textColor[c] * texVal);
-			px[c] = (v * alpha) + (px[c] * (1.0f - alpha));
+			px[c] = static_cast<uint8_t>((v * alpha) + (px[c] * (1.0f - alpha)));
 
 		}
 	};

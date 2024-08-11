@@ -1,7 +1,8 @@
 #ifndef BACKEND_OPENGL_H
 #define BACKEND_OPENGL_H
 
-class IFontShaderManager;
+class BackgroundOpenGL;
+class IShaderManager;
 
 #include <vector>
 #include <list>
@@ -10,9 +11,10 @@ class IFontShaderManager;
 #include <shared_mutex>
 #include <algorithm>
 
+#include "../FontStructures.h"
 #include "./BackendBase.h"
 
-#include "./Externalncludes.h"
+#include "../Externalncludes.h"
 
 
 class BackendOpenGL : public BackendBase
@@ -21,7 +23,7 @@ public:
 	
 	BackendOpenGL(const RenderSettings& r, int glVersion = 3);
 	BackendOpenGL(const RenderSettings& r, int glVersion,
-                     const char * vSource, const char * pSource, std::shared_ptr<IFontShaderManager> sm);
+                  const char * vSource, const char * pSource, std::shared_ptr<IShaderManager> sm);
    	
 	virtual ~BackendOpenGL();
 
@@ -29,7 +31,7 @@ public:
 	
 	void SetFontTextureLinearFiler(bool val);
 	
-	std::shared_ptr<IFontShaderManager> GetShaderManager() const;
+	std::shared_ptr<IShaderManager> GetShaderManager() const;
 
 	void Clear() override;
 	void AddQuad(const GlyphInfo& gi, float x, float y, const AbstractRenderer::RenderParams& rp) override;
@@ -55,8 +57,9 @@ protected:
         bool isDefault;        
 	};
 	
-    std::shared_ptr<IFontShaderManager> sm;
-    	
+    std::shared_ptr<IShaderManager> sm;
+	std::shared_ptr<BackgroundOpenGL> bg;
+
 	GLuint vbo;
 	GLuint vao;
 	GLuint fontTex;
@@ -70,10 +73,7 @@ protected:
 	
 	void InitFontTexture();
 	void InitVAO();
-
-	GLuint CompileGLSLShader(GLenum target, const char* shader);
-	GLuint LinkGLSLProgram(GLuint vertexShader, GLuint fragmentShader);
-
+	
 	void OnCanvasSizeChanges() override;
 };
 

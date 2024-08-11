@@ -25,6 +25,18 @@
     <Filter Include="Source Files\Utils">
       <UniqueIdentifier>{9fb30b4b-d9d6-4778-8ecd-4391c99eb52b}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Header Files\Backends">
+      <UniqueIdentifier>{b11c9544-aa32-4d6a-9a63-5e8cd0c6615e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Backends">
+      <UniqueIdentifier>{ed47fc3c-4909-4468-89ee-b13b250ef5b9}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Backends\Shaders">
+      <UniqueIdentifier>{56873d26-1052-44bd-9717-e3aa2e87eecf}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Backends\Shaders">
+      <UniqueIdentifier>{d415cc48-8086-4faf-877d-60081730971e}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="TextureAtlasPack.cpp">
@@ -54,9 +66,6 @@
     <ClCompile Include="NumberRenderer.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="FontShaderManager.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="Utils\cJSON_JS.c">
       <Filter>Source Files\Utils</Filter>
     </ClCompile>
@@ -69,14 +78,29 @@
     <ClCompile Include="AbstractRenderer.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="BackendOpenGL.cpp">
-      <Filter>Source Files</Filter>
+    <ClCompile Include="Backends\BackendBase.cpp">
+      <Filter>Source Files\Backends</Filter>
     </ClCompile>
-    <ClCompile Include="BackendBase.cpp">
-      <Filter>Source Files</Filter>
+    <ClCompile Include="Backends\BackendImage.cpp">
+      <Filter>Source Files\Backends</Filter>
     </ClCompile>
-    <ClCompile Include="BackendImage.cpp">
-      <Filter>Source Files</Filter>
+    <ClCompile Include="Backends\BackendOpenGL.cpp">
+      <Filter>Source Files\Backends</Filter>
+    </ClCompile>
+    <ClCompile Include="Backends\BackgroundOpenGL.cpp">
+      <Filter>Source Files\Backends</Filter>
+    </ClCompile>
+    <ClCompile Include="Backends\Shaders\BackgroundShaderManager.cpp">
+      <Filter>Source Files\Backends\Shaders</Filter>
+    </ClCompile>
+    <ClCompile Include="Backends\Shaders\DefaultFontShaderManager.cpp">
+      <Filter>Source Files\Backends\Shaders</Filter>
+    </ClCompile>
+    <ClCompile Include="Backends\Shaders\IShaderManager.cpp">
+      <Filter>Source Files\Backends\Shaders</Filter>
+    </ClCompile>
+    <ClCompile Include="Backends\Shaders\SingleColorFontShaderManager.cpp">
+      <Filter>Source Files\Backends\Shaders</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -122,9 +146,6 @@
     <ClInclude Include="Unicode\ICUUtils.h">
       <Filter>Header Files\Unicode</Filter>
     </ClInclude>
-    <ClInclude Include="FontShaderManager.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="Shaders.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -140,14 +161,32 @@
     <ClInclude Include="AbstractRenderer.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="BackendBase.h">
-      <Filter>Header Files</Filter>
+    <ClInclude Include="Backends\BackendImage.h">
+      <Filter>Header Files\Backends</Filter>
     </ClInclude>
-    <ClInclude Include="BackendOpenGL.h">
-      <Filter>Header Files</Filter>
+    <ClInclude Include="Backends\BackendOpenGL.h">
+      <Filter>Header Files\Backends</Filter>
     </ClInclude>
-    <ClInclude Include="BackendImage.h">
-      <Filter>Header Files</Filter>
+    <ClInclude Include="Backends\BackgroundOpenGL.h">
+      <Filter>Header Files\Backends</Filter>
+    </ClInclude>
+    <ClInclude Include="Backends\BackendBase.h">
+      <Filter>Header Files\Backends</Filter>
+    </ClInclude>
+    <ClInclude Include="Backends\Shaders\BackgroundShaderManager.h">
+      <Filter>Header Files\Backends\Shaders</Filter>
+    </ClInclude>
+    <ClInclude Include="Backends\Shaders\DefaultFontShaderManager.h">
+      <Filter>Header Files\Backends\Shaders</Filter>
+    </ClInclude>
+    <ClInclude Include="Backends\Shaders\IShaderManager.h">
+      <Filter>Header Files\Backends\Shaders</Filter>
+    </ClInclude>
+    <ClInclude Include="Backends\Shaders\SingleColorFontShaderManager.h">
+      <Filter>Header Files\Backends\Shaders</Filter>
+    </ClInclude>
+    <ClInclude Include="Backends\Shaders\Shaders.h">
+      <Filter>Header Files\Backends\Shaders</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

@@ -108,7 +108,7 @@ protected:
 			maxY(static_cast<float>(std::numeric_limits<int>::min()))
 		{}
 
-		bool IsEmpty() noexcept
+		bool IsEmpty() const noexcept
 		{
 			return (minX == static_cast<float>(std::numeric_limits<int>::max()));
 		}

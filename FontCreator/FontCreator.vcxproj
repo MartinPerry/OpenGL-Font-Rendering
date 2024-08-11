@@ -159,12 +159,16 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="AbstractRenderer.cpp" />
-    <ClCompile Include="BackendBase.cpp" />
-    <ClCompile Include="BackendImage.cpp" />
-    <ClCompile Include="BackendOpenGL.cpp" />
+    <ClCompile Include="Backends\BackendBase.cpp" />
+    <ClCompile Include="Backends\BackendImage.cpp" />
+    <ClCompile Include="Backends\BackendOpenGL.cpp" />
+    <ClCompile Include="Backends\BackgroundOpenGL.cpp" />
+    <ClCompile Include="Backends\Shaders\BackgroundShaderManager.cpp" />
+    <ClCompile Include="Backends\Shaders\DefaultFontShaderManager.cpp" />
+    <ClCompile Include="Backends\Shaders\IShaderManager.cpp" />
+    <ClCompile Include="Backends\Shaders\SingleColorFontShaderManager.cpp" />
     <ClCompile Include="FontBuilder.cpp" />
     <ClCompile Include="FontCache.cpp" />
-    <ClCompile Include="FontShaderManager.cpp" />
     <ClCompile Include="lodepng.cpp" />
     <ClCompile Include="example_demo.cpp" />
     <ClCompile Include="NumberRenderer.cpp" />
@@ -178,13 +182,18 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="AbstractRenderer.h" />
-    <ClInclude Include="BackendBase.h" />
-    <ClInclude Include="BackendImage.h" />
-    <ClInclude Include="BackendOpenGL.h" />
+    <ClInclude Include="Backends\BackendBase.h" />
+    <ClInclude Include="Backends\BackendImage.h" />
+    <ClInclude Include="Backends\BackendOpenGL.h" />
+    <ClInclude Include="Backends\BackgroundOpenGL.h" />
+    <ClInclude Include="Backends\Shaders\BackgroundShaderManager.h" />
+    <ClInclude Include="Backends\Shaders\DefaultFontShaderManager.h" />
+    <ClInclude Include="Backends\Shaders\IShaderManager.h" />
+    <ClInclude Include="Backends\Shaders\Shaders.h" />
+    <ClInclude Include="Backends\Shaders\SingleColorFontShaderManager.h" />
     <ClInclude Include="Externalncludes.h" />
     <ClInclude Include="FontBuilder.h" />
     <ClInclude Include="FontCache.h" />
-    <ClInclude Include="FontShaderManager.h" />
     <ClInclude Include="FontStructures.h" />
     <ClInclude Include="lodepng.h" />
     <ClInclude Include="NumberRenderer.h" />
