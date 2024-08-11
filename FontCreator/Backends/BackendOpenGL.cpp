@@ -8,7 +8,7 @@
 #include "./Shaders/Shaders.h"
 #include "./Shaders/DefaultFontShaderManager.h"
 
-#include "./BackgroundOpenGL.h"
+#include "./BackendBackgroundOpenGL.h"
 
 //=============================================================================
 // GL helpers
@@ -30,11 +30,10 @@ BackendOpenGL::BackendOpenGL(const RenderSettings& r, int glVersion,
 	const char* vSource, const char* pSource, std::shared_ptr<IShaderManager> sm) :
 	BackendBase(r),
 	glVersion(glVersion),
-	sm(sm),	
-	bg(std::make_shared<BackgroundOpenGL>()),
+	sm(sm),		
 	vbo(0),
 	vao(0),
-	fontTex(0)
+	texture(0)
 {	
 	this->shader.program = 0;
 	this->shader.pSource = pSource;
@@ -68,7 +67,7 @@ BackendOpenGL::~BackendOpenGL()
 	FONT_UNBIND_VAO;
 
 	GL_CHECK(glDeleteProgram(shader.program));
-	GL_CHECK(glDeleteTextures(1, &this->fontTex));
+	GL_CHECK(glDeleteTextures(1, &this->texture));
 	GL_CHECK(glDeleteBuffers(1, &this->vbo));
 	GL_CHECK(glDeleteVertexArrays(1, &this->vao));
 }
@@ -81,16 +80,7 @@ void BackendOpenGL::InitGL()
 	//create shader
 	shader.program = this->sm->BuildFromSources(shader.vSource, shader.pSource);
 	
-
-	//get location of data in shader
-    GLint fontTexLoc = 0;
-    GL_CHECK(fontTexLoc = glGetUniformLocation(shader.program, "fontTex"));
-#ifdef glProgramUniform1i
-    GL_CHECK(glProgramUniform1i(shader.program, fontTexLoc, 0)); //Texture unit 0 is for font Tex.
-#elif glProgramUniform1iEXT
-    GL_CHECK(glProgramUniform1iEXT(shader.program, fontTexLoc, 0)); //Texture unit 0 is for font Tex.
-#endif
-    
+	    
     this->sm->GetAttributtesUniforms();
     
 
@@ -102,25 +92,42 @@ void BackendOpenGL::InitGL()
 	
 }
 
-void BackendOpenGL::InitFontTexture()
+void BackendOpenGL::InitTexture(const char* uniformName)
 {
+	if (uniformName == nullptr)
+	{
+		return;
+	}
+
+	//get location of data in shader
+	GLint fontTexLoc = 0;
+	GL_CHECK(fontTexLoc = glGetUniformLocation(shader.program, uniformName));
+#ifdef glProgramUniform1i
+	GL_CHECK(glProgramUniform1i(shader.program, fontTexLoc, 0)); //Texture unit 0 is for font Tex.
+#elif glProgramUniform1iEXT
+	GL_CHECK(glProgramUniform1iEXT(shader.program, fontTexLoc, 0)); //Texture unit 0 is for font Tex.
+#endif
+
 	auto fb = mainRenderer->GetFontBuilder();
 
-	this->tW = 1.0f / static_cast<float>(fb->GetTextureWidth());  //1.0 / pixel size in width
-	this->tH = 1.0f / static_cast<float>(fb->GetTextureHeight()); //1.0 / pixel size in height
+	int w = fb->GetTextureWidth();
+	int h = fb->GetTextureHeight();
 
-	if (this->fontTex != 0)
+	this->tW = 1.0f / static_cast<float>(w);  //1.0 / pixel size in width
+	this->tH = 1.0f / static_cast<float>(h); //1.0 / pixel size in height
+
+	if (this->texture != 0)
 	{
 		FONT_UNBIND_TEXTURE_2D;
-		GL_CHECK(glDeleteTextures(1, &this->fontTex));
+		GL_CHECK(glDeleteTextures(1, &this->texture));
 	}
 
 	//create texture
-	GL_CHECK(glGenTextures(1, &this->fontTex));
-	FONT_BIND_TEXTURE_2D(this->fontTex);
+	GL_CHECK(glGenTextures(1, &this->texture));
+	FONT_BIND_TEXTURE_2D(this->texture);
 	
 	GL_CHECK(glTexImage2D(GL_TEXTURE_2D, 0, TEXTURE_SINGLE_CHANNEL,
-		fb->GetTextureWidth(), fb->GetTextureHeight(), 0,
+		w, h, 0,
 		TEXTURE_SINGLE_CHANNEL, GL_UNSIGNED_BYTE, nullptr));
 
 	if (this->rs.useTextureLinearFilter)
@@ -170,7 +177,7 @@ void BackendOpenGL::SetFontTextureLinearFiler(bool val)
 {
 	this->rs.useTextureLinearFilter = val;	
 
-	FONT_BIND_TEXTURE_2D(this->fontTex);
+	FONT_BIND_TEXTURE_2D(this->texture);
 
 	if (this->rs.useTextureLinearFilter)
 	{
@@ -190,7 +197,7 @@ void BackendOpenGL::SetFontTextureLinearFiler(bool val)
 void BackendOpenGL::SetMainRenderer(AbstractRenderer* mainRenderer)
 {
 	BackendBase::SetMainRenderer(mainRenderer);
-	this->InitFontTexture();
+	this->InitTexture("fontText");
 }
 
 void BackendOpenGL::OnCanvasSizeChanges()
@@ -238,7 +245,7 @@ void BackendOpenGL::Render(std::function<void(GLuint)> preDrawCallback,
     
 	//activate texture
 	GL_CHECK(glActiveTexture(GL_TEXTURE0));
-	FONT_BIND_TEXTURE_2D(this->fontTex);
+	FONT_BIND_TEXTURE_2D(this->texture);
 
 
 	//activate shader	
@@ -296,7 +303,7 @@ void BackendOpenGL::FillFontTexture()
 {
 	auto fb = mainRenderer->GetFontBuilder();
 
-	FONT_BIND_TEXTURE_2D(this->fontTex);
+	FONT_BIND_TEXTURE_2D(this->texture);
 
 	GL_CHECK(glTexSubImage2D(GL_TEXTURE_2D, 0,
 		0, 0,
@@ -332,10 +339,12 @@ void BackendOpenGL::AddQuad(const GlyphInfo & gi, float x, float y, const Abstra
     
     this->sm->FillVertexData(min, max, rp, this->geom);
     
+	/*
 	if (this->bg)
 	{
 		this->bg->AddQuad(min, max);
 	}
+	*/
 
 	this->quadsCount++;
 }

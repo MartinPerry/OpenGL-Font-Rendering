@@ -1,7 +1,7 @@
 #ifndef BACKEND_OPENGL_H
 #define BACKEND_OPENGL_H
 
-class BackgroundOpenGL;
+class BackendBackgroundOpenGL;
 class IShaderManager;
 
 #include <vector>
@@ -39,7 +39,7 @@ public:
 	void FillGeometry() override;
 	
 	void Render() override;
-    void Render(std::function<void(GLuint)> preDrawCallback, std::function<void()> postDrawCallback);
+    virtual void Render(std::function<void(GLuint)> preDrawCallback, std::function<void()> postDrawCallback);
 	
 	friend class AbstractRenderer;
 	friend class StringRenderer;
@@ -57,11 +57,10 @@ protected:
 	};
 	
     std::shared_ptr<IShaderManager> sm;
-	std::shared_ptr<BackgroundOpenGL> bg;
-
+	
 	GLuint vbo;
 	GLuint vao;
-	GLuint fontTex;
+	GLuint texture;
 	Shader shader;
 	int glVersion;
 	
@@ -70,7 +69,7 @@ protected:
 
 	void InitGL();
 	
-	void InitFontTexture();
+	void InitTexture(const char* uniformName);
 	void InitVAO();
 	
 	void OnCanvasSizeChanges() override;

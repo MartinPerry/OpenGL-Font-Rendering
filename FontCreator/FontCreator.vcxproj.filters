@@ -84,7 +84,7 @@
     <ClCompile Include="Backends\BackendOpenGL.cpp">
       <Filter>Source Files\Backends</Filter>
     </ClCompile>
-    <ClCompile Include="Backends\BackgroundOpenGL.cpp">
+    <ClCompile Include="Backends\BackendBackgroundOpenGL.cpp">
       <Filter>Source Files\Backends</Filter>
     </ClCompile>
     <ClCompile Include="Backends\Shaders\BackgroundShaderManager.cpp">
@@ -161,7 +161,7 @@
     <ClInclude Include="Backends\BackendOpenGL.h">
       <Filter>Header Files\Backends</Filter>
     </ClInclude>
-    <ClInclude Include="Backends\BackgroundOpenGL.h">
+    <ClInclude Include="Backends\BackendBackgroundOpenGL.h">
       <Filter>Header Files\Backends</Filter>
     </ClInclude>
     <ClInclude Include="Backends\BackendBase.h">
