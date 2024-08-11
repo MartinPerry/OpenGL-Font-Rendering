@@ -32,8 +32,7 @@ public:
 	void SetFontTextureLinearFiler(bool val);
 	
 	std::shared_ptr<IShaderManager> GetShaderManager() const;
-
-	void Clear() override;
+	
 	void AddQuad(const GlyphInfo& gi, float x, float y, const AbstractRenderer::RenderParams& rp) override;
 	
 	void FillFontTexture() override;

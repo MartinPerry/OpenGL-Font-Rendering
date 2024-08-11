@@ -307,13 +307,6 @@ void BackendOpenGL::FillFontTexture()
 }
 
 /// <summary>
-/// Called after strings are cleared
-/// </summary>
-void BackendOpenGL::Clear()
-{
-}
-
-/// <summary>
 /// Add single "letter" quad to geom buffer
 /// </summary>
 /// <param name="gi"></param>

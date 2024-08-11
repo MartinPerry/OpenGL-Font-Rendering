@@ -267,6 +267,7 @@ void BackendImage::FillFontTexture()
 /// </summary>
 void BackendImage::Clear()
 {
+	BackendBase::Clear();
 	quadsAABB = AbstractRenderer::AABB();
 }
 
