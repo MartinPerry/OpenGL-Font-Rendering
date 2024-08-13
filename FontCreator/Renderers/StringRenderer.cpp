@@ -819,6 +819,8 @@ bool StringRenderer::GenerateGeometry()
 			
 			y += li.maxNewLineOffset;
 		}
+
+		this->OnFinishQuadGroup();
 	}
 
 	this->strChanged = false;

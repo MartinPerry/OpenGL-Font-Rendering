@@ -64,3 +64,6 @@ void BackendBase::SwapCanvasWidthHeight()
 	this->OnCanvasSizeChanges();
 }
 
+void BackendBase::OnFinishQuadGroup()
+{
+}

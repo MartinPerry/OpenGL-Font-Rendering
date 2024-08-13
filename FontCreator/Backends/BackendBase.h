@@ -30,6 +30,7 @@ public:
 		
 	virtual void Clear();
 	virtual void AddQuad(const GlyphInfo& gi, float x, float y, const AbstractRenderer::RenderParams& rp) = 0;
+	virtual void OnFinishQuadGroup();
 
 	virtual void FillGeometry() = 0;
 	virtual void FillFontTexture() = 0;

@@ -95,3 +95,7 @@ void BackendBackgroundOpenGL::Render(std::function<void(GLuint)> preDrawCallback
 void BackendBackgroundOpenGL::AddQuad(const AbstractRenderer::Vertex& vmin, const AbstractRenderer::Vertex& vmax)
 {
 }
+
+void BackendBackgroundOpenGL::OnFinishQuadGroup()
+{
+}

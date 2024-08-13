@@ -726,7 +726,9 @@ bool NumberRenderer::GenerateGeometry()
 
 				fractPartReverse /= 10;
 			}
-		}		
+		}
+
+		this->OnFinishQuadGroup();
 	}
 
 	this->strChanged = false;

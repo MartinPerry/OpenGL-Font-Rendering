@@ -174,6 +174,7 @@ protected:
 
 	std::shared_ptr<FontBuilder> fb;
 	std::unique_ptr<BackendBase> backend;
+	std::unique_ptr<BackendBase> background;
 
 	CaptionInfo ci;
 
@@ -193,7 +194,7 @@ protected:
 
 	
 	virtual void AddQuad(const GlyphInfo& gi, float x, float y, const RenderParams& rp);
-
+	void OnFinishQuadGroup();
 };
 
 #endif

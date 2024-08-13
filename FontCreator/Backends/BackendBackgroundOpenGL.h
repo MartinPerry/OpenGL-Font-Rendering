@@ -18,6 +18,7 @@ public:
 	void SetMainRenderer(AbstractRenderer* mainRenderer) override;
 
 	void AddQuad(const AbstractRenderer::Vertex& vmin, const AbstractRenderer::Vertex& vmax);
+	void OnFinishQuadGroup() override;
 
 	virtual void Render(std::function<void(GLuint)> preDrawCallback, std::function<void()> postDrawCallback);
 
