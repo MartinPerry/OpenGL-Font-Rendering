@@ -27,14 +27,16 @@ public:
    	
 	virtual ~BackendOpenGL();
 
+	void SetBackground() override;
 	void SetMainRenderer(AbstractRenderer* mainRenderer) override;
 	
 	void SetFontTextureLinearFiler(bool val);
 	
 	std::shared_ptr<IShaderManager> GetShaderManager() const;
 	
-	void AddQuad(const GlyphInfo& gi, float x, float y, const AbstractRenderer::RenderParams& rp) override;
-	
+	void Clear() override;
+	void OnFinishQuadGroup() override;
+
 	void FillFontTexture() override;
 	void FillGeometry() override;
 	
@@ -58,6 +60,8 @@ protected:
 	
     std::shared_ptr<IShaderManager> sm;
 	
+	std::unique_ptr<BackendBase> background;
+
 	GLuint vbo;
 	GLuint vao;
 	GLuint texture;
@@ -73,6 +77,8 @@ protected:
 	void InitVAO();
 	
 	void OnCanvasSizeChanges() override;
+
+	void AddQuad(AbstractRenderer::Vertex& vmin, AbstractRenderer::Vertex& vmax, const AbstractRenderer::RenderParams& rp) override;
 };
 
 #endif

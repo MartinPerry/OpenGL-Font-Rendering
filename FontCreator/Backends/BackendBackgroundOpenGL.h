@@ -16,17 +16,17 @@ public:
 	virtual ~BackendBackgroundOpenGL();
 
 	void SetMainRenderer(AbstractRenderer* mainRenderer) override;
-
-	void AddQuad(const AbstractRenderer::Vertex& vmin, const AbstractRenderer::Vertex& vmax);
+	
 	void OnFinishQuadGroup() override;
 
 	virtual void Render(std::function<void(GLuint)> preDrawCallback, std::function<void()> postDrawCallback);
-
+	
 protected:
 	
+	AABB curQuadAabb;
 	
-	
-	
+	void AddQuad(AbstractRenderer::Vertex& vmin, AbstractRenderer::Vertex& vmax, const AbstractRenderer::RenderParams& rp) override;
+
 };
 
 #endif

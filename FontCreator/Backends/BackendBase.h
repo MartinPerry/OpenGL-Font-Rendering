@@ -21,6 +21,7 @@ public:
 	
 	virtual ~BackendBase();
 
+	virtual void SetBackground();
 	virtual void SetMainRenderer(AbstractRenderer* mainRenderer);
 
 	const RenderSettings& GetSettings() const;
@@ -29,7 +30,7 @@ public:
 	bool IsEnabled() const;
 		
 	virtual void Clear();
-	virtual void AddQuad(const GlyphInfo& gi, float x, float y, const AbstractRenderer::RenderParams& rp) = 0;
+	virtual void AddQuad(const GlyphInfo& gi, float x, float y, const AbstractRenderer::RenderParams& rp);
 	virtual void OnFinishQuadGroup();
 
 	virtual void FillGeometry() = 0;
@@ -38,6 +39,7 @@ public:
 	virtual void Render() = 0;
   
 	friend class AbstractRenderer;
+	friend class BackendOpenGL;
 
 protected:
 	 	
@@ -54,6 +56,8 @@ protected:
 	
 	float psW; //1.0 / pixel size in width
 	float psH; //1.0 / pixel size in height
+
+	virtual void AddQuad(AbstractRenderer::Vertex& vmin, AbstractRenderer::Vertex& vmax, const AbstractRenderer::RenderParams& rp) = 0;
 
 	//must be hidden, because we only want to call it from actual renderer
 	//since we must redraw fonts

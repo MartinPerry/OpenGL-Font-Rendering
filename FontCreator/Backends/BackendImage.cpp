@@ -268,7 +268,7 @@ void BackendImage::FillFontTexture()
 void BackendImage::Clear()
 {
 	BackendBase::Clear();
-	quadsAABB = AbstractRenderer::AABB();
+	quadsAABB = AABB();
 }
 
 /// <summary>
@@ -277,32 +277,16 @@ void BackendImage::Clear()
 /// <param name="gi"></param>
 /// <param name="x"></param>
 /// <param name="y"></param>
-void BackendImage::AddQuad(const GlyphInfo& gi, float x, float y, const AbstractRenderer::RenderParams& rp)
-{
-	float fx = x + gi.bmpX * rp.scale;
-	float fy = y - gi.bmpY * rp.scale;
-
-	//build geometry
-	AbstractRenderer::Vertex min, max;
-
-	min.x = fx;
-	min.y = fy;
-	min.u = static_cast<float>(gi.tx);
-	min.v = static_cast<float>(gi.ty);
-
-	max.x = (fx + gi.bmpW * rp.scale);
-	max.y = (fy + gi.bmpH * rp.scale);
-	max.u = static_cast<float>(gi.tx + gi.bmpW);
-	max.v = static_cast<float>(gi.ty + gi.bmpH);
-
+void BackendImage::AddQuad(AbstractRenderer::Vertex& vmin, AbstractRenderer::Vertex& vmax, const AbstractRenderer::RenderParams& rp)
+{	
 	//=====
 	//store it 
 
-	this->geom.push_back(min.x); this->geom.push_back(min.y);
-	this->geom.push_back(min.u); this->geom.push_back(min.v);
+	this->geom.push_back(vmin.x); this->geom.push_back(vmin.y);
+	this->geom.push_back(vmin.u); this->geom.push_back(vmin.v);
 
-	this->geom.push_back(max.x); this->geom.push_back(max.y);
-	this->geom.push_back(max.u); this->geom.push_back(max.v);
+	this->geom.push_back(vmax.x); this->geom.push_back(vmax.y);
+	this->geom.push_back(vmax.u); this->geom.push_back(vmax.v);
 
 	if (format != Format::GRAYSCALE)
 	{
@@ -310,11 +294,11 @@ void BackendImage::AddQuad(const GlyphInfo& gi, float x, float y, const Abstract
 		this->geom.push_back(rp.color.b); this->geom.push_back(rp.color.a);
 	}
 
-	if (min.x < quadsAABB.minX) quadsAABB.minX = min.x;
-	if (min.y < quadsAABB.minY) quadsAABB.minY = min.y;
+	if (vmin.x < quadsAABB.minX) quadsAABB.minX = vmin.x;
+	if (vmin.y < quadsAABB.minY) quadsAABB.minY = vmin.y;
 
-	if (max.x > quadsAABB.maxX) quadsAABB.maxX = max.x;
-	if (max.y > quadsAABB.maxY) quadsAABB.maxY = max.y;
+	if (vmax.x > quadsAABB.maxX) quadsAABB.maxX = vmax.x;
+	if (vmax.y > quadsAABB.maxY) quadsAABB.maxY = vmax.y;
 
 	this->quadsCount++;
 }

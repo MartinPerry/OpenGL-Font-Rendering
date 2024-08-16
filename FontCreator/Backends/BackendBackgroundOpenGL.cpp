@@ -92,10 +92,30 @@ void BackendBackgroundOpenGL::Render(std::function<void(GLuint)> preDrawCallback
 }
 
 
-void BackendBackgroundOpenGL::AddQuad(const AbstractRenderer::Vertex& vmin, const AbstractRenderer::Vertex& vmax)
+void BackendBackgroundOpenGL::AddQuad(AbstractRenderer::Vertex& vmin, AbstractRenderer::Vertex& vmax, 
+	const AbstractRenderer::RenderParams& rp)
 {
+	curQuadAabb.Update(vmin.x, vmin.y, vmax.x - vmin.x, vmax.y - vmin.y);
 }
 
 void BackendBackgroundOpenGL::OnFinishQuadGroup()
 {
+	AbstractRenderer::Vertex min, max;
+
+	min.x = curQuadAabb.minX;
+	min.y = curQuadAabb.minY;
+
+	max.x = curQuadAabb.maxX;
+	max.y = curQuadAabb.maxY;
+
+	AbstractRenderer::RenderParams tmp;
+	tmp.color = { 0, 1, 0, 0 };
+
+	this->sm->FillVertexData(min, max, tmp, this->geom);
+
+	curQuadAabb = AABB();
+
+	
+
+	this->quadsCount++;
 }

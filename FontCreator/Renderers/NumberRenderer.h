@@ -123,7 +123,7 @@ protected:
 	struct Precomputed 
 	{
 		GlyphInfo * gi[2];
-		AbstractRenderer::AABB aabb;
+		AABB aabb;
 		int xOffset;
 	};
 
@@ -156,7 +156,7 @@ protected:
 
 	bool GenerateGeometry() override;
 
-	AbstractRenderer::AABB CalcNumberAABB(double val, int x, int y,
+	AABB CalcNumberAABB(double val, int x, int y,
 		bool negative, uint32_t intPart, uint64_t intPartOrder, uint32_t fractPartReversed);
 
 	

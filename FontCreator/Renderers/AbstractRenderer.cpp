@@ -78,6 +78,9 @@ AbstractRenderer::AbstractRenderer(std::shared_ptr<FontBuilder> fb,
 
 	this->backend->SetMainRenderer(this);
 
+	//todo
+	this->backend->SetBackground();
+
 	this->SetCaption(UTF8_TEXT(u8"\u2022"), 10);
 			
 }

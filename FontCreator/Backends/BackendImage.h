@@ -57,8 +57,7 @@ public:
 	void SetTightDynamicCanvasEnabled(bool val, const TightCanvasSettings& ts);
 
 	void Clear() override;
-	void AddQuad(const GlyphInfo& gi, float x, float y, const AbstractRenderer::RenderParams& rp) override;
-
+	
 	void FillFontTexture() override;
 	void FillGeometry() override;
 
@@ -75,12 +74,14 @@ protected:
 	bool enableTightCanvas;
 	TightCanvasSettings tightSettings;
 
-	AbstractRenderer::AABB quadsAABB;
+	AABB quadsAABB;
 
 		
 	void UpdateTightCanvasSize();
 
 	void OnCanvasSizeChanges() override;
+
+	void AddQuad(AbstractRenderer::Vertex& vmin, AbstractRenderer::Vertex& vmax, const AbstractRenderer::RenderParams& rp) override;
 };
 
 #endif

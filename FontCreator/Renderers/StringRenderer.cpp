@@ -347,7 +347,7 @@ bool StringRenderer::CanAddString(const UnicodeString & uniStr,
 		}
 	}
 
-	AbstractRenderer::AABB estimAABB = this->EstimateStringAABB(uniStr,
+	AABB estimAABB = this->EstimateStringAABB(uniStr,
 		static_cast<float>(x), static_cast<float>(y), rp.scale);
 
     //test if entire string is outside visible area
@@ -433,10 +433,10 @@ bool StringRenderer::CanAddString(const UnicodeString & uniStr,
 /// <param name="x"></param>
 /// <param name="y"></param>
 /// <returns></returns>
-AbstractRenderer::AABB StringRenderer::EstimateStringAABB(const UnicodeString & str,
+AABB StringRenderer::EstimateStringAABB(const UnicodeString & str,
 	float x, float y, float scale) const
 {
-	AbstractRenderer::AABB aabb;
+	AABB aabb;
 	
 	float maxGlyphHeight = this->fb->GetMaxFontPixelHeight() * scale;
     

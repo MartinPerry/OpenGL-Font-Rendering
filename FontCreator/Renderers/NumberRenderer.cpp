@@ -368,7 +368,7 @@ bool NumberRenderer::AddFloatNumberInternal(double val,
 bool NumberRenderer::AddNumber(NumberInfo & n, int x, int y, const RenderParams & rp,
 	TextAnchor anchor, TextType type)
 {
-	AbstractRenderer::AABB aabb = this->CalcNumberAABB(n.val, x, y, n.negative,
+	AABB aabb = this->CalcNumberAABB(n.val, x, y, n.negative,
 		n.intPart, n.intPartOrder, n.fractPartReverse);
 
 	//test if entire string is outside visible area
@@ -515,7 +515,7 @@ uint64_t NumberRenderer::GetIntDivisor(const uint32_t x) const noexcept
 /// <param name="intPart"></param>
 /// <param name="fractPartReversed"></param>
 /// <returns></returns>
-AbstractRenderer::AABB NumberRenderer::CalcNumberAABB(double val, int x, int y,
+AABB NumberRenderer::CalcNumberAABB(double val, int x, int y,
 	bool negative, uint32_t intPart, uint64_t intPartOrder, uint32_t fractPartReversed)
 {	
 	//store offsets
@@ -526,7 +526,7 @@ AbstractRenderer::AABB NumberRenderer::CalcNumberAABB(double val, int x, int y,
 	y = 0; //not used
 	x = 0;
 
-	AbstractRenderer::AABB aabb;
+	AABB aabb;
 	
 	if (negative)
 	{

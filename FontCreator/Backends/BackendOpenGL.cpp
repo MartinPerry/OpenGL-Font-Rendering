@@ -33,7 +33,8 @@ BackendOpenGL::BackendOpenGL(const RenderSettings& r, int glVersion,
 	sm(sm),		
 	vbo(0),
 	vao(0),
-	texture(0)
+	texture(0),
+	background(nullptr)
 {	
 	this->shader.program = 0;
 	this->shader.pSource = pSource;
@@ -193,6 +194,10 @@ void BackendOpenGL::SetFontTextureLinearFiler(bool val)
 	FONT_UNBIND_TEXTURE_2D;
 }
 
+void BackendOpenGL::SetBackground()
+{
+	this->background = std::make_unique<BackendBackgroundOpenGL>(rs);
+}
 
 void BackendOpenGL::SetMainRenderer(AbstractRenderer* mainRenderer)
 {
@@ -242,6 +247,10 @@ void BackendOpenGL::Render(std::function<void(GLuint)> preDrawCallback,
 		return;
 	}
 
+	if (this->background)
+	{
+		this->background->Render();
+	}
     
 	//activate texture
 	GL_CHECK(glActiveTexture(GL_TEXTURE0));
@@ -319,36 +328,47 @@ void BackendOpenGL::FillFontTexture()
 /// <param name="gi"></param>
 /// <param name="x"></param>
 /// <param name="y"></param>
-void BackendOpenGL::AddQuad(const GlyphInfo & gi, float x, float y, const AbstractRenderer::RenderParams & rp)
-{    
-    float fx = x + gi.bmpX * rp.scale;
-	float fy = y - gi.bmpY * rp.scale;
-    	
-    //build geometry
-	AbstractRenderer::Vertex min, max;
+void BackendOpenGL::AddQuad(AbstractRenderer::Vertex& vmin, AbstractRenderer::Vertex& vmax, const AbstractRenderer::RenderParams& rp)
+{
+	vmin.x *= psW;
+	vmin.y *= psH;
+	vmin.u *= this->tW;
+	vmin.v *= this->tH;
+
+	vmax.x *= psW;
+	vmax.y *= psH;
+	vmax.u *= this->tW;
+	vmax.v *= this->tH;
+
+    this->sm->FillVertexData(vmin, vmax, rp, this->geom);
     
-    min.x = fx * psW;
-    min.y = fy * psH;
-    min.u = static_cast<float>(gi.tx) * this->tW;
-    min.v = static_cast<float>(gi.ty) * this->tH;
-    
-    max.x = (fx + gi.bmpW * rp.scale) * psW;
-    max.y = (fy + gi.bmpH * rp.scale) * psH;
-    max.u = static_cast<float>(gi.tx + gi.bmpW) * this->tW;
-    max.v = static_cast<float>(gi.ty + gi.bmpH) * this->tH;
-    
-    this->sm->FillVertexData(min, max, rp, this->geom);
-    
-	/*
-	if (this->bg)
+	
+	if (this->background)
 	{
-		this->bg->AddQuad(min, max);
+		this->background->AddQuad(vmin, vmax, rp);
 	}
-	*/
+	
 
 	this->quadsCount++;
 }
 
+void BackendOpenGL::Clear()
+{
+	BackendBase::Clear();
+
+	if (this->background)
+	{
+		this->background->Clear();
+	}
+}
+
+void BackendOpenGL::OnFinishQuadGroup()
+{
+	if (this->background)
+	{
+		this->background->OnFinishQuadGroup();
+	}
+}
 
 void BackendOpenGL::FillGeometry()
 {
@@ -363,4 +383,9 @@ void BackendOpenGL::FillGeometry()
 		this->geom.data(),
 		GL_STREAM_DRAW));
 	FONT_UNBIND_ARRAY_BUFFER;
+
+	if (this->background)
+	{
+		this->background->FillGeometry();
+	}
 }
