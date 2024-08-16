@@ -88,12 +88,14 @@ void BackendImage::SaveToFile(const char* fileName)
 		colorType, 8 * sizeof(uint8_t));
 }
 
-void BackendImage::SetBackgroundValue(uint8_t r, uint8_t g, uint8_t b, uint8_t a)
+void BackendImage::SetBackground(const BackgroundSettings& bs)
 {
-	bgValue[0] = r;
-	bgValue[1] = g;
-	bgValue[2] = b;
-	bgValue[3] = a;
+	bgValue[0] = static_cast<uint8_t>(bs.color.r * 255);
+	bgValue[1] = static_cast<uint8_t>(bs.color.g * 255);
+	bgValue[2] = static_cast<uint8_t>(bs.color.b * 255);
+	bgValue[3] = static_cast<uint8_t>(bs.color.a * 255);
+
+	this->OnCanvasChanges();
 }
 
 void BackendImage::SetColorBlend(std::function<void(uint8_t, uint8_t*, const std::array<float, 4>&, int)>& blend)
@@ -138,7 +140,7 @@ void BackendImage::UpdateTightCanvasSize()
 
 }
 
-void BackendImage::OnCanvasSizeChanges()
+void BackendImage::OnCanvasChanges()
 {
 	img.w = this->rs.deviceW;
 	img.h = this->rs.deviceH;

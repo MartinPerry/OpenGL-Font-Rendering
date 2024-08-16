@@ -205,7 +205,7 @@ void BackendOpenGL::SetMainRenderer(AbstractRenderer* mainRenderer)
 	this->InitTexture("fontText");
 }
 
-void BackendOpenGL::OnCanvasSizeChanges()
+void BackendOpenGL::OnCanvasChanges()
 {
 }
 

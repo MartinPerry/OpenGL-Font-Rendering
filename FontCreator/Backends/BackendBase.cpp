@@ -55,7 +55,7 @@ void BackendBase::SetCanvasSize(int w, int h)
 	this->psW = 1.0f / static_cast<float>(rs.deviceW); //pixel size in width
 	this->psH = 1.0f / static_cast<float>(rs.deviceH); //pixel size in height
 
-	this->OnCanvasSizeChanges();
+	this->OnCanvasChanges();
 }
 
 void BackendBase::SwapCanvasWidthHeight()
@@ -65,7 +65,7 @@ void BackendBase::SwapCanvasWidthHeight()
 	this->psW = 1.0f / static_cast<float>(rs.deviceW); //pixel size in width
 	this->psH = 1.0f / static_cast<float>(rs.deviceH); //pixel size in height
 
-	this->OnCanvasSizeChanges();
+	this->OnCanvasChanges();
 }
 
 void BackendBase::AddQuad(const GlyphInfo& gi, float x, float y, const AbstractRenderer::RenderParams& rp)

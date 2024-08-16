@@ -50,7 +50,7 @@ public:
 
 	void SaveToFile(const char* fileName);
 	
-	void SetBackgroundValue(uint8_t r, uint8_t g, uint8_t b, uint8_t a);
+	void SetBackground(const BackgroundSettings& bs) override;
 	void SetColorBlend(std::function<void(uint8_t, uint8_t*, const std::array<float, 4>&, int)>& blend);
 
 	void SetTightDynamicCanvasEnabled(bool val);
@@ -79,7 +79,7 @@ protected:
 		
 	void UpdateTightCanvasSize();
 
-	void OnCanvasSizeChanges() override;
+	void OnCanvasChanges() override;
 
 	void AddQuad(AbstractRenderer::Vertex& vmin, AbstractRenderer::Vertex& vmax, const AbstractRenderer::RenderParams& rp) override;
 };

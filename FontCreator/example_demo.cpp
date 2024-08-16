@@ -435,7 +435,10 @@ void initGL() {
 	
 	BackendImage* image = dynamic_cast<BackendImage*>(imageSr->GetBackend());
 	image->SetTightDynamicCanvasEnabled(true);
-	image->SetBackgroundValue(255, 0, 0, 255);
+
+	BackgroundSettings bs;
+	bs.color = { 1, 0, 0, 1 };	
+	image->SetBackground(bs);
 
 	imageSr->AddString(
 		//UTF8_TEXT(CreateRandomString(10).c_str()),				

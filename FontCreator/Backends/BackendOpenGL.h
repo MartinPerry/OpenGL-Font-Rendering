@@ -76,7 +76,7 @@ protected:
 	void InitTexture(const char* uniformName);
 	void InitVAO();
 	
-	void OnCanvasSizeChanges() override;
+	void OnCanvasChanges() override;
 
 	void AddQuad(AbstractRenderer::Vertex& vmin, AbstractRenderer::Vertex& vmax, const AbstractRenderer::RenderParams& rp) override;
 };

@@ -63,7 +63,7 @@ protected:
 	//since we must redraw fonts
 	void SetCanvasSize(int w, int h);
 	void SwapCanvasWidthHeight();
-	virtual void OnCanvasSizeChanges() = 0;
+	virtual void OnCanvasChanges() = 0;
 	
    
 };
