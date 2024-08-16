@@ -161,7 +161,18 @@ typedef struct Font
 
 } Font;
 
-
+/// <summary>
+/// Color representation
+/// </summary>
+struct Color
+{
+	float r, g, b, a;
+	bool IsSame(const Color& c) const noexcept
+	{
+		return (c.r == r) && (c.g == g) &&
+			(c.b == b) && (c.a == a);
+	}
+};
 
 /// <summary>
 /// Render settings for font renderer
@@ -186,10 +197,19 @@ struct FontBuilderSettings
 
 	//how many times is resolution bigger than display pts units
 	//used on iPhones
-	float screenScale = 1.0;
+	float screenScale = 1.0f;
 
 };
 
+struct BackgroundSettings 
+{
+	Color color;
+	float padding = 0.0f;
+};
+
+/// <summary>
+/// Simple AABB
+/// </summary>
 struct AABB
 {
 	float minX;

@@ -3,29 +3,27 @@
 #include "./Shaders/Shaders.h"
 #include "./Shaders/BackgroundShaderManager.h"
 
-BackendBackgroundOpenGL::BackendBackgroundOpenGL(const RenderSettings& r, int glVersion) :
-	BackendBackgroundOpenGL(r, glVersion,
+BackendBackgroundOpenGL::BackendBackgroundOpenGL(const BackgroundSettings& bs, const RenderSettings& r, int glVersion) :
+	BackendBackgroundOpenGL(bs, r, glVersion,
 		BACKGROUND_VERTEX_SHADER_SOURCE, BACKGROUND_PIXEL_SHADER_SOURCE,
 						std::make_shared<BackgroundShaderManager>())
 {
 }
 
-BackendBackgroundOpenGL::BackendBackgroundOpenGL(const RenderSettings& r, int glVersion,
+BackendBackgroundOpenGL::BackendBackgroundOpenGL(const BackgroundSettings& bs, const RenderSettings& r, int glVersion,
 	const char* vSource, const char* pSource, std::shared_ptr<IShaderManager> sm) :
-	BackendOpenGL(r, glVersion, vSource, pSource, sm)
+	BackendOpenGL(r, glVersion, vSource, pSource, sm), 
+	bs(bs),
+	curScale(1)
 {
-		
+	if (auto tmp = std::dynamic_pointer_cast<BackgroundShaderManager>(this->sm))
+	{
+		tmp->SetColor(bs.color.r, bs.color.g, bs.color.b, bs.color.a);
+	}
 }
 
 BackendBackgroundOpenGL::~BackendBackgroundOpenGL()
 {
-}
-
-
-void BackendBackgroundOpenGL::SetMainRenderer(AbstractRenderer* mainRenderer)
-{
-	BackendBase::SetMainRenderer(mainRenderer);
-	this->InitTexture(nullptr);
 }
 
 
@@ -96,6 +94,7 @@ void BackendBackgroundOpenGL::AddQuad(AbstractRenderer::Vertex& vmin, AbstractRe
 	const AbstractRenderer::RenderParams& rp)
 {
 	curQuadAabb.Update(vmin.x, vmin.y, vmax.x - vmin.x, vmax.y - vmin.y);
+	curScale = rp.scale;
 }
 
 void BackendBackgroundOpenGL::OnFinishQuadGroup()
@@ -108,13 +107,20 @@ void BackendBackgroundOpenGL::OnFinishQuadGroup()
 	max.x = curQuadAabb.maxX;
 	max.y = curQuadAabb.maxY;
 
+	min.x -= (bs.padding * psW);
+	min.y -= (bs.padding * psH);
+
+	max.x += (bs.padding * psW);
+	max.y += (bs.padding * psH);
+
 	AbstractRenderer::RenderParams tmp;
-	tmp.color = { 0, 1, 0, 0 };
+	tmp.color = this->bs.color;
+	tmp.scale = curScale;
 
 	this->sm->FillVertexData(min, max, tmp, this->geom);
 
 	curQuadAabb = AABB();
-
+	curScale = 1.0f;
 	
 
 	this->quadsCount++;

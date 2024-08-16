@@ -10,7 +10,7 @@
 
 //=============================================================================
 
-const AbstractRenderer::Color AbstractRenderer::DEFAULT_COLOR = { 1,1,1,1 };
+const Color AbstractRenderer::DEFAULT_COLOR = { 1,1,1,1 };
 
 const AbstractRenderer::RenderParams AbstractRenderer::DEFAULT_PARAMS = { DEFAULT_COLOR, 1.0f };
 
@@ -79,7 +79,10 @@ AbstractRenderer::AbstractRenderer(std::shared_ptr<FontBuilder> fb,
 	this->backend->SetMainRenderer(this);
 
 	//todo
-	this->backend->SetBackground();
+	BackgroundSettings bs;
+	bs.color = { 1,0, 1, 1 };
+	bs.padding = 5;
+	this->backend->SetBackground(bs);
 
 	this->SetCaption(UTF8_TEXT(u8"\u2022"), 10);
 			

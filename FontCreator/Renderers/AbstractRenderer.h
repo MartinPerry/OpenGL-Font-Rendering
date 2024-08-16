@@ -30,20 +30,11 @@ public:
 		float u, v;
 	};
 
-	struct Color
-	{
-		float r, g, b, a;
-		bool IsSame(const Color& c) const noexcept
-		{
-			return (c.r == r) && (c.g == g) &&
-				(c.b == b) && (c.a == a);
-		}
-	};
-
+	
 	struct RenderParams
 	{
 		Color color;
-		float scale = 1.0f;
+		float scale = 1.0f; //not used? //todo
 	};
 
 	static const Color DEFAULT_COLOR;

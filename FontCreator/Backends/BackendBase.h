@@ -21,7 +21,7 @@ public:
 	
 	virtual ~BackendBase();
 
-	virtual void SetBackground();
+	virtual void SetBackground(const BackgroundSettings& bs);
 	virtual void SetMainRenderer(AbstractRenderer* mainRenderer);
 
 	const RenderSettings& GetSettings() const;

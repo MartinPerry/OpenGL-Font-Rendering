@@ -27,7 +27,7 @@ public:
    	
 	virtual ~BackendOpenGL();
 
-	void SetBackground() override;
+	void SetBackground(const BackgroundSettings& bs) override;
 	void SetMainRenderer(AbstractRenderer* mainRenderer) override;
 	
 	void SetFontTextureLinearFiler(bool val);
