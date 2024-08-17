@@ -88,12 +88,22 @@ void BackendImage::SaveToFile(const char* fileName)
 		colorType, 8 * sizeof(uint8_t));
 }
 
-void BackendImage::SetBackground(const BackgroundSettings& bs)
+void BackendImage::SetBackground(std::optional<BackgroundSettings> bs)
 {
-	bgValue[0] = static_cast<uint8_t>(bs.color.r * 255);
-	bgValue[1] = static_cast<uint8_t>(bs.color.g * 255);
-	bgValue[2] = static_cast<uint8_t>(bs.color.b * 255);
-	bgValue[3] = static_cast<uint8_t>(bs.color.a * 255);
+	if (bs)
+	{
+		bgValue[0] = static_cast<uint8_t>(bs->color.r * 255);
+		bgValue[1] = static_cast<uint8_t>(bs->color.g * 255);
+		bgValue[2] = static_cast<uint8_t>(bs->color.b * 255);
+		bgValue[3] = static_cast<uint8_t>(bs->color.a * 255);
+	}
+	else 
+	{
+		bgValue[0] = 0;
+		bgValue[1] = 0;
+		bgValue[2] = 0;
+		bgValue[3] = 0;
+	}
 
 	this->OnCanvasChanges();
 }

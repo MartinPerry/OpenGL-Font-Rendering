@@ -10,6 +10,7 @@ class BackendBase;
 #include <functional>
 #include <shared_mutex>
 #include <algorithm>
+#include <optional>
 
 #include "../FontStructures.h"
 
@@ -56,6 +57,7 @@ public:
 	void SetCaption(const UnicodeString& mark);
 	void SetCaption(const UnicodeString& mark, int offsetInPixels);
 	void SetCaptionOffset(int offsetInPixels);
+	void SetBackgroundSettings(std::optional<BackgroundSettings> bs);
 
 	const RenderSettings& GetRenderSettings() const;
 	int GetCanvasWidth() const;

@@ -50,7 +50,7 @@ public:
 
 	void SaveToFile(const char* fileName);
 	
-	void SetBackground(const BackgroundSettings& bs) override;
+	void SetBackground(std::optional<BackgroundSettings> bs) override;
 	void SetColorBlend(std::function<void(uint8_t, uint8_t*, const std::array<float, 4>&, int)>& blend);
 
 	void SetTightDynamicCanvasEnabled(bool val);

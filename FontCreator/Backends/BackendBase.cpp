@@ -22,7 +22,7 @@ void BackendBase::Clear()
 	this->quadsCount = 0;
 }
 
-void BackendBase::SetBackground(const BackgroundSettings& bs)
+void BackendBase::SetBackground(std::optional<BackgroundSettings> bs)
 {
 }
 

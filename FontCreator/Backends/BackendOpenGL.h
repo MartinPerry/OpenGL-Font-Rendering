@@ -10,6 +10,7 @@ class IShaderManager;
 #include <functional>
 #include <shared_mutex>
 #include <algorithm>
+#include <optional>
 
 #include "../FontStructures.h"
 #include "./BackendBase.h"
@@ -27,7 +28,7 @@ public:
    	
 	virtual ~BackendOpenGL();
 
-	void SetBackground(const BackgroundSettings& bs) override;
+	void SetBackground(std::optional<BackgroundSettings> bs) override;
 	void SetMainRenderer(AbstractRenderer* mainRenderer) override;
 	
 	void SetFontTextureLinearFiler(bool val);

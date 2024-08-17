@@ -207,8 +207,8 @@ void display() {
 
 	fr->SetCaptionOffset(80);
 	fr->AddStringCaption(
-		//UTF8_TEXT(CreateRandomString(10).c_str()),
-		UTF8_TEXT("Ahoj\nsvete\nsvetg kuk"),
+		UTF8_TEXT(CreateRandomString(10).c_str()),
+		//UTF8_TEXT("Ahoj\nsvete\nsvetg kuk"),
 		//UTF8_TEXT("H\n1023hPa"),
 		0.5f, 0.85f,
 		{
@@ -437,7 +437,12 @@ void initGL() {
 	//fr->GetFontBuilder()->Save("D://88.png");
 	fr->SetNewLineOffset(0);
 
-
+	//todo
+	BackgroundSettings bs;
+	bs.color = { 1,0, 1, 1 };
+	bs.padding = 5;
+	bs.cornerRadius = 40;// 20;
+	fr->SetBackgroundSettings(bs);
 
 	RenderSettings ri;
 	ri.deviceW = 512;
@@ -449,9 +454,9 @@ void initGL() {
 	BackendImage* image = dynamic_cast<BackendImage*>(imageSr->GetBackend());
 	image->SetTightDynamicCanvasEnabled(true);
 
-	BackgroundSettings bs;
-	bs.color = { 1, 0, 0, 1 };	
-	image->SetBackground(bs);
+	BackgroundSettings bsi;
+	bsi.color = { 1, 0, 0, 1 };	
+	image->SetBackground(bsi);
 
 	imageSr->AddString(
 		//UTF8_TEXT(CreateRandomString(10).c_str()),				

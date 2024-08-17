@@ -194,9 +194,16 @@ void BackendOpenGL::SetFontTextureLinearFiler(bool val)
 	FONT_UNBIND_TEXTURE_2D;
 }
 
-void BackendOpenGL::SetBackground(const BackgroundSettings& bs)
+void BackendOpenGL::SetBackground(std::optional<BackgroundSettings> bs)
 {
-	this->background = std::make_unique<BackendBackgroundOpenGL>(bs, rs, glVersion);
+	if (bs)
+	{
+		this->background = std::make_unique<BackendBackgroundOpenGL>(*bs, rs, glVersion);
+	}
+	else 	
+	{
+		this->background = nullptr;
+	}
 }
 
 void BackendOpenGL::SetMainRenderer(AbstractRenderer* mainRenderer)
