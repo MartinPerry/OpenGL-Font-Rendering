@@ -550,10 +550,10 @@ AABB NumberRenderer::CalcNumberAABB(double val, int x, int y,
 		do
 		{
 			divisor /= 100;
-			const int tmp = intPart / divisor;
+			const auto tmp = intPart / divisor;
 			const Precomputed & t = precomputed[tmp];
 			
-			aabb.UnionWithOffset(t.aabb, x);
+			aabb.UnionWithOffset(t.aabb, static_cast<float>(x));
 			x += t.xOffset;
 
 			intPart = intPart - tmp * divisor;			

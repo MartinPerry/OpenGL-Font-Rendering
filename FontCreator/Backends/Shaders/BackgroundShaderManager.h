@@ -18,19 +18,27 @@ public:
     void BindVertexAtribs() override;
 
     void SetColor(float r, float g, float b, float a);
+    void SetCornerRadius(float radius);
 
-    void FillVertexData(const AbstractRenderer::Vertex& minVertex,
+    int GetQuadVertices() const override;
+
+    void FillQuadVertexData(const AbstractRenderer::Vertex& minVertex,
         const AbstractRenderer::Vertex& maxVertex,
         const AbstractRenderer::RenderParams& rp,
         std::vector<float>& vec) override;
 
     void PreRender() override;
 
+    void Render(int quadsCount) override;
+
 protected:
     GLint positionLocation;
     GLint colorUniform;
 
     float r, g, b, a;
+    float roundCornerRadius;
+
+    void FillRoundCornersQuad(float cx, float cy, float dx, float dy, float r, std::vector<float>& vec) const;
 };
 
 

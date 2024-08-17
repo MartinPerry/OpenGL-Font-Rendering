@@ -169,7 +169,7 @@ void BackendImage::OnCanvasChanges()
 /// </summary>
 void BackendImage::Render()
 {
-	bool vboChanged = this->mainRenderer->GenerateGeometry();
+	bool geomChanged = this->mainRenderer->GenerateGeometry();
 
 	if (this->geom.empty())
 	{
@@ -279,7 +279,8 @@ void BackendImage::Clear()
 /// <param name="gi"></param>
 /// <param name="x"></param>
 /// <param name="y"></param>
-void BackendImage::AddQuad(AbstractRenderer::Vertex& vmin, AbstractRenderer::Vertex& vmax, const AbstractRenderer::RenderParams& rp)
+void BackendImage::AddQuad(AbstractRenderer::Vertex& vmin, AbstractRenderer::Vertex& vmax, 
+	const AbstractRenderer::RenderParams& rp)
 {	
 	//=====
 	//store it 

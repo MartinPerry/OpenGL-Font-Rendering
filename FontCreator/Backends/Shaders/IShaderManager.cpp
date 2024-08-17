@@ -99,3 +99,8 @@ GLuint IShaderManager::LinkGLSLProgram(GLuint vertexShader, GLuint fragmentShade
 
 	return program;
 }
+
+void IShaderManager::Render(int quadsCount)
+{
+	GL_CHECK(glDrawArrays(GL_TRIANGLES, 0, quadsCount * this->GetQuadVertices()));
+}

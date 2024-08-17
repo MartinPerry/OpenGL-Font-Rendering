@@ -82,6 +82,7 @@ AbstractRenderer::AbstractRenderer(std::shared_ptr<FontBuilder> fb,
 	BackgroundSettings bs;
 	bs.color = { 1,0, 1, 1 };
 	bs.padding = 5;
+	bs.cornerRadius = 20;
 	this->backend->SetBackground(bs);
 
 	this->SetCaption(UTF8_TEXT(u8"\u2022"), 10);

@@ -19,6 +19,7 @@ BackendBackgroundOpenGL::BackendBackgroundOpenGL(const BackgroundSettings& bs, c
 	if (auto tmp = std::dynamic_pointer_cast<BackgroundShaderManager>(this->sm))
 	{
 		tmp->SetColor(bs.color.r, bs.color.g, bs.color.b, bs.color.a);
+		tmp->SetCornerRadius(bs.cornerRadius * this->psW);
 	}
 }
 
@@ -72,9 +73,7 @@ void BackendBackgroundOpenGL::Render(std::function<void(GLuint)> preDrawCallback
 #endif		
 
 	this->sm->PreRender();
-
-	GL_CHECK(glDrawArrays(GL_TRIANGLES, 0, this->quadsCount * 6));
-
+	this->sm->Render(this->quadsCount);
 
 #ifdef __ANDROID_API__
 	if (glVersion != 2)
@@ -117,7 +116,7 @@ void BackendBackgroundOpenGL::OnFinishQuadGroup()
 	tmp.color = this->bs.color;
 	tmp.scale = curScale;
 
-	this->sm->FillVertexData(min, max, tmp, this->geom);
+	this->sm->FillQuadVertexData(min, max, tmp, this->geom);
 
 	curQuadAabb = AABB();
 	curScale = 1.0f;

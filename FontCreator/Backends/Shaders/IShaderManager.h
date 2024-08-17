@@ -23,12 +23,16 @@ public:
     virtual void GetAttributtesUniforms() = 0;
     virtual void BindVertexAtribs() = 0;
 
-    virtual void FillVertexData(const AbstractRenderer::Vertex& minVertex,
+    virtual int GetQuadVertices() const = 0;
+
+    virtual void FillQuadVertexData(const AbstractRenderer::Vertex& minVertex,
         const AbstractRenderer::Vertex& maxVertex,
         const AbstractRenderer::RenderParams& rp,
         std::vector<float>& vec) = 0;
 
     virtual void PreRender() {	}
+
+    virtual void Render(int quadsCount);
 
 protected:
     GLuint shaderProgram;

@@ -17,7 +17,9 @@ public:
     void GetAttributtesUniforms() override;
     void BindVertexAtribs() override;
     
-    void FillVertexData(const AbstractRenderer::Vertex & minVertex,
+    int GetQuadVertices() const override;
+
+    void FillQuadVertexData(const AbstractRenderer::Vertex & minVertex,
                         const AbstractRenderer::Vertex & maxVertex,
                         const AbstractRenderer::RenderParams & rp,
                         std::vector<float> & vec) override;

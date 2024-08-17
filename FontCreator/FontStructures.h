@@ -205,6 +205,7 @@ struct BackgroundSettings
 {
 	Color color;
 	float padding = 0.0f;
+	float cornerRadius = 0.0f;
 };
 
 /// <summary>

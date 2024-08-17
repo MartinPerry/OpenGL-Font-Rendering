@@ -56,7 +56,12 @@ void SingleColorFontShaderManager::PreRender()
 	GL_CHECK(glUniform4f(colorUniform, r, g, b, a));
 }
 
-void SingleColorFontShaderManager::FillVertexData(
+int SingleColorFontShaderManager::GetQuadVertices() const
+{
+	return 6;
+}
+
+void SingleColorFontShaderManager::FillQuadVertexData(
     const AbstractRenderer::Vertex & minVertex,
 	const AbstractRenderer::Vertex & maxVertex,
 	const AbstractRenderer::RenderParams & rp,

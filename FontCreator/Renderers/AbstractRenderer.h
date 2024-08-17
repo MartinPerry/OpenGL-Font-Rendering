@@ -34,7 +34,7 @@ public:
 	struct RenderParams
 	{
 		Color color;
-		float scale = 1.0f; //not used? //todo
+		float scale = 1.0f;
 	};
 
 	static const Color DEFAULT_COLOR;

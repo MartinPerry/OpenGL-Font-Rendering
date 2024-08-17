@@ -283,8 +283,8 @@ void BackendOpenGL::Render(std::function<void(GLuint)> preDrawCallback,
         preDrawCallback(shader.program);
     }
     
-	GL_CHECK(glDrawArrays(GL_TRIANGLES, 0, this->quadsCount * 6));
-
+	this->sm->Render(this->quadsCount);
+	
 	if (postDrawCallback != nullptr)
 	{
 		postDrawCallback();
@@ -340,7 +340,7 @@ void BackendOpenGL::AddQuad(AbstractRenderer::Vertex& vmin, AbstractRenderer::Ve
 	vmax.u *= this->tW;
 	vmax.v *= this->tH;
 
-    this->sm->FillVertexData(vmin, vmax, rp, this->geom);
+    this->sm->FillQuadVertexData(vmin, vmax, rp, this->geom);
     
 	
 	if (this->background)

@@ -205,14 +205,27 @@ void display() {
 	);
 	*/
 
-	fr->AddStringCaption(UTF8_TEXT(CreateRandomString(10).c_str()),
-		//UTF8_TEXT("Ahoj\nsvete\nsvetg kuk"),
+	fr->SetCaptionOffset(80);
+	fr->AddStringCaption(
+		//UTF8_TEXT(CreateRandomString(10).c_str()),
+		UTF8_TEXT("Ahoj\nsvete\nsvetg kuk"),
 		//UTF8_TEXT("H\n1023hPa"),
 		0.5f, 0.85f,
 		{
 			1,1,0,1, //color 
 			1.0 //scale
 		}		
+	);
+
+	fr->AddStringCaption(
+		//UTF8_TEXT(CreateRandomString(10).c_str()),
+		UTF8_TEXT("Nejaky jiny text"),
+		//UTF8_TEXT("H\n1023hPa"),
+		0.5f, 0.35f,
+		{
+			1,1,0,1, //color 
+			1.0 //scale
+		}
 	);
 
 

@@ -47,7 +47,13 @@ void DefaultFontShaderManager::BindVertexAtribs()
     
 }
 
-void DefaultFontShaderManager::FillVertexData(const AbstractRenderer::Vertex & minVertex,
+int DefaultFontShaderManager::GetQuadVertices() const
+{
+    return 6;
+}
+
+
+void DefaultFontShaderManager::FillQuadVertexData(const AbstractRenderer::Vertex & minVertex,
                                               const AbstractRenderer::Vertex & maxVertex,
                                               const AbstractRenderer::RenderParams & rp,
                                               std::vector<float> & vec)
