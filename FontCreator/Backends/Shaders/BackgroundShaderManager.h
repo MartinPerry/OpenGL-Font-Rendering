@@ -38,6 +38,9 @@ protected:
     float r, g, b, a;
     float roundCornerRadius;
 
+    std::vector<GLint> startingElements;
+    std::vector<GLint> counts;
+
     void FillRoundCornersQuad(float cx, float cy, float dx, float dy, float r, std::vector<float>& vec) const;
 };
 

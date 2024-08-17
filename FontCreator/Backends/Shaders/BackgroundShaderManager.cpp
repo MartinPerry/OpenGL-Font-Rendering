@@ -69,12 +69,15 @@ void BackgroundShaderManager::Render(int quadsCount)
 {
 	auto type = (roundCornerRadius == 0) ? GL_TRIANGLES : GL_TRIANGLE_FAN;
 
-	GL_CHECK(glDrawArrays(type, 0, quadsCount * this->GetQuadVertices()));	
+	//GL_CHECK(glDrawArrays(type, 0, quadsCount * this->GetQuadVertices()));	
+	//return;
+
+	GL_CHECK(glMultiDrawArrays(type, startingElements.data(), counts.data(), quadsCount));
 }
 
 int BackgroundShaderManager::GetQuadVertices() const
 {
-	return (roundCornerRadius == 0) ? 6 : 36;
+	return (roundCornerRadius == 0) ? 6 : 38;
 }
 
 void BackgroundShaderManager::FillQuadVertexData(
@@ -83,7 +86,7 @@ void BackgroundShaderManager::FillQuadVertexData(
 	const AbstractRenderer::RenderParams& rp,
 	std::vector<float>& vec)
 {
-
+	//if (vec.size() > 0) return;
 	const float minX = 2.0f * minVertex.x - 1.0f;
 	const float minY = -(2.0f * minVertex.y - 1.0f);
 
@@ -131,6 +134,16 @@ void BackgroundShaderManager::FillQuadVertexData(
 		float dy = std::abs(maxY - minY) - 2 * r;
 
 		this->FillRoundCornersQuad(cx, cy, dx, dy, r, vec);
+	}
+
+	counts.push_back(this->GetQuadVertices());
+	if (startingElements.size() == 0)
+	{
+		startingElements.push_back(0);
+	}
+	else
+	{
+		startingElements.push_back(startingElements.back() + this->GetQuadVertices());
 	}
 }
 
