@@ -48,6 +48,8 @@ public:
 
 	virtual ~AbstractRenderer();
 	
+	void SetVisibilityCheck(bool val) noexcept;
+
 	BackendBase* GetBackend() const;
 
 	std::shared_ptr<FontBuilder> GetFontBuilder();
@@ -84,20 +86,17 @@ protected:
 		int offset;
 
 	};
-
 	
-
 	std::shared_ptr<FontBuilder> fb;
 	std::unique_ptr<BackendBase> backend;	
 
 	CaptionInfo ci;
 
 	AxisYOrigin axisYOrigin;
-
-	
-		
-
+			
+	bool checkVisibility;
 	bool strChanged;
+
 #ifdef THREAD_SAFETY
 	std::shared_timed_mutex m;
 #endif

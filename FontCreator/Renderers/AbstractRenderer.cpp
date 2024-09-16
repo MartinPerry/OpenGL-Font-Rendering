@@ -73,6 +73,7 @@ AbstractRenderer::AbstractRenderer(std::shared_ptr<FontBuilder> fb,
 	backend(std::move(backend)),
 	ci({ UTF8_TEXT(u8""), 0 }),
 	axisYOrigin(AxisYOrigin::TOP),	
+	checkVisibility(true),
 	strChanged(false)
 {
 
@@ -88,6 +89,18 @@ AbstractRenderer::~AbstractRenderer()
 	this->backend = nullptr;
 }
 
+/// <summary>
+/// Check is string is visible on the screen
+/// By default, check and do not add (render) strings outside screen
+/// If test is disabled, we "render" all strings
+/// Can be disabled, if we check it before or know that all strings are visible
+/// (in this case the test is useless)
+/// </summary>
+/// <param name="val"></param>
+void AbstractRenderer::SetVisibilityCheck(bool val) noexcept
+{
+	this->checkVisibility = val;
+}
 
 BackendBase* AbstractRenderer::GetBackend() const
 {

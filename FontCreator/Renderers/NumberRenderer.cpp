@@ -367,7 +367,7 @@ bool NumberRenderer::AddFloatNumberInternal(double val,
 /// <param name="type"></param>
 bool NumberRenderer::AddNumber(NumberInfo & n, int x, int y, const RenderParams & rp,
 	TextAnchor anchor, TextType type)
-{
+{	
 	AABB aabb = this->CalcNumberAABB(n.val, x, y, n.negative,
 		n.intPart, n.intPartOrder, n.fractPartReverse);
 
@@ -375,25 +375,27 @@ bool NumberRenderer::AddNumber(NumberInfo & n, int x, int y, const RenderParams 
 
 	const float w = (aabb.maxX - aabb.minX);
 	const float h = (aabb.maxY - aabb.minY);
+		
+	if (this->checkVisibility)
+	{
+		if (anchor == TextAnchor::CENTER)
+		{
+			const float wHalf = w / 2.0f;
+			const float hHalf = h / 2.0f;
 
-	if (anchor == TextAnchor::CENTER)
-	{	
-		const float wHalf = w / 2.0f;
-		const float hHalf = h / 2.0f;
+			aabb.minX -= wHalf;
+			aabb.maxX -= wHalf;
+			aabb.minY -= hHalf;
+			aabb.maxY -= hHalf;
+		}
 
-		aabb.minX -= wHalf;
-		aabb.maxX -= wHalf;
-		aabb.minY -= hHalf;
-		aabb.maxY -= hHalf;
+		if (aabb.maxX <= 0) return false;
+		if (aabb.maxY <= 0) return false;
+		if (aabb.minX > this->backend->GetSettings().deviceW) return false;
+		if (aabb.minY > this->backend->GetSettings().deviceH) return false;
 	}
 
-	if (aabb.maxX <= 0) return false;
-	if (aabb.maxY <= 0) return false;
-	if (aabb.minX > this->backend->GetSettings().deviceW) return false;
-	if (aabb.minY > this->backend->GetSettings().deviceH) return false;
-
-
-	//new visible number - add it
+	//new number - add it
 	
 	//fill basic structure info
 	
@@ -695,7 +697,9 @@ bool NumberRenderer::GenerateGeometry()
 				this->AddQuad(*t[0], x, y, si.renderParams);
 				x += (t[0]->adv >> 6);
 
+				//? huh - gives 0 ?
 				intPart = intPart - tmp * divisor;
+				//intPart = intPart - (intPart / divisor) * divisor;
 				
 			} while (divisor > 10);
 

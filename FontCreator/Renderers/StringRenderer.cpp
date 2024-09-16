@@ -347,31 +347,34 @@ bool StringRenderer::CanAddString(const UnicodeString & uniStr,
 		}
 	}
 
-	AABB estimAABB = this->EstimateStringAABB(uniStr,
-		static_cast<float>(x), static_cast<float>(y), rp.scale);
+	if (this->checkVisibility)
+	{
+		AABB estimAABB = this->EstimateStringAABB(uniStr,
+			static_cast<float>(x), static_cast<float>(y), rp.scale);
 
-    //test if entire string is outside visible area
-    if (anchor == TextAnchor::CENTER)
-    {
-        float w = estimAABB.maxX - estimAABB.minX;
-        float h = estimAABB.maxY - estimAABB.minY;
+		//test if entire string is outside visible area
+		if (anchor == TextAnchor::CENTER)
+		{
+			float w = estimAABB.maxX - estimAABB.minX;
+			float h = estimAABB.maxY - estimAABB.minY;
 
-        estimAABB.minX -= (w / 2);
-        estimAABB.maxX -= (w / 2);
-        estimAABB.minY -= (h / 2);
-        estimAABB.maxY -= (h / 2);
-    }
-    
-    if (uniStr != ci.mark)
-    {
-        if ((estimAABB.maxX <= 0) ||
-            (estimAABB.maxY <= 0) ||
-            (estimAABB.minX > this->backend->GetSettings().deviceW) ||
-            (estimAABB.minY > this->backend->GetSettings().deviceH))
-        {
-            return false;
-        }
-    }
+			estimAABB.minX -= (w / 2);
+			estimAABB.maxX -= (w / 2);
+			estimAABB.minY -= (h / 2);
+			estimAABB.maxY -= (h / 2);
+		}
+
+		if (uniStr != ci.mark)
+		{
+			if ((estimAABB.maxX <= 0) ||
+				(estimAABB.maxY <= 0) ||
+				(estimAABB.minX > this->backend->GetSettings().deviceW) ||
+				(estimAABB.minY > this->backend->GetSettings().deviceH))
+			{
+				return false;
+			}
+		}
+	}
     
 	if ((deadzoneRadius2 > 0) && (uniStr != ci.mark))
 	{

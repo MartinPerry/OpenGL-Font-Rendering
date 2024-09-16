@@ -31,7 +31,7 @@ public:
 
 	void SetFontSize(const FontSize& fs, int defaultFontSizeInPx = 0);
 
-	void SetExistenceCheck(bool val) noexcept;
+	void SetExistenceCheck(bool val) noexcept;	
 	void SetDecimalPrecission(int digits) noexcept;
 
 	int GetDecimalPrecission() const noexcept;
