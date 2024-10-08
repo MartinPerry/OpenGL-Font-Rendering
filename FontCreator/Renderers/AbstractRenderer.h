@@ -29,6 +29,10 @@ public:
 	{
 		float x, y;
 		float u, v;
+
+		Vertex() : x(0), y(0), u(0), v(0) {};
+		Vertex(float x, float y, float u, float v) : x(x), y(y), u(u), v(v) {};
+
 	};
 
 	
@@ -36,6 +40,9 @@ public:
 	{
 		Color color;
 		float scale = 1.0f;
+		
+		RenderParams() : color({ 0, 0, 0, 1 }), scale(1.0f) {};
+		RenderParams(Color c, float scale) : color(c), scale(scale) {};
 	};
 
 	static const Color DEFAULT_COLOR;

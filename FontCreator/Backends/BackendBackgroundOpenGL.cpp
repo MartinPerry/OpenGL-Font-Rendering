@@ -112,10 +112,8 @@ void BackendBackgroundOpenGL::OnFinishQuadGroup()
 	max.x += (bs.padding * psW);
 	max.y += (bs.padding * psH);
 
-	AbstractRenderer::RenderParams tmp;
-	tmp.color = this->bs.color;
-	tmp.scale = curScale;
-
+	AbstractRenderer::RenderParams tmp(this->bs.color, curScale);
+	
 	this->sm->FillQuadVertexData(min, max, tmp, this->geom);
 
 	curQuadAabb = AABB();

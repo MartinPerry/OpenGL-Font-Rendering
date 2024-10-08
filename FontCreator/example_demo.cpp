@@ -211,10 +211,7 @@ void display() {
 		//UTF8_TEXT("Ahoj\nsvete\nsvetg kuk"),
 		//UTF8_TEXT("H\n1023hPa"),
 		0.5f, 0.85f,
-		{
-			1,1,0,1, //color 
-			1.0 //scale
-		}		
+		AbstractRenderer::RenderParams({ 1,1,0,1 }, 1.0)
 	);
 
 	fr->AddStringCaption(
@@ -222,10 +219,7 @@ void display() {
 		UTF8_TEXT("Nejaky jiny text"),
 		//UTF8_TEXT("H\n1023hPa"),
 		0.5f, 0.35f,
-		{
-			1,1,0,1, //color 
-			1.0 //scale
-		}
+		AbstractRenderer::RenderParams({1,1,0,1 }, 1.0)
 	);
 
 
@@ -462,7 +456,7 @@ void initGL() {
 		//UTF8_TEXT(CreateRandomString(10).c_str()),				
 		UTF8_TEXT(u8"Pøílíš málo qqq"),
 		0.0f, 0.1f,
-		{ /*color*/ 1,1,0,1, /*scale*/ 1.0 },
+		AbstractRenderer::RenderParams({ 1,1,0,1 }, 1.0),
 		AbstractRenderer::TextAnchor::LEFT_TOP);
 
 	imageSr->Render();
