@@ -293,10 +293,10 @@ bool NumberRenderer::AddIntegralNumberInternal(long val,
 		}
 	}
 
-	NumberInfo i(val);				
+	NumberInfo i(val, rp, anchor, type);				
 	i.intPartOrder = this->GetIntDivisor(i.intPart);	
 
-	return this->AddNumber(i, x, y, rp, anchor, type);	
+	return this->AddNumber(i, x, y);	
 }
 
 /// <summary>
@@ -335,15 +335,12 @@ bool NumberRenderer::AddFloatNumberInternal(double val,
 		}
 	}
 
-	NumberInfo i;
-	i.val = val;
-	if (val < 0)
-	{
-		i.negative = true;
+	NumberInfo i(val, rp, anchor, type);	
+	if (i.negative)
+	{		
 		val *= -1;
 	}	
-	
-	i.intPart = static_cast<uint32_t>(val);
+		
 	i.intPartOrder = this->GetIntDivisor(i.intPart);
 	i.fractPartReverse = this->GetFractPartReversed(val, i.intPart);
 
@@ -353,7 +350,7 @@ bool NumberRenderer::AddFloatNumberInternal(double val,
 		i.negative = false;
 	}
 
-	return this->AddNumber(i, x, y, rp, anchor, type);
+	return this->AddNumber(i, x, y);
 }
 
 /// <summary>
@@ -365,8 +362,7 @@ bool NumberRenderer::AddFloatNumberInternal(double val,
 /// <param name="color"></param>
 /// <param name="anchor"></param>
 /// <param name="type"></param>
-bool NumberRenderer::AddNumber(NumberInfo & n, int x, int y, const RenderParams & rp,
-	TextAnchor anchor, TextType type)
+bool NumberRenderer::AddNumber(NumberInfo& n, int x, int y)
 {	
 	AABB aabb = this->CalcNumberAABB(n.val, x, y, n.negative,
 		n.intPart, n.intPartOrder, n.fractPartReverse);
@@ -378,7 +374,7 @@ bool NumberRenderer::AddNumber(NumberInfo & n, int x, int y, const RenderParams 
 		
 	if (this->checkVisibility)
 	{
-		if (anchor == TextAnchor::CENTER)
+		if (n.anchor == TextAnchor::CENTER)
 		{
 			const float wHalf = w / 2.0f;
 			const float hHalf = h / 2.0f;
@@ -398,10 +394,7 @@ bool NumberRenderer::AddNumber(NumberInfo & n, int x, int y, const RenderParams 
 	//new number - add it
 	
 	//fill basic structure info
-	
-	n.renderParams = rp;
-	n.anchor = anchor;
-	n.type = type;	
+		
 	n.x = static_cast<int>(x);
 	n.y = static_cast<int>(y);
 	n.w = static_cast<int>(w);

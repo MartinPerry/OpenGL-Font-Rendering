@@ -112,7 +112,7 @@ protected:
 
 	virtual bool GenerateGeometry() = 0;
 
-	
+	void AddQuad(const GlyphInfo& gi, int x, int y, const RenderParams& rp);
 	virtual void AddQuad(const GlyphInfo& gi, float x, float y, const RenderParams& rp);
 	void OnFinishQuadGroup();
 };

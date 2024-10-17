@@ -72,7 +72,14 @@ void BackgroundShaderManager::Render(int quadsCount)
 	//GL_CHECK(glDrawArrays(type, 0, quadsCount * this->GetQuadVertices()));	
 	//return;
 
-	GL_CHECK(glMultiDrawArrays(type, startingElements.data(), counts.data(), quadsCount));
+#if defined(__APPLE__) || defined(__ANDROID_API__)
+	for (int i = 0; i < quadsCount; ++i)
+	{
+		GL_CHECK(glDrawArrays(type, startingElements[i], counts[i]));
+	}
+#else
+	GL_CHECK(glMultiDrawArrays(type, startingElements.data(), counts.data(), quadsCount));	
+#endif
 }
 
 int BackgroundShaderManager::GetQuadVertices() const

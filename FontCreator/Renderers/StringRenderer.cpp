@@ -62,7 +62,7 @@ void StringRenderer::Clear()
 	this->strs.clear();
 }
 
-size_t StringRenderer::GetStringsCount() const
+size_t StringRenderer::GetStringsCount() const noexcept
 {
 	return strs.size();
 }
@@ -96,12 +96,12 @@ StringRenderer::StringInfo* StringRenderer::GetLastStringInfo()
     return &(*it);
 }
 
-void StringRenderer::SetNewLineOffset(int offsetInPixels)
+void StringRenderer::SetNewLineOffset(int offsetInPixels) noexcept
 {
 	this->nlOffsetPx = offsetInPixels;
 }
 
-void StringRenderer::SetBidiEnabled(bool val)
+void StringRenderer::SetBidiEnabled(bool val) noexcept
 {
 	this->isBidiEnabled = val;
 }
@@ -112,7 +112,7 @@ void StringRenderer::SetBidiEnabled(bool val)
 /// of already added string, new one is not added
 /// </summary>
 /// <param name="radiusPx"></param>
-void StringRenderer::SetStringDeadzone(int radiusPx)
+void StringRenderer::SetStringDeadzone(int radiusPx) noexcept
 {
     this->deadzoneRadius2 = radiusPx * radiusPx;
 }
@@ -120,7 +120,7 @@ void StringRenderer::SetStringDeadzone(int radiusPx)
 //=========================================================
 
 bool StringRenderer::AddStringCaption(const char * str,
-	double x, double y, const RenderParams & rp)
+	float x, float y, const RenderParams & rp)
 {
 	int xx = static_cast<int>(x * this->backend->GetSettings().deviceW);
 	int yy = static_cast<int>(y * this->backend->GetSettings().deviceH);
@@ -129,7 +129,7 @@ bool StringRenderer::AddStringCaption(const char * str,
 }
 
 bool StringRenderer::AddStringCaption(const UnicodeString & str,
-	double x, double y, const RenderParams & rp)
+	float x, float y, const RenderParams & rp)
 {
 	int xx = static_cast<int>(x * this->backend->GetSettings().deviceW);
 	int yy = static_cast<int>(y * this->backend->GetSettings().deviceH);
@@ -160,7 +160,7 @@ bool StringRenderer::AddStringCaption(const UnicodeString & str,
     return added;
 }
 
-bool StringRenderer::AddCaptionOnly(double x, double y, const RenderParams& rp)
+bool StringRenderer::AddCaptionOnly(float x, float y, const RenderParams& rp)
 {
 	int xx = static_cast<int>(x * this->backend->GetSettings().deviceW);
 	int yy = static_cast<int>(y * this->backend->GetSettings().deviceH);
@@ -185,7 +185,7 @@ bool StringRenderer::AddCaptionOnly(int x, int y, const RenderParams& rp)
 /// <param name="x"></param>
 /// <param name="y"></param>
 bool StringRenderer::AddString(const char * str,
-	double x, double y, const RenderParams & rp,
+	float x, float y, const RenderParams & rp,
 	TextAnchor anchor, TextAlign align)
 {
 	int xx = static_cast<int>(x * this->backend->GetSettings().deviceW);
@@ -204,7 +204,7 @@ bool StringRenderer::AddString(const char * str,
 /// <param name="x"></param>
 /// <param name="y"></param>
 bool StringRenderer::AddString(const UnicodeString & str,
-	double x, double y, const RenderParams & rp,
+	float x, float y, const RenderParams & rp,
 	TextAnchor anchor, TextAlign align)
 {
 	int xx = static_cast<int>(x * this->backend->GetSettings().deviceW);

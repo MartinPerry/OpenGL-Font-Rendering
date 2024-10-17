@@ -22,7 +22,7 @@ public:
 		RenderParams renderParams;
 		float maxNewLineOffset; //offset to next new line
 
-		LineInfo(const uint32_t & start) noexcept :
+		LineInfo(const uint32_t& start) noexcept :
 			start(start),
 			len(0),
 			aabb(AABB()),
@@ -30,8 +30,8 @@ public:
 			maxNewLineOffset(0.0)
 		{}
 
-		LineInfo(const uint32_t & start,
-			const RenderParams & rp) noexcept :
+		LineInfo(const uint32_t& start,
+			const RenderParams& rp) noexcept :
 			start(start),
 			len(0),
 			aabb(AABB()),
@@ -60,7 +60,7 @@ public:
 		std::vector<LineInfo> lines;
 		AABB global;
 
-		StringInfo(const UnicodeString & str, int x, int y,
+		StringInfo(const UnicodeString& str, int x, int y,
 			TextAnchor anchor,
 			TextAlign align, TextType type) noexcept :
 			str(str),
@@ -73,7 +73,7 @@ public:
 			anchorY(static_cast<float>(y))
 		{}
 
-		StringInfo(UnicodeString && str, int x, int y,
+		StringInfo(UnicodeString&& str, int x, int y,
 			TextAnchor anchor,
 			TextAlign align, TextType type) noexcept :
 			str(std::move(str)),
@@ -96,24 +96,24 @@ public:
 		
 	void Clear();
 
-	size_t GetStringsCount() const;
+	size_t GetStringsCount() const noexcept;
 	StringInfo* GetStringInfo(size_t index);
 	StringInfo* GetLastStringInfo();
 
 
-	void SetNewLineOffset(int offsetInPixels);
+	void SetNewLineOffset(int offsetInPixels) noexcept;
 
-	void SetBidiEnabled(bool val);
+	void SetBidiEnabled(bool val) noexcept;
 	
-    void SetStringDeadzone(int radiusPx);
+    void SetStringDeadzone(int radiusPx) noexcept;
 	
 	//=========================================================
 
 	bool AddStringCaption(const char * str,
-		double x, double y, const RenderParams & rp = DEFAULT_PARAMS);
+		float x, float y, const RenderParams & rp = DEFAULT_PARAMS);
 
 	bool AddStringCaption(const UnicodeString & str,
-		double x, double y, const RenderParams & rp = DEFAULT_PARAMS);
+		float x, float y, const RenderParams & rp = DEFAULT_PARAMS);
 
 	bool AddStringCaption(const char * str,
 		int x, int y, const RenderParams & rp = DEFAULT_PARAMS);
@@ -121,13 +121,13 @@ public:
 	bool AddStringCaption(const UnicodeString & str,
 		int x, int y, const RenderParams & rp = DEFAULT_PARAMS);
 
-	bool AddCaptionOnly(double x, double y, const RenderParams& rp = DEFAULT_PARAMS);
+	bool AddCaptionOnly(float x, float y, const RenderParams& rp = DEFAULT_PARAMS);
 	bool AddCaptionOnly(int x, int y, const RenderParams& rp = DEFAULT_PARAMS);
 
 	//=========================================================
 
 	bool AddString(const char * str,
-		double x, double y, const RenderParams & rp = DEFAULT_PARAMS,
+		float x, float y, const RenderParams & rp = DEFAULT_PARAMS,
 		TextAnchor anchor = TextAnchor::LEFT_TOP,
 		TextAlign align = TextAlign::ALIGN_LEFT);
 
@@ -137,7 +137,7 @@ public:
 		TextAlign align = TextAlign::ALIGN_LEFT);
 
 	bool AddString(const UnicodeString & str,
-		double x, double y, const RenderParams & rp = DEFAULT_PARAMS,
+		float x, float y, const RenderParams & rp = DEFAULT_PARAMS,
 		TextAnchor anchor = TextAnchor::LEFT_TOP,
 		TextAlign align = TextAlign::ALIGN_LEFT);
 

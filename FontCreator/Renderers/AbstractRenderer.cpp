@@ -195,7 +195,10 @@ void AbstractRenderer::Render()
 
 
 
-
+void AbstractRenderer::AddQuad(const GlyphInfo& gi, int x, int y, const RenderParams& rp)
+{
+	this->AddQuad(gi, static_cast<float>(x), static_cast<float>(y), rp);
+}
 
 /// <summary>
 /// Add single "letter" quad to geom buffer

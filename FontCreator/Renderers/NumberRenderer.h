@@ -45,11 +45,11 @@ public:
 
 	template <typename T>
 	IS_FLOAT AddNumberCaption(T val,
-		double x, double y, const RenderParams & rp = DEFAULT_PARAMS);
+		float x, float y, const RenderParams & rp = DEFAULT_PARAMS);
 
 	template <typename T>
 	IS_FLOAT AddNumber(T val,
-		double x, double y, const RenderParams & rp = DEFAULT_PARAMS,
+		float x, float y, const RenderParams & rp = DEFAULT_PARAMS,
 		TextAnchor anchor = TextAnchor::LEFT_TOP);
 
 	template <typename T>
@@ -64,11 +64,11 @@ public:
 
 	template <typename T>
 	IS_INTEGRAL AddNumberCaption(T val,
-		double x, double y, const RenderParams & rp = DEFAULT_PARAMS);
+		float x, float y, const RenderParams & rp = DEFAULT_PARAMS);
 
 	template <typename T>
 	IS_INTEGRAL AddNumber(T val,
-		double x, double y, const RenderParams & rp = DEFAULT_PARAMS,
+		float x, float y, const RenderParams & rp = DEFAULT_PARAMS,
 		TextAnchor anchor = TextAnchor::LEFT_TOP);
 
 	template <typename T>
@@ -104,14 +104,21 @@ protected:
 		}
 
 		NumberInfo(double value) noexcept :
+			NumberInfo(value, {}, TextAnchor::CENTER, TextType::TEXT)
+		{
+		}
+
+		NumberInfo(double value, const RenderParams& renderParams, 
+			TextAnchor anchor, TextType type) noexcept :
 			val((value < 0) ? -value : value),
 			negative(value < 0),
-			intPart(static_cast<unsigned long>(val)),
+			intPart(static_cast<uint32_t>(val)),
 			intPartOrder(0),
 			fractPartReverse(0),
+			renderParams(renderParams),
 			isDefaultColor(true),
-			anchor(TextAnchor::CENTER),
-			type(TextType::TEXT),
+			anchor(anchor),
+			type(type),
 			x(0),
 			y(0),
 			w(0),
@@ -151,8 +158,7 @@ protected:
 		TextAnchor anchor = TextAnchor::LEFT_TOP,
 		TextType type = TextType::TEXT);
 
-	bool AddNumber(NumberInfo & n, int x, int y, const RenderParams & rp,
-		TextAnchor anchor, TextType type);
+	bool AddNumber(NumberInfo & n, int x, int y);
 
 	bool GenerateGeometry() override;
 
@@ -195,7 +201,7 @@ IS_FLOAT NumberRenderer::AddNumberCaption(T val,
 /// <param name="color"></param>
 template <typename T>
 IS_FLOAT NumberRenderer::AddNumberCaption(T val,
-	double x, double y, const RenderParams & rp)
+	float x, float y, const RenderParams & rp)
 {
 	int xx = static_cast<int>(x * this->GetRenderSettings().deviceW);
 	int yy = static_cast<int>(y * this->GetRenderSettings().deviceH);
@@ -215,7 +221,7 @@ IS_FLOAT NumberRenderer::AddNumberCaption(T val,
 /// <param name="anchor"></param>
 template <typename T>
 IS_FLOAT NumberRenderer::AddNumber(T val,
-	double x, double y, const RenderParams & rp,
+	float x, float y, const RenderParams & rp,
 	TextAnchor anchor)
 {
 	int xx = static_cast<int>(x * this->GetRenderSettings().deviceW);
@@ -266,7 +272,7 @@ IS_INTEGRAL NumberRenderer::AddNumberCaption(T val,
 /// <param name="color"></param>
 template <typename T>
 IS_INTEGRAL NumberRenderer::AddNumberCaption(T val,
-	double x, double y, const RenderParams & rp)
+	float x, float y, const RenderParams & rp)
 {
 	int xx = static_cast<int>(x * this->GetRenderSettings().deviceW);
 	int yy = static_cast<int>(y * this->GetRenderSettings().deviceH);
@@ -286,7 +292,7 @@ IS_INTEGRAL NumberRenderer::AddNumberCaption(T val,
 /// <param name="anchor"></param>
 template <typename T>
 IS_INTEGRAL NumberRenderer::AddNumber(T val,
-	double x, double y, const RenderParams & rp,
+	float x, float y, const RenderParams & rp,
 	TextAnchor anchor)
 {
 	int xx = static_cast<int>(x * this->GetRenderSettings().deviceW);

@@ -216,7 +216,7 @@ void display() {
 
 	fr->AddStringCaption(
 		//UTF8_TEXT(CreateRandomString(10).c_str()),
-		UTF8_TEXT("Nejaky jiny text"),
+		UTF8_TEXT("Nejaky jiny text"),		
 		//UTF8_TEXT("H\n1023hPa"),
 		0.5f, 0.35f,
 		AbstractRenderer::RenderParams({1,1,0,1 }, 1.0)
@@ -434,7 +434,7 @@ void initGL() {
 	//todo
 	BackgroundSettings bs;
 	bs.color = { 1,0, 1, 1 };
-	bs.padding = 5;
+	bs.padding = 8;
 	bs.cornerRadius = 40;// 20;
 	fr->SetBackgroundSettings(bs);
 
