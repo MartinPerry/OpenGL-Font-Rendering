@@ -32,6 +32,7 @@ public:
 	void SetFontSize(const FontSize& fs, int defaultFontSizeInPx = 0);
 
 	void SetExistenceCheck(bool val) noexcept;	
+	void SetOverlapCheck(bool val) noexcept;
 	void SetDecimalPrecission(int digits) noexcept;
 
 	int GetDecimalPrecission() const noexcept;
@@ -135,11 +136,14 @@ protected:
 	};
 
 	bool checkIfExist;
+	bool overlapCheck;
 	int newLineOffset;
 
 	int decimalPlaces;
 	double decimalMult;
 	std::vector<NumberInfo> nmbrs;
+	std::vector<AABB> nmbrsAABB;
+
 	GlyphInfo gi[65];
 	GlyphInfo captionMark;
 	Precomputed precomputed[100];

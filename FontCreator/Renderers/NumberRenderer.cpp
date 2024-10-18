@@ -52,7 +52,8 @@ NumberRenderer::NumberRenderer(const FontBuilderSettings& fs, std::unique_ptr<Ba
 	AbstractRenderer(fs, std::move(backend)),
 	decimalPlaces(0),
 	decimalMult(1),
-	checkIfExist(true)
+	checkIfExist(true),
+	overlapCheck(false)
 {
 	this->Init();
 }
@@ -61,7 +62,8 @@ NumberRenderer::NumberRenderer(std::shared_ptr<FontBuilder> fb, std::unique_ptr<
 	AbstractRenderer(fb, std::move(backend)),
 	decimalPlaces(0),
 	decimalMult(1),
-	checkIfExist(true)
+	checkIfExist(true),
+	overlapCheck(false)
 {
 	this->Init();
 }
@@ -211,6 +213,16 @@ void NumberRenderer::SetExistenceCheck(bool val) noexcept
 }
 
 /// <summary>
+/// Check if numbers are overlapping
+/// Do not add number that overlpas already existing one
+/// </summary>
+/// <param name="val"></param>
+void NumberRenderer::SetOverlapCheck(bool val) noexcept
+{
+	this->overlapCheck = val;
+}
+
+/// <summary>
 /// Set precision for decimal part in digits count
 /// </summary>
 /// <param name="digits"></param>
@@ -254,6 +266,7 @@ void NumberRenderer::Clear()
 
 	AbstractRenderer::Clear();
 	this->nmbrs.clear();
+	this->nmbrsAABB.clear();
 }
 
 
@@ -391,6 +404,17 @@ bool NumberRenderer::AddNumber(NumberInfo& n, int x, int y)
 		if (aabb.minY > this->backend->GetSettings().deviceH) return false;
 	}
 
+	if (this->overlapCheck)
+	{
+		for (const auto& nmbrAABB : this->nmbrsAABB)
+		{
+			if (aabb.Intersect(nmbrAABB))
+			{
+				return false;
+			}
+		}
+	}
+
 	//new number - add it
 	
 	//fill basic structure info
@@ -405,6 +429,12 @@ bool NumberRenderer::AddNumber(NumberInfo& n, int x, int y)
 #endif
 
 	this->nmbrs.push_back(n);
+
+	if (this->overlapCheck)
+	{
+		this->nmbrsAABB.push_back(aabb);
+	}
+
 	this->strChanged = true;
 
 	return true;

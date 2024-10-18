@@ -139,6 +139,11 @@ void BackgroundShaderManager::FillQuadVertexData(
 		float cy = minY + 0.5f * (maxY - minY);
 		float dx = std::abs(maxX - minX) - 2 * r;
 		float dy = std::abs(maxY - minY) - 2 * r;
+		
+		//fix overlap of triangles if rounding was too fast
+		//some experimental value
+		dx = std::max(-0.05f * r, dx);
+		dy = std::max(-0.05f * r, dy);
 
 		this->FillRoundCornersQuad(cx, cy, dx, dy, r, vec);
 	}
