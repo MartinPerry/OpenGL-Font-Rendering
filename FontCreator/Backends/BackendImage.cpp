@@ -235,11 +235,11 @@ void BackendImage::Render()
 			minV = minV - minY;
 		}
 
-		minX = std::clamp(minX, 0, this->rs.deviceW);
-		maxX = std::clamp(maxX, 0, this->rs.deviceW);
+		minX = std::clamp<int>(minX, 0, this->rs.deviceW);
+		maxX = std::clamp<int>(maxX, 0, this->rs.deviceW);
 
-		minY = std::clamp(minY, 0, this->rs.deviceH);
-		maxY = std::clamp(maxY, 0, this->rs.deviceH);
+		minY = std::clamp<int>(minY, 0, this->rs.deviceH);
+		maxY = std::clamp<int>(maxY, 0, this->rs.deviceH);
 		//
 
 		for (int y = minY, v = minV; y < maxY; y++, v++)

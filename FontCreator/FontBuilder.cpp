@@ -203,7 +203,7 @@ int FontBuilder::InitializeFont(const std::string & fontFacePath)
 /// <param name="size"></param>
 /// <param name="dpi"></param>
 /// <returns></returns>
-bool FontBuilder::SetFontSizePts(FontInfo & f, int size, int dpi)
+bool FontBuilder::SetFontSizePts(FontInfo & f, uint16_t size, uint16_t dpi)
 {
 	//https://www.freetype.org/freetype2/docs/glyphs/glyphs-2.html
 		
@@ -228,7 +228,7 @@ bool FontBuilder::SetFontSizePts(FontInfo & f, int size, int dpi)
 	f.maxPixelsWidth = static_cast<int>(std::round((f.fontFace->bbox.xMax - f.fontFace->bbox.xMin) * pixel_size / f.fontFace->units_per_EM));
 
 	//f.fontSizePixels = (size * (dpi / 64)); // this->fontFace->size->metrics.y_ppem;	
-	f.newLineOffset = static_cast<int>(f.fontFace->size->metrics.height / 64);
+	f.newLineOffset = static_cast<int16_t>(f.fontFace->size->metrics.height / 64);
 
 	return true;
 }
@@ -239,7 +239,7 @@ bool FontBuilder::SetFontSizePts(FontInfo & f, int size, int dpi)
 /// <param name="f"></param>
 /// <param name="size"></param>
 /// <returns></returns>
-bool FontBuilder::SetFontSizePixels(FontInfo & f, int size)
+bool FontBuilder::SetFontSizePixels(FontInfo & f, uint16_t size)
 {	
 	//https://www.freetype.org/freetype2/docs/tutorial/step1.html
 	
@@ -258,14 +258,14 @@ bool FontBuilder::SetFontSizePixels(FontInfo & f, int size)
 	//http://stackoverflow.com/questions/28009564/new-line-pixel-distance-in-freetype
 
 	
-	f.maxPixelsHeight = static_cast<int>(std::round((f.fontFace->bbox.yMax - f.fontFace->bbox.yMin) * double(size) / f.fontFace->units_per_EM));
-	f.maxPixelsWidth = static_cast<int>(std::round((f.fontFace->bbox.xMax - f.fontFace->bbox.xMin) * double(size) / f.fontFace->units_per_EM));
+	f.maxPixelsHeight = static_cast<uint16_t>(std::round((f.fontFace->bbox.yMax - f.fontFace->bbox.yMin) * double(size) / f.fontFace->units_per_EM));
+	f.maxPixelsWidth = static_cast<uint16_t>(std::round((f.fontFace->bbox.xMax - f.fontFace->bbox.xMin) * double(size) / f.fontFace->units_per_EM));
 
 
 	//f.fontSizePixels = size;
 
 	// get the scaled line spacing (for 48pt), also measured in 64ths of a pixel
-	f.newLineOffset = static_cast<int>(f.fontFace->size->metrics.height / 64);
+	f.newLineOffset = static_cast<int16_t>(f.fontFace->size->metrics.height / 64);
 
 	return true;
 }
@@ -277,7 +277,7 @@ bool FontBuilder::SetFontSizePixels(FontInfo & f, int size)
 /// <param name="f"></param>
 /// <param name="size"></param>
 /// <returns></returns>
-bool FontBuilder::SetClosestFontSizeForBitmaps(FontInfo & f, int size)
+bool FontBuilder::SetClosestFontSizeForBitmaps(FontInfo & f, uint16_t size)
 {
 	FT_Pos minDif = std::numeric_limits<FT_Pos>::max();
 	int minDifIndex = 0;
@@ -306,22 +306,22 @@ bool FontBuilder::SetClosestFontSizeForBitmaps(FontInfo & f, int size)
 	//f.fontSizePixels = std::max(tmp.width, tmp.height);
 
 	// get the scaled line spacing (for 48pt), also measured in 64ths of a pixel
-	f.newLineOffset = static_cast<int>(f.fontFace->size->metrics.height / 64);
+	f.newLineOffset = static_cast<int16_t>(f.fontFace->size->metrics.height / 64);
 
 	return true;
 }
 
-void FontBuilder::UpdateBitmapFontsSizes(int maxEmSize)
+void FontBuilder::UpdateBitmapFontsSizes(uint16_t maxEmSize)
 {	
-	for (auto & f : this->fis)
+	for (auto& f : this->fis)
 	{
 		if (f.onlyBitmapGlyphs)
 		{
-			f.scaleFactor = static_cast<double>(maxEmSize) / f.maxPixelsHeight;
+			f.scaleFactor = static_cast<float>(maxEmSize) / f.maxPixelsHeight;
 
-			f.maxPixelsHeight = static_cast<int>(std::round(f.maxPixelsHeight * f.scaleFactor));
-			f.maxPixelsWidth = static_cast<int>(std::round(f.maxPixelsWidth * f.scaleFactor));
-			f.newLineOffset = static_cast<int>(std::round(f.newLineOffset * f.scaleFactor));
+			f.maxPixelsHeight = static_cast<uint16_t>(std::round(f.maxPixelsHeight * f.scaleFactor));
+			f.maxPixelsWidth = static_cast<uint16_t>(std::round(f.maxPixelsWidth * f.scaleFactor));
+			f.newLineOffset = static_cast<int16_t>(std::round(f.newLineOffset * f.scaleFactor));
 		}
 	}
 }
@@ -336,7 +336,7 @@ void FontBuilder::UpdateBitmapFontsSizes(int maxEmSize)
 /// <param name="fontName"></param>
 /// <param name="fs"></param>
 /// <param name="defaultFontSizeInPx"></param>
-void FontBuilder::SetFontSize(const std::string & fontName, const FontSize & fs, int defaultFontSizeInPx)
+void FontBuilder::SetFontSize(const std::string & fontName, const FontSize & fs, uint16_t defaultFontSizeInPx)
 {
 
 	for (FontInfo & f : this->fis)
@@ -394,7 +394,7 @@ void FontBuilder::SetFontSize(const std::string & fontName, const FontSize & fs,
 /// </summary>
 /// <param name="fs"></param>
 /// <param name="defaultFontSizeInPx"></param>
-void FontBuilder::SetAllFontSize(const FontSize & fs, int defaultFontSizeInPx)
+void FontBuilder::SetAllFontSize(const FontSize & fs, uint16_t defaultFontSizeInPx)
 {
 	for (FontInfo & f : this->fis)
 	{
@@ -446,9 +446,9 @@ const std::vector<FontInfo> & FontBuilder::GetFontInfos() const
 	return this->fis;
 }
 
-int FontBuilder::GetMaxFontPixelHeight() const
+uint16_t FontBuilder::GetMaxFontPixelHeight() const
 {
-	int maxHeight = std::numeric_limits<int>::min();
+	uint16_t maxHeight = std::numeric_limits<uint16_t>::min();
 	for (auto & fi : this->fis)
 	{			
 		maxHeight = std::max(maxHeight, fi.maxPixelsHeight);		
@@ -456,9 +456,9 @@ int FontBuilder::GetMaxFontPixelHeight() const
 	return maxHeight;
 }
 
-int FontBuilder::GetMaxFontPixelWidth() const
+uint16_t FontBuilder::GetMaxFontPixelWidth() const
 {
-	int maxWidth = std::numeric_limits<int>::min();
+	uint16_t maxWidth = std::numeric_limits<uint16_t>::min();
 	for (auto & fi : this->fis)
 	{				
 		maxWidth = std::max(maxWidth, fi.maxPixelsWidth);
@@ -476,24 +476,24 @@ float FontBuilder::GetScreenScale() const
 /// that are not obly bitmap
 /// </summary>
 /// <returns></returns>
-int FontBuilder::GetMaxEmSize() const
+uint16_t FontBuilder::GetMaxEmSize() const
 {
-	int maxSize = std::numeric_limits<int>::min();
+	uint16_t maxSize = std::numeric_limits<uint16_t>::min();
 	for (auto & fi : this->fis)
 	{		
 		if (fi.onlyBitmapGlyphs)
 		{
 			continue;
 		}
-		maxSize = std::max(maxSize, (int)fi.fontFace->size->metrics.y_ppem);
-		maxSize = std::max(maxSize, (int)fi.fontFace->size->metrics.x_ppem);
+		maxSize = std::max(maxSize, (uint16_t)fi.fontFace->size->metrics.y_ppem);
+		maxSize = std::max(maxSize, (uint16_t)fi.fontFace->size->metrics.x_ppem);
 	}
 	return maxSize;
 }
 
-int FontBuilder::GetMaxNewLineOffset() const
+int16_t FontBuilder::GetMaxNewLineOffset() const
 {
-	int lineOffset = std::numeric_limits<int>::min();
+	int16_t lineOffset = std::numeric_limits<int16_t>::min();
 	for (auto & fi : this->fis)
 	{
 		if (fi.onlyBitmapGlyphs)
@@ -507,7 +507,7 @@ int FontBuilder::GetMaxNewLineOffset() const
 	return lineOffset;
 }
 
-int FontBuilder::GetNewLineOffsetBasedOnGlyph(CHAR_CODE c)
+int16_t FontBuilder::GetNewLineOffsetBasedOnGlyph(CHAR_CODE c)
 {
 	this->LoadGlyphInfo(c);
 
@@ -560,7 +560,7 @@ FontInfo::GlyphLutIterator FontBuilder::GetGlyph(CHAR_CODE c, bool & exist, Font
 /// Get font texture width
 /// </summary>
 /// <returns></returns>
-int FontBuilder::GetTextureWidth() const
+uint16_t FontBuilder::GetTextureWidth() const
 {
 	return this->texPacker->GetTextureWidth();
 }
@@ -569,7 +569,7 @@ int FontBuilder::GetTextureWidth() const
 /// Get font texture height
 /// </summary>
 /// <returns></returns>
-int FontBuilder::GetTextureHeight() const
+uint16_t FontBuilder::GetTextureHeight() const
 {
 	return this->texPacker->GetTextureHeight();
 }
@@ -608,7 +608,7 @@ void FontBuilder::SetTightPacking()
 /// </summary>
 /// <param name="binW"></param>
 /// <param name="binH"></param>
-void FontBuilder::SetGridPacking(int binW, int binH)
+void FontBuilder::SetGridPacking(uint16_t binW, uint16_t binH)
 {
 	this->texPacker->SetGridPacking(binW, binH);
 }

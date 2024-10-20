@@ -17,18 +17,18 @@ typedef uint32_t CHAR_CODE;
 /// <summary>
 /// Info for single glyph
 /// </summary>
-typedef struct GlyphInfo
+struct GlyphInfo
 {
 	CHAR_CODE code;
 	int fontIndex;
 
 	//"glyph" texture size
-	int bmpW;
-	int bmpH;
+	uint16_t bmpW;
+	uint16_t bmpH;
 
 	//glyph offset
-	int bmpX;
-	int bmpY;
+	int16_t bmpX;
+	int16_t bmpY;
 	
 
 	//bitmap raw data
@@ -43,10 +43,10 @@ typedef struct GlyphInfo
 	//long descent;
 
 	//position in FontTexture atlas
-	int tx;
-	int ty;
+	uint16_t tx;
+	uint16_t ty;
 
-} GlyphInfo;
+};
 
 
 
@@ -55,17 +55,17 @@ typedef struct GlyphInfo
 /// contains currently used glyphs, 
 /// calculated pixel size of font, faces etc.
 /// </summary>
-typedef struct FontInfo
+struct FontInfo
 {
 	typedef std::list<GlyphInfo>::iterator GlyphIterator;
 	typedef std::unordered_map<CHAR_CODE, GlyphIterator>::iterator GlyphLutIterator;
 
 	std::string faceName;
-	int maxPixelsWidth;
-	int maxPixelsHeight;
+	uint16_t maxPixelsWidth;
+	uint16_t maxPixelsHeight;
 
 	
-	int newLineOffset;
+	int16_t newLineOffset;
 
 	//FontTexture texture;
 	std::unordered_map<CHAR_CODE, GlyphIterator> glyphsLut;
@@ -76,10 +76,10 @@ typedef struct FontInfo
 	int index;
 	
 	bool onlyBitmapGlyphs;
-	double scaleFactor;
+	float scaleFactor;
 	
 
-} FontInfo;
+};
 
 
 /// <summary>
@@ -96,43 +96,43 @@ struct FontSize
 	enum class SizeType { px, pt, em };
 	
 	FontSize() noexcept : size(12), sizeType(SizeType::px) {};
-	FontSize(double value, SizeType type) noexcept  : size(value), sizeType(type) {};
+	FontSize(float value, SizeType type) noexcept  : size(value), sizeType(type) {};
 			
 	operator int() const noexcept { return static_cast<int>(size); };
 	operator double() const noexcept { return size; };
 
-	double size;
+	float size;
 	SizeType sizeType;
 };
 
 inline FontSize operator "" _px(long double value) noexcept
 {
-	return FontSize(value, FontSize::SizeType::px);
+	return FontSize(static_cast<float>(value), FontSize::SizeType::px);
 };
 
 inline FontSize operator "" _px(unsigned long long value) noexcept
 {
-	return FontSize(static_cast<double>(value), FontSize::SizeType::px);
+	return FontSize(static_cast<float>(value), FontSize::SizeType::px);
 };
 
 inline FontSize operator "" _pt(long double value) noexcept
 {
-	return FontSize(value, FontSize::SizeType::pt);
+	return FontSize(static_cast<float>(value), FontSize::SizeType::pt);
 };
 
 inline FontSize operator "" _pt(unsigned long long value) noexcept
 {
-	return FontSize(static_cast<double>(value), FontSize::SizeType::pt);
+	return FontSize(static_cast<float>(value), FontSize::SizeType::pt);
 };
 
 inline FontSize operator "" _em(long double value) noexcept
 {
-	return FontSize(value, FontSize::SizeType::em);
+	return FontSize(static_cast<float>(value), FontSize::SizeType::em);
 };
 
 inline FontSize operator "" _em(unsigned long long value) noexcept
 {
-	return FontSize(static_cast<double>(value), FontSize::SizeType::em);
+	return FontSize(static_cast<float>(value), FontSize::SizeType::em);
 };
 
 
@@ -141,7 +141,7 @@ inline FontSize operator "" _em(unsigned long long value) noexcept
 /// <summary>
 /// Settings of single font
 /// </summary>
-typedef struct Font
+struct Font
 {
 	std::string name;
 	FontSize size;
@@ -159,7 +159,7 @@ typedef struct Font
 		defaultFontSizeInPx(0)
 	{}
 
-} Font;
+};
 
 /// <summary>
 /// Color representation
@@ -179,8 +179,8 @@ struct Color
 /// </summary>
 struct RenderSettings
 {
-	int deviceW;
-	int deviceH;
+	uint16_t deviceW;
+	uint16_t deviceH;
 
 	bool useTextureLinearFilter = false;
 };
@@ -190,10 +190,10 @@ struct FontBuilderSettings
 {
 	std::vector<Font> fonts;
 
-	int textureW;
-	int textureH;
+	uint16_t textureW;
+	uint16_t textureH;
 
-	int screenDpi = 0;
+	uint16_t screenDpi = 0;
 
 	//how many times is resolution bigger than display pts units
 	//used on iPhones

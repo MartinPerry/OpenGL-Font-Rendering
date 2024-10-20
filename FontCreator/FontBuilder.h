@@ -28,8 +28,8 @@ public:
 	void Release();
 	bool IsInited() const;
 
-	void SetFontSize(const std::string & fontName, const FontSize & fs, int defaultFontSizeInPx = 0);
-	void SetAllFontSize(const FontSize & fs, int defaultFontSizeInPx = 0);
+	void SetFontSize(const std::string & fontName, const FontSize & fs, uint16_t defaultFontSizeInPx = 0);
+	void SetAllFontSize(const FontSize & fs, uint16_t defaultFontSizeInPx = 0);
 
 	bool AddString(const UnicodeString & str);	
 	bool AddCharacter(CHAR_CODE c);
@@ -37,22 +37,22 @@ public:
 	void AddAllAsciiNumbers();
 	
 	void SetTightPacking();
-	void SetGridPacking(int binW, int binH);
+	void SetGridPacking(uint16_t binW, uint16_t binH);
 
 	
 	const std::vector<FontInfo> & GetFontInfos() const;
-	int GetMaxFontPixelHeight() const;
-	int GetMaxFontPixelWidth() const;
-	int GetMaxEmSize() const;
+	uint16_t GetMaxFontPixelHeight() const;
+	uint16_t GetMaxFontPixelWidth() const;
+	uint16_t GetMaxEmSize() const;
 	float GetScreenScale() const;
 
-	int GetMaxNewLineOffset() const;
-	int GetNewLineOffsetBasedOnGlyph(CHAR_CODE c);	
+	int16_t GetMaxNewLineOffset() const;
+	int16_t GetNewLineOffsetBasedOnGlyph(CHAR_CODE c);
 	FontInfo::GlyphLutIterator GetGlyph(CHAR_CODE c, bool & exist);
 	FontInfo::GlyphLutIterator GetGlyph(CHAR_CODE c, bool & exist, FontInfo ** usedFi);
 
-	int GetTextureWidth() const;
-	int GetTextureHeight() const;
+	uint16_t GetTextureWidth() const;
+	uint16_t GetTextureHeight() const;
 	const uint8_t * GetTextureData() const;
 
 	bool CreateFontAtlas();
@@ -66,7 +66,7 @@ protected:
 	static const int LETTER_BORDER_SIZE = 0;
 
 	float screenScale;
-	int screenDpi;
+	uint16_t screenDpi;
 
 	FT_Library library;
 	
@@ -79,10 +79,10 @@ protected:
 	TextureAtlasPack * texPacker;
 		
 	int InitializeFont(const std::string & fontFacePath);	
-	bool SetFontSizePixels(FontInfo & f, int size);
-	bool SetFontSizePts(FontInfo & f, int size, int dpi);
-	bool SetClosestFontSizeForBitmaps(FontInfo & f, int size);
-	void UpdateBitmapFontsSizes(int maxEmSize);
+	bool SetFontSizePixels(FontInfo & f, uint16_t size);
+	bool SetFontSizePts(FontInfo & f, uint16_t size, uint16_t dpi);
+	bool SetClosestFontSizeForBitmaps(FontInfo & f, uint16_t size);
+	void UpdateBitmapFontsSizes(uint16_t maxEmSize);
 
 	void LoadGlyphInfo(CHAR_CODE c);
 	bool FillGlyphInfo(CHAR_CODE c, FontInfo & fi) const;

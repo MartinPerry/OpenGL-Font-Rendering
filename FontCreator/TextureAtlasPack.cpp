@@ -3,7 +3,13 @@
 
 //http://www.blackpawn.com/texts/lightmaps/default.html
 
-TextureAtlasPack::TextureAtlasPack(int w, int h, int border) : 
+/// <summary>
+/// Max texture size can be 16bit size (65K)
+/// </summary>
+/// <param name="w"></param>
+/// <param name="h"></param>
+/// <param name="border"></param>
+TextureAtlasPack::TextureAtlasPack(uint16_t w, uint16_t h, uint16_t border) :
 	fontInfos(nullptr), 
 	unused(nullptr), 
 	w(w), 
@@ -53,7 +59,7 @@ void TextureAtlasPack::SetTightPacking()
 	this->Clear();
 }
 
-void TextureAtlasPack::SetGridPacking(int binW, int binH)
+void TextureAtlasPack::SetGridPacking(uint16_t binW, uint16_t binH)
 {
 	this->gridBinW = binW;
 	this->gridBinH = binH;
@@ -67,13 +73,13 @@ void TextureAtlasPack::SetGridPacking(int binW, int binH)
 	binW += 2 * this->border;
 	
 
-	int gridedH = this->h - this->h % binH;
-	int gridedW = this->w - this->w % binW;
+	uint16_t gridedH = this->h - this->h % binH;
+	uint16_t gridedW = this->w - this->w % binW;
 
 	
-	for (int y = 0; y < gridedH; y += binH)
+	for (uint16_t y = 0; y < gridedH; y += binH)
 	{
-		for (int x = 0; x < gridedW; x += binW)
+		for (uint16_t x = 0; x < gridedW; x += binW)
 		{			
 			this->freeSpace.emplace_back(x, y, binW, binH);
 		}
@@ -98,12 +104,12 @@ const std::unordered_map<CHAR_CODE, FontInfo::GlyphLutIterator> & TextureAtlasPa
 	return this->erased;
 }
 
-int TextureAtlasPack::GetTextureWidth() const
+uint16_t TextureAtlasPack::GetTextureWidth() const
 {
 	return this->w;
 }
 
-int TextureAtlasPack::GetTextureHeight() const
+uint16_t TextureAtlasPack::GetTextureHeight() const
 {
 	return this->h;
 }
@@ -564,7 +570,7 @@ bool TextureAtlasPack::FindEmptySpace(int spaceWidth, int spaceHeight, int * px,
 /// <param name="empty"></param>
 /// <param name="spaceWidth"></param>
 /// <param name="spaceHeight"></param>
-void TextureAtlasPack::DivideNode(const Node & empty, int spaceWidth, int spaceHeight)
+void TextureAtlasPack::DivideNode(const Node & empty, uint16_t spaceWidth, uint16_t spaceHeight)
 {
 	//empty space of desired size found
 	//divide space to 3 parts
@@ -577,8 +583,8 @@ void TextureAtlasPack::DivideNode(const Node & empty, int spaceWidth, int spaceH
 	std::list<Node>::iterator downItB;
 	std::list<Node>::iterator rightItB;
 
-	Node nDown = { empty.x, empty.y + spaceHeight, 0, empty.h - spaceHeight };
-	Node nRight = { empty.x + spaceWidth, empty.y, empty.w - spaceWidth, 0 };
+	Node nDown = Node(empty.x, empty.y + spaceHeight, 0, empty.h - spaceHeight);
+	Node nRight = Node(empty.x + spaceWidth, empty.y, empty.w - spaceWidth, 0);
 	
 	nDown.hasOthers = true;
 	nRight.hasOthers = true;

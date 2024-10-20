@@ -711,7 +711,7 @@ bool NumberRenderer::GenerateGeometry()
 			{
 				divisor /= 100;
 
-				const int tmp = intPart / divisor;
+				const int tmp = static_cast<int>(intPart / divisor);
 				const GlyphInfo * const * t = precomputed[tmp].gi;
 
 				this->AddQuad(*t[1], x, y, si.renderParams);
