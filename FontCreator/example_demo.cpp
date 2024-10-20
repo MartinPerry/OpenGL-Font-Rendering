@@ -205,7 +205,9 @@ void display() {
 	);
 	*/
 
-	fr->SetCaptionOffset(80);
+	
+	fr->SetCaptionOffset(80);	
+	
 	fr->AddStringCaption(
 		UTF8_TEXT(CreateRandomString(10).c_str()),
 		//UTF8_TEXT("Ahoj\nsvete\nsvetg kuk"),
@@ -213,16 +215,25 @@ void display() {
 		0.5f, 0.85f,
 		AbstractRenderer::RenderParams({ 1,1,0,1 }, 1.0)
 	);
+	
 
 	fr->AddStringCaption(
 		//UTF8_TEXT(CreateRandomString(10).c_str()),
-		UTF8_TEXT("Nejaky jiny text"),		
+		UTF8_TEXT("i"),		
 		//UTF8_TEXT("H\n1023hPa"),
 		0.5f, 0.35f,
 		AbstractRenderer::RenderParams({1,1,0,1 }, 1.0)
 	);
-
-
+	
+	/*
+	fr->AddString(
+		//UTF8_TEXT(CreateRandomString(10).c_str()),
+		UTF8_TEXT("i"),
+		//UTF8_TEXT("H\n1023hPa"),
+		0.5f, 0.35f,
+		AbstractRenderer::RenderParams({ 1,1,0,1 }, 1.0)
+	);
+	*/
 	//=================================
 	//debug
 	if (auto* si = fr->GetLastStringInfo())
@@ -433,7 +444,7 @@ void initGL() {
 
 	//todo
 	BackgroundSettings bs;
-	bs.color = { 1,0, 1, 1 };
+	bs.color = { 1,0, 1, 0.6f };
 	bs.padding = 8;
 	bs.cornerRadius = 40;// 20;
 	fr->SetBackgroundSettings(bs);
