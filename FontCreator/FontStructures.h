@@ -167,6 +167,15 @@ struct Font
 struct Color
 {
 	float r, g, b, a;
+
+	Color() noexcept :
+		Color(1.0f, 1.0f, 1.0f, 1.0f)
+	{}
+
+	Color(float r, float g, float b, float a) noexcept :
+		r(r), g(g), b(b), a(a)
+	{}
+
 	bool IsSame(const Color& c) const noexcept
 	{
 		return (c.r == r) && (c.g == g) &&

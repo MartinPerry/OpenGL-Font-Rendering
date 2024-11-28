@@ -298,7 +298,7 @@ bool TextureAtlasPack::PackTight()
 				continue;
 			}
 
-			int px, py;
+			uint16_t px, py;
 			CHAR_CODE c;
 
 			if (this->FindEmptySpace(g.bmpW + b, g.bmpH + b, &px, &py) == false)
@@ -358,7 +358,8 @@ void TextureAtlasPack::CopyDataToTexture()
 				continue;
 			}
 
-			if ((it->second.x == -1) && (it->second.y == -1))
+			if ((it->second.x == std::numeric_limits<uint16_t>::max()) && 
+				(it->second.y == std::numeric_limits<uint16_t>::max()))
 			{
 				continue;
 			}
@@ -495,11 +496,11 @@ void TextureAtlasPack::FillBuffer(uint8_t ** memory)
 /// <param name="px"></param>
 /// <param name="py"></param>
 /// <returns></returns>
-bool TextureAtlasPack::FindEmptySpace(int spaceWidth, int spaceHeight, int * px, int * py)
+bool TextureAtlasPack::FindEmptySpace(int spaceWidth, int spaceHeight, uint16_t* px, uint16_t* py)
 {
 	
-	*px = -1;
-	*py = -1;
+	*px = std::numeric_limits<uint16_t>::max();
+	*py = std::numeric_limits<uint16_t>::max();
 
 	if (this->freePixels < spaceWidth * spaceHeight)
 	{		

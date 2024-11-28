@@ -69,9 +69,9 @@ FontCache::Cache FontCache::GetFontFace(const std::string& fontFacePath)
 	size_t bufSize = 0;
 	auto data = instance->LoadFontFromFile(fontFacePath, &bufSize);
 
-	it = instance->cache.insert({ fontFacePath, { data, bufSize } }).first;
+	auto jt = instance->cache.try_emplace(fontFacePath, data, bufSize);
 
-	return it->second;
+	return jt.first->second;
 }
 
 /// <summary>

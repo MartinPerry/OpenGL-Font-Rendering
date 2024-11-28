@@ -104,7 +104,7 @@ private:
 	void EraseAllUnused();	
 	void AddToErased(int fontIndex, CHAR_CODE c);
 
-	bool FindEmptySpace(int spaceWidth, int spaceHeight, int * px, int * py);
+	bool FindEmptySpace(int spaceWidth, int spaceHeight, uint16_t* px, uint16_t* py);
 	void DivideNode(const Node & empty, uint16_t spaceWidth, uint16_t spaceHeight);
 	
 	

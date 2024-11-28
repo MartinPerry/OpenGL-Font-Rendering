@@ -17,6 +17,11 @@ public:
 	{
 		uint8_t* memory;
 		size_t size;
+
+        Cache(uint8_t* memory, size_t size) :
+            memory(memory),
+            size(size)
+        {}
 	};
 
 	virtual	~FontCache();
