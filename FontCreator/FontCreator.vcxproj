@@ -165,6 +165,7 @@
     <ClCompile Include="Backends\Shaders\BackgroundShaderManager.cpp" />
     <ClCompile Include="Backends\Shaders\DefaultFontShaderManager.cpp" />
     <ClCompile Include="Backends\Shaders\IShaderManager.cpp" />
+    <ClCompile Include="Backends\Shaders\SingleColorBackgroundShaderManager.cpp" />
     <ClCompile Include="Backends\Shaders\SingleColorFontShaderManager.cpp" />
     <ClCompile Include="FontBuilder.cpp" />
     <ClCompile Include="FontCache.cpp" />
@@ -189,6 +190,7 @@
     <ClInclude Include="Backends\Shaders\DefaultFontShaderManager.h" />
     <ClInclude Include="Backends\Shaders\IShaderManager.h" />
     <ClInclude Include="Backends\Shaders\Shaders.h" />
+    <ClInclude Include="Backends\Shaders\SingleColorBackgroundShaderManager.h" />
     <ClInclude Include="Backends\Shaders\SingleColorFontShaderManager.h" />
     <ClInclude Include="Externalncludes.h" />
     <ClInclude Include="FontBuilder.h" />

@@ -87,9 +87,6 @@
     <ClCompile Include="Backends\BackendBackgroundOpenGL.cpp">
       <Filter>Source Files\Backends</Filter>
     </ClCompile>
-    <ClCompile Include="Backends\Shaders\BackgroundShaderManager.cpp">
-      <Filter>Source Files\Backends\Shaders</Filter>
-    </ClCompile>
     <ClCompile Include="Backends\Shaders\DefaultFontShaderManager.cpp">
       <Filter>Source Files\Backends\Shaders</Filter>
     </ClCompile>
@@ -107,6 +104,12 @@
     </ClCompile>
     <ClCompile Include="Renderers\StringRenderer.cpp">
       <Filter>Source Files\Renderers</Filter>
+    </ClCompile>
+    <ClCompile Include="Backends\Shaders\SingleColorBackgroundShaderManager.cpp">
+      <Filter>Source Files\Backends\Shaders</Filter>
+    </ClCompile>
+    <ClCompile Include="Backends\Shaders\BackgroundShaderManager.cpp">
+      <Filter>Source Files\Backends\Shaders</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -167,9 +170,6 @@
     <ClInclude Include="Backends\BackendBase.h">
       <Filter>Header Files\Backends</Filter>
     </ClInclude>
-    <ClInclude Include="Backends\Shaders\BackgroundShaderManager.h">
-      <Filter>Header Files\Backends\Shaders</Filter>
-    </ClInclude>
     <ClInclude Include="Backends\Shaders\DefaultFontShaderManager.h">
       <Filter>Header Files\Backends\Shaders</Filter>
     </ClInclude>
@@ -190,6 +190,12 @@
     </ClInclude>
     <ClInclude Include="Renderers\StringRenderer.h">
       <Filter>Header Files\Renderers</Filter>
+    </ClInclude>
+    <ClInclude Include="Backends\Shaders\SingleColorBackgroundShaderManager.h">
+      <Filter>Header Files\Backends\Shaders</Filter>
+    </ClInclude>
+    <ClInclude Include="Backends\Shaders\BackgroundShaderManager.h">
+      <Filter>Header Files\Backends\Shaders</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

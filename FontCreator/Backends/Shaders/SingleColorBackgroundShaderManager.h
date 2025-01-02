@@ -1,5 +1,5 @@
-#ifndef BACKGROUND_SHADER_MANAGER_H
-#define BACKGROUND_SHADER_MANAGER_H
+#ifndef SINGLE_COLOR_BACKGROUND_SHADER_MANAGER_H
+#define SINGLE_COLOR_BACKGROUND_SHADER_MANAGER_H
 
 #include <vector>
 
@@ -8,11 +8,11 @@
 
 #include "./IShaderManager.h"
 
-class BackgroundShaderManager : public IShaderManager
+class SingleColorBackgroundShaderManager : public IShaderManager
 {
 public:
-    BackgroundShaderManager();
-    virtual ~BackgroundShaderManager() = default;
+    SingleColorBackgroundShaderManager();
+    virtual ~SingleColorBackgroundShaderManager() = default;
 
     void GetAttributtesUniforms() override;
     void BindVertexAtribs() override;

@@ -89,6 +89,6 @@ void BackendBase::AddQuad(const GlyphInfo& gi, float x, float y, const AbstractR
 	this->AddQuad(min, max, rp);
 }
 
-void BackendBase::OnFinishQuadGroup()
+void BackendBase::OnFinishQuadGroup(const AbstractRenderer::RenderParams& rp)
 {
 }

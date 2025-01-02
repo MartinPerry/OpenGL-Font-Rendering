@@ -282,10 +282,10 @@ bool StringRenderer::AddStringInternal(const UnicodeString & str,
 		
 	//this->fb->AddString(uniStr);
 
-	auto & added = this->strs.emplace_back(std::move(uniStr), x, y, anchor, align, type);	
+	auto & added = this->strs.emplace_back(std::move(uniStr), x, y, anchor, align, type, rp);	
 	auto & lines = added.lines;
 
-	lines.emplace_back(0, rp);
+	lines.emplace_back(0);
 
 	int len = 0;
 	int start = 0;
@@ -299,7 +299,7 @@ bool StringRenderer::AddStringInternal(const UnicodeString & str,
 		if (c == '\n')
 		{
 			lines.back().len = len;
-			lines.emplace_back(start + 1, rp);
+			lines.emplace_back(start + 1);
 			len = 0;
 		}
 		else
@@ -546,7 +546,7 @@ void StringRenderer::CalcStringAABB(StringInfo & si, const UsedGlyphCache * gc) 
 			//offset to new line of the last line 
 			//is based on the scale of the actual line
 
-			prevLine->maxNewLineOffset = newLineOffset * li.renderParams.scale;
+			prevLine->maxNewLineOffset = newLineOffset * si.renderParams.scale;
 			y += newLineOffset;
 		}		
 
@@ -590,10 +590,10 @@ void StringRenderer::CalcStringAABB(StringInfo & si, const UsedGlyphCache * gc) 
 
 	for (auto & li : si.lines)
 	{		
-		li.aabb.minX *= li.renderParams.scale;
-		li.aabb.maxX *= li.renderParams.scale;
-		li.aabb.minY *= li.renderParams.scale;
-		li.aabb.maxY *= li.renderParams.scale;
+		li.aabb.minX *= si.renderParams.scale;
+		li.aabb.maxX *= si.renderParams.scale;
+		li.aabb.minY *= si.renderParams.scale;
+		li.aabb.maxY *= si.renderParams.scale;
 
 		si.global.UnionWithOffset(li.aabb, 0);
 	}
@@ -801,7 +801,7 @@ bool StringRenderer::GenerateGeometry()
 
 				if (c <= 32)
 				{
-					x += spaceSize * li.renderParams.scale;
+					x += spaceSize * si.renderParams.scale;
 					continue;
 				}
 
@@ -815,15 +815,15 @@ bool StringRenderer::GenerateGeometry()
 
 				const GlyphInfo & gi = *it->second;
 
-				this->AddQuad(gi, x, y, li.renderParams);
+				this->AddQuad(gi, x, y, si.renderParams);
 
-				x += (gi.adv >> 6) * li.renderParams.scale;
+				x += (gi.adv >> 6) * si.renderParams.scale;
 			}
 			
 			y += li.maxNewLineOffset;
 		}
 
-		this->OnFinishQuadGroup();
+		this->OnFinishQuadGroup(si.renderParams);
 	}
 
 	this->strChanged = false;

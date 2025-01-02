@@ -214,7 +214,7 @@ void AbstractRenderer::AddQuad(const GlyphInfo& gi, float x, float y, const Rend
 /// <summary>
 /// Call when single, standalone string is processed
 /// </summary>
-void AbstractRenderer::OnFinishQuadGroup()
+void AbstractRenderer::OnFinishQuadGroup(const RenderParams& rp)
 {
-	this->backend->OnFinishQuadGroup();
+	this->backend->OnFinishQuadGroup(rp);
 }

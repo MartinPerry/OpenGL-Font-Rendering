@@ -1,24 +1,32 @@
 #include "./BackendBackgroundOpenGL.h"
 
 #include "./Shaders/Shaders.h"
+#include "./Shaders/SingleColorBackgroundShaderManager.h"
 #include "./Shaders/BackgroundShaderManager.h"
 
-BackendBackgroundOpenGL::BackendBackgroundOpenGL(const BackgroundSettings& bs, const RenderSettings& r, int glVersion) :
+BackendBackgroundOpenGL::BackendBackgroundOpenGL(const BackgroundSettings& bs, const RenderSettings& r, int glVersion) :	
 	BackendBackgroundOpenGL(bs, r, glVersion,
-		BACKGROUND_VERTEX_SHADER_SOURCE, BACKGROUND_PIXEL_SHADER_SOURCE,
-						std::make_shared<BackgroundShaderManager>())
+		bs.color.has_value() ? SINGLE_COLOR_BACKGROUND_VERTEX_SHADER_SOURCE : BACKGROUND_VERTEX_SHADER_SOURCE, 
+		bs.color.has_value() ? SINGLE_COLOR_BACKGROUND_PIXEL_SHADER_SOURCE : BACKGROUND_PIXEL_SHADER_SOURCE,
+		bs.color.has_value() ? 
+			std::dynamic_pointer_cast<IShaderManager>(std::make_shared<SingleColorBackgroundShaderManager>()) :
+			std::dynamic_pointer_cast<IShaderManager>(std::make_shared<BackgroundShaderManager>())
+	)
 {
 }
 
 BackendBackgroundOpenGL::BackendBackgroundOpenGL(const BackgroundSettings& bs, const RenderSettings& r, int glVersion,
 	const char* vSource, const char* pSource, std::shared_ptr<IShaderManager> sm) :
 	BackendOpenGL(r, glVersion, vSource, pSource, sm), 
-	bs(bs),
-	curScale(1)
+	bs(bs)	
 {
-	if (auto tmp = std::dynamic_pointer_cast<BackgroundShaderManager>(this->sm))
+	if (auto tmp = std::dynamic_pointer_cast<SingleColorBackgroundShaderManager>(this->sm))
 	{
-		tmp->SetColor(bs.color.r, bs.color.g, bs.color.b, bs.color.a);
+		tmp->SetColor(bs.color->r, bs.color->g, bs.color->b, bs.color->a);
+		tmp->SetCornerRadius(bs.cornerRadius * this->psW);
+	}
+	else if (auto tmp = std::dynamic_pointer_cast<BackgroundShaderManager>(this->sm))
+	{		
 		tmp->SetCornerRadius(bs.cornerRadius * this->psW);
 	}
 }
@@ -27,6 +35,10 @@ BackendBackgroundOpenGL::~BackendBackgroundOpenGL()
 {
 }
 
+void BackendBackgroundOpenGL::SetBackgroundSettings(const BackgroundSettings& bs)
+{
+	this->bs = bs;
+}
 
 /// <summary>
 /// Render all fonts with pre and post render callbacks
@@ -92,11 +104,10 @@ void BackendBackgroundOpenGL::Render(std::function<void(GLuint)> preDrawCallback
 void BackendBackgroundOpenGL::AddQuad(AbstractRenderer::Vertex& vmin, AbstractRenderer::Vertex& vmax, 
 	const AbstractRenderer::RenderParams& rp)
 {
-	curQuadAabb.Update(vmin.x, vmin.y, vmax.x - vmin.x, vmax.y - vmin.y);
-	curScale = rp.scale;
+	curQuadAabb.Update(vmin.x, vmin.y, vmax.x - vmin.x, vmax.y - vmin.y);	
 }
 
-void BackendBackgroundOpenGL::OnFinishQuadGroup()
+void BackendBackgroundOpenGL::OnFinishQuadGroup(const AbstractRenderer::RenderParams& rp)
 {
 	AbstractRenderer::Vertex min, max;
 
@@ -111,13 +122,10 @@ void BackendBackgroundOpenGL::OnFinishQuadGroup()
 
 	max.x += (bs.padding * psW);
 	max.y += (bs.padding * psH);
-
-	AbstractRenderer::RenderParams tmp(this->bs.color, curScale);
-	
-	this->sm->FillQuadVertexData(min, max, tmp, this->geom);
+		
+	this->sm->FillQuadVertexData(min, max, rp, this->geom);
 
 	curQuadAabb = AABB();
-	curScale = 1.0f;
 	
 
 	this->quadsCount++;

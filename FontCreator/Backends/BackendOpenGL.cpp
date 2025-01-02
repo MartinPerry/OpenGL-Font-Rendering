@@ -369,11 +369,11 @@ void BackendOpenGL::Clear()
 	}
 }
 
-void BackendOpenGL::OnFinishQuadGroup()
+void BackendOpenGL::OnFinishQuadGroup(const AbstractRenderer::RenderParams& rp)
 {
 	if (this->background)
 	{
-		this->background->OnFinishQuadGroup();
+		this->background->OnFinishQuadGroup(rp);
 	}
 }
 

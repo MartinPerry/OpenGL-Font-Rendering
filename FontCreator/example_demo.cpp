@@ -1,6 +1,8 @@
 
 #include "./TextureAtlasPack.h"
 
+#include "./Backends/Shaders/BackgroundShaderManager.h"
+
 #include "./FontBuilder.h"
 #include "./Renderers/StringRenderer.h"
 #include "./Renderers/NumberRenderer.h"
@@ -213,7 +215,7 @@ void display() {
 		//UTF8_TEXT("Ahoj\nsvete\nsvetg kuk"),
 		//UTF8_TEXT("H\n1023hPa"),
 		0.5f, 0.85f,
-		AbstractRenderer::RenderParams({ 1,1,0,1 }, 1.0)
+		AbstractRenderer::RenderParams({ 1,1,0,1 }, { 1, 0, 1, 1 }, 1.0)
 	);
 	
 
@@ -406,11 +408,13 @@ void initGL() {
 	Font fNum("../fonts2/merged_out_2048_53.ttf", 12_pt);
 	//fNum.name = "../fonts/arial.ttf";
 	//fNum.name = "../fonts/NotoSans-Regular.ttf";
-
-
+	
 	RenderSettings r;
 	r.deviceW = g_width;
 	r.deviceH = g_height;
+
+	auto backend = std::make_unique<BackendOpenGL>(r);
+	
 
 	FontBuilderSettings fs;
 	fs.screenDpi = 260;
@@ -422,14 +426,10 @@ void initGL() {
 	//fs.fonts = { f, f2, f3 };
 	//fr = new StringRenderer(fs, r);
 	//fr = new StringRenderer(fs, r);
-	fr = StringRenderer::CreateSingleColor({ 1,0,1,1 }, fs, std::make_unique<BackendOpenGL>(r));
+	fr = StringRenderer::CreateSingleColor({ 1,0,1,1 }, fs, std::move(backend));
 	//fr = new StringRenderer({ fNum }, r);
 	//fr = new StringRenderer({ f4 }, r);
-
-	fs.fonts = { fArial };
-	fn = new NumberRenderer(fs, std::make_unique<BackendOpenGL>(r));
-
-
+	
 	fr->SetCaption(UTF8_TEXT(u8"\U0001F300"), 10);
 	fr->SetCaption(UTF8_TEXT(u8"\U00002b55"), 0);
 	fr->SetCaption(UTF8_TEXT(u8"*"), 0);
@@ -444,7 +444,7 @@ void initGL() {
 
 	//todo
 	BackgroundSettings bs;
-	bs.color = { 1,0, 1, 0.6f };
+	//bs.color = { 1,0, 1, 0.6f };
 	bs.padding = 8;
 	bs.cornerRadius = 40;// 20;
 	fr->SetBackgroundSettings(bs);
@@ -472,6 +472,12 @@ void initGL() {
 
 	imageSr->Render();
 	image->SaveToFile("D://test2.png");
+
+
+
+	fs.fonts = { fArial };
+	fn = new NumberRenderer(fs, std::make_unique<BackendOpenGL>(r));
+
 }
 
 

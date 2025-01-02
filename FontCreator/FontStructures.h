@@ -10,7 +10,7 @@ class FontBuilder;
 #include <list>
 #include <string>
 #include <limits>
-
+#include <optional>
 
 typedef uint32_t CHAR_CODE;
 
@@ -210,9 +210,14 @@ struct FontBuilderSettings
 
 };
 
+/// <summary>
+/// If background color is set to value,
+/// entire rendering has one same background with this color
+/// If std::nullopt is provided, each string can have a different colot
+/// </summary>
 struct BackgroundSettings 
 {
-	Color color;
+	std::optional<Color> color = std::nullopt;
 	float padding = 0.0f;
 	float cornerRadius = 0.0f;
 };

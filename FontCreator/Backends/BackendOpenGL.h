@@ -36,7 +36,7 @@ public:
 	std::shared_ptr<IShaderManager> GetShaderManager() const;
 	
 	void Clear() override;
-	void OnFinishQuadGroup() override;
+	void OnFinishQuadGroup(const AbstractRenderer::RenderParams& rp) override;
 
 	void FillFontTexture() override;
 	void FillGeometry() override;

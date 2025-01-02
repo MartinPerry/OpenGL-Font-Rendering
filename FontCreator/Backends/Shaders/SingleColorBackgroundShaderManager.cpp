@@ -1,7 +1,7 @@
-#include "./BackgroundShaderManager.h"
+#include "./SingleColorBackgroundShaderManager.h"
 
 
-BackgroundShaderManager::BackgroundShaderManager() :
+SingleColorBackgroundShaderManager::SingleColorBackgroundShaderManager() :
 	positionLocation(0),	
 	colorUniform(0),
 	r(1.0f),
@@ -12,7 +12,7 @@ BackgroundShaderManager::BackgroundShaderManager() :
 {
 }
 
-void BackgroundShaderManager::SetColor(float r, float g, float b, float a)
+void SingleColorBackgroundShaderManager::SetColor(float r, float g, float b, float a)
 {
 	this->r = r;
 	this->g = g;
@@ -20,7 +20,7 @@ void BackgroundShaderManager::SetColor(float r, float g, float b, float a)
 	this->a = a;
 }
 
-void BackgroundShaderManager::SetCornerRadius(float radius)
+void SingleColorBackgroundShaderManager::SetCornerRadius(float radius)
 {	
 	this->roundCornerRadius = radius;
 }
@@ -28,7 +28,7 @@ void BackgroundShaderManager::SetCornerRadius(float radius)
 /// <summary>
 /// Get shader uniforms and attributes locations
 /// </summary>
-void BackgroundShaderManager::GetAttributtesUniforms()
+void SingleColorBackgroundShaderManager::GetAttributtesUniforms()
 {
 	GL_CHECK(colorUniform = glGetUniformLocation(shaderProgram, "bgColor"));
 
@@ -36,7 +36,7 @@ void BackgroundShaderManager::GetAttributtesUniforms()
 	//GL_CHECK(texCoordLocation = glGetAttribLocation(shaderProgram, "TEXCOORD0"));
 }
 
-void BackgroundShaderManager::BindVertexAtribs()
+void SingleColorBackgroundShaderManager::BindVertexAtribs()
 {
 	const GLsizei POSITION_SIZE = 2;
 	const GLsizei TEXCOORD_SIZE = 2;
@@ -60,12 +60,12 @@ void BackgroundShaderManager::BindVertexAtribs()
 	*/
 }
 
-void BackgroundShaderManager::PreRender()
+void SingleColorBackgroundShaderManager::PreRender()
 {
 	GL_CHECK(glUniform4f(colorUniform, r, g, b, a));
 }
 
-void BackgroundShaderManager::Render(int quadsCount)
+void SingleColorBackgroundShaderManager::Render(int quadsCount)
 {
 	auto type = (roundCornerRadius == 0) ? GL_TRIANGLES : GL_TRIANGLE_FAN;
 
@@ -82,12 +82,12 @@ void BackgroundShaderManager::Render(int quadsCount)
 #endif
 }
 
-int BackgroundShaderManager::GetQuadVertices() const
+int SingleColorBackgroundShaderManager::GetQuadVertices() const
 {
 	return (roundCornerRadius == 0) ? 6 : 38;
 }
 
-void BackgroundShaderManager::FillQuadVertexData(
+void SingleColorBackgroundShaderManager::FillQuadVertexData(
 	const AbstractRenderer::Vertex& minVertex,
 	const AbstractRenderer::Vertex& maxVertex,
 	const AbstractRenderer::RenderParams& rp,
@@ -159,7 +159,7 @@ void BackgroundShaderManager::FillQuadVertexData(
 	}
 }
 
-void BackgroundShaderManager::FillRoundCornersQuad(float cx, float cy, float dx, float dy, float r, std::vector<float>& vec) const
+void SingleColorBackgroundShaderManager::FillRoundCornersQuad(float cx, float cy, float dx, float dy, float r, std::vector<float>& vec) const
 {
 
 	static const float sina[45] = { 0.0f, 0.1736482f, 0.3420201f, 0.5f, 0.6427876f, 0.7660444f, 0.8660254f,

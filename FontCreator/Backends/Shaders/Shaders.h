@@ -70,6 +70,57 @@ static const char* SINGLE_COLOR_PIXEL_SHADER_SOURCE = {
     }\n\
 " };
 
+//============================================================
+
+static const char* BACKGROUND_VERTEX_SHADER_SOURCE = {
+    "\n\
+    precision highp float;\n\
+    attribute vec2 POSITION;\n\
+    attribute vec4 COLOR;\n\
+    varying vec4 color;\n\
+    \n\
+    void main()\n\
+    {\n\
+        gl_Position = vec4(POSITION.x, POSITION.y, 0.0, 1.0); \n\
+        coílor = COLOR; \n\
+    }\n\
+" };
+
+static const char* BACKGROUND_PIXEL_SHADER_SOURCE = {
+    "\n\
+    precision highp float;\n\
+    varying vec4 color;\n\
+    \n\
+    void main()\n\
+    {\n\
+        gl_FragColor.rgba = color; \n\
+    }\n\
+" };
+
+//============================================================
+
+static const char* SINGLE_COLOR_BACKGROUND_VERTEX_SHADER_SOURCE = {
+    "\n\
+    precision highp float;\n\
+    attribute vec2 POSITION;\n\
+    \n\
+    void main()\n\
+    {\n\
+        gl_Position = vec4(POSITION.x, POSITION.y, 0.0, 1.0); \n\
+    }\n\
+" };
+
+static const char* SINGLE_COLOR_BACKGROUND_PIXEL_SHADER_SOURCE = {
+    "\n\
+    precision highp float;\n\
+    uniform vec4 bgColor;\n\
+    \n\
+    void main()\n\
+    {\n\
+        gl_FragColor.rgba = bgColor; \n\
+    }\n\
+" };
+
 #else
 static const char* DEFAULT_VERTEX_SHADER_SOURCE = {
 	"\n\
@@ -133,6 +184,31 @@ static const char* SINGLE_COLOR_PIXEL_SHADER_SOURCE = {
 static const char* BACKGROUND_VERTEX_SHADER_SOURCE = {
     "\n\
     attribute vec2 POSITION;\n\
+    attribute vec4 COLOR;\n\
+    varying vec4 color;\n\
+    \n\
+    void main()\n\
+    {\n\
+        gl_Position = vec4(POSITION.x, POSITION.y, 0.0, 1.0); \n\
+        color = COLOR; \n\
+    }\n\
+" };
+
+static const char* BACKGROUND_PIXEL_SHADER_SOURCE = {
+    "\n\
+    varying vec4 color;\n\
+	\n\
+    void main()\n\
+    {\n\
+        gl_FragColor.rgba = color; \n\
+    }\n\
+" };
+
+//============================================================
+
+static const char* SINGLE_COLOR_BACKGROUND_VERTEX_SHADER_SOURCE = {
+    "\n\
+    attribute vec2 POSITION;\n\
 	\n\
     void main()\n\
     {\n\
@@ -140,7 +216,7 @@ static const char* BACKGROUND_VERTEX_SHADER_SOURCE = {
     }\n\
 " };
 
-static const char* BACKGROUND_PIXEL_SHADER_SOURCE = {
+static const char* SINGLE_COLOR_BACKGROUND_PIXEL_SHADER_SOURCE = {
     "\n\
     uniform vec4 bgColor;\n\
 	\n\

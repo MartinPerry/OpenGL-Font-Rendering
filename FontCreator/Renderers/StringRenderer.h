@@ -18,24 +18,13 @@ public:
 	{
 		uint32_t start; //offset of start char within text
 		uint32_t len;   //line length
-		AABB aabb;		//line AABB
-		RenderParams renderParams;
+		AABB aabb;		//line AABB		
 		float maxNewLineOffset; //offset to next new line
 
 		LineInfo(const uint32_t& start) noexcept :
 			start(start),
 			len(0),
 			aabb(AABB()),
-			renderParams(DEFAULT_PARAMS),
-			maxNewLineOffset(0.0)
-		{}
-
-		LineInfo(const uint32_t& start,
-			const RenderParams& rp) noexcept :
-			start(start),
-			len(0),
-			aabb(AABB()),
-			renderParams(rp),
 			maxNewLineOffset(0.0)
 		{}
 
@@ -57,6 +46,8 @@ public:
 		float anchorX;
 		float anchorY;
 
+		RenderParams renderParams;
+
 		std::vector<LineInfo> lines;
 		AABB global;
 
@@ -70,12 +61,14 @@ public:
 			align(align),
 			type(type),
 			anchorX(static_cast<float>(x)),
-			anchorY(static_cast<float>(y))
+			anchorY(static_cast<float>(y)),
+			renderParams(DEFAULT_PARAMS)
 		{}
 
 		StringInfo(UnicodeString&& str, int x, int y,
 			TextAnchor anchor,
-			TextAlign align, TextType type) noexcept :
+			TextAlign align, TextType type,
+			const RenderParams& rp) noexcept :
 			str(std::move(str)),
 			x(x),
 			y(y),
@@ -83,7 +76,8 @@ public:
 			align(align),
 			type(type),
 			anchorX(static_cast<float>(x)),
-			anchorY(static_cast<float>(y))
+			anchorY(static_cast<float>(y)),
+			renderParams(rp)
 		{}
 
 	};

@@ -90,12 +90,12 @@ void BackendImage::SaveToFile(const char* fileName)
 
 void BackendImage::SetBackground(std::optional<BackgroundSettings> bs)
 {
-	if (bs)
+	if ((bs) && (bs->color.has_value()))
 	{
-		bgValue[0] = static_cast<uint8_t>(bs->color.r * 255);
-		bgValue[1] = static_cast<uint8_t>(bs->color.g * 255);
-		bgValue[2] = static_cast<uint8_t>(bs->color.b * 255);
-		bgValue[3] = static_cast<uint8_t>(bs->color.a * 255);
+		bgValue[0] = static_cast<uint8_t>(bs->color->r * 255);
+		bgValue[1] = static_cast<uint8_t>(bs->color->g * 255);
+		bgValue[2] = static_cast<uint8_t>(bs->color->b * 255);
+		bgValue[3] = static_cast<uint8_t>(bs->color->a * 255);
 	}
 	else 
 	{

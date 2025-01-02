@@ -755,7 +755,7 @@ bool NumberRenderer::GenerateGeometry()
 			}
 		}
 
-		this->OnFinishQuadGroup();
+		this->OnFinishQuadGroup(si.renderParams);
 	}
 
 	this->strChanged = false;

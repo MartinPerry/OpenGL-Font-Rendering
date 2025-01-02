@@ -39,10 +39,13 @@ public:
 	struct RenderParams
 	{
 		Color color;
-		float scale = 1.0f;
-		
+		float scale = 1.0f;			
+		std::optional<Color> bgColor = std::nullopt;
+
 		RenderParams() : color({ 0, 0, 0, 1 }), scale(1.0f) {};
+		RenderParams(float scale) : color({ 0, 0, 0, 1 }), scale(scale) {};
 		RenderParams(Color c, float scale) : color(c), scale(scale) {};
+		RenderParams(Color c, Color bgColor, float scale) : color(c), scale(scale), bgColor(bgColor) {};
 	};
 
 	static const Color DEFAULT_COLOR;
@@ -114,7 +117,7 @@ protected:
 
 	void AddQuad(const GlyphInfo& gi, int x, int y, const RenderParams& rp);
 	virtual void AddQuad(const GlyphInfo& gi, float x, float y, const RenderParams& rp);
-	void OnFinishQuadGroup();
+	void OnFinishQuadGroup(const RenderParams& rp);
 };
 
 #endif
