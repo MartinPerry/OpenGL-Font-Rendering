@@ -20,12 +20,23 @@ public:
 		uint32_t len;   //line length
 		AABB aabb;		//line AABB		
 		float maxNewLineOffset; //offset to next new line
+		std::optional<RenderParams> renderParams;
 
 		LineInfo(const uint32_t& start) noexcept :
 			start(start),
 			len(0),
-			aabb(AABB()),
-			maxNewLineOffset(0.0)
+			aabb(AABB()),						
+			maxNewLineOffset(0.0f),
+			renderParams(std::nullopt)
+		{}
+
+		LineInfo(const uint32_t& start,
+			const RenderParams& rp) noexcept :
+			start(start),
+			len(0),
+			aabb(AABB()),			
+			maxNewLineOffset(0.0f),
+			renderParams(rp)
 		{}
 
 	};

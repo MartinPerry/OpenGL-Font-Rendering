@@ -546,7 +546,9 @@ void StringRenderer::CalcStringAABB(StringInfo & si, const UsedGlyphCache * gc) 
 			//offset to new line of the last line 
 			//is based on the scale of the actual line
 
-			prevLine->maxNewLineOffset = newLineOffset * si.renderParams.scale;
+			float scale = li.renderParams ? li.renderParams->scale : si.renderParams.scale;
+
+			prevLine->maxNewLineOffset = newLineOffset * scale;
 			y += newLineOffset;
 		}		
 
@@ -590,10 +592,12 @@ void StringRenderer::CalcStringAABB(StringInfo & si, const UsedGlyphCache * gc) 
 
 	for (auto & li : si.lines)
 	{		
-		li.aabb.minX *= si.renderParams.scale;
-		li.aabb.maxX *= si.renderParams.scale;
-		li.aabb.minY *= si.renderParams.scale;
-		li.aabb.maxY *= si.renderParams.scale;
+		float scale = li.renderParams ? li.renderParams->scale : si.renderParams.scale;
+
+		li.aabb.minX *= scale;
+		li.aabb.maxX *= scale;
+		li.aabb.minY *= scale;
+		li.aabb.maxY *= scale;
 
 		si.global.UnionWithOffset(li.aabb, 0);
 	}
@@ -788,6 +792,8 @@ bool StringRenderer::GenerateGeometry()
 
 		for (const LineInfo & li : si.lines)
 		{
+			float scale = li.renderParams ? li.renderParams->scale : si.renderParams.scale;
+
 			float x = si.anchorX;
 
 			this->CalcLineAlign(si, li, x, y);
@@ -801,7 +807,7 @@ bool StringRenderer::GenerateGeometry()
 
 				if (c <= 32)
 				{
-					x += spaceSize * si.renderParams.scale;
+					x += spaceSize * scale;
 					continue;
 				}
 
@@ -815,9 +821,9 @@ bool StringRenderer::GenerateGeometry()
 
 				const GlyphInfo & gi = *it->second;
 
-				this->AddQuad(gi, x, y, si.renderParams);
+				this->AddQuad(gi, x, y, li.renderParams ? *li.renderParams : si.renderParams);
 
-				x += (gi.adv >> 6) * si.renderParams.scale;
+				x += (gi.adv >> 6) * scale;
 			}
 			
 			y += li.maxNewLineOffset;
