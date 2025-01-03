@@ -93,6 +93,10 @@ StringRenderer::StringInfo* StringRenderer::GetLastStringInfo()
         //with caption, there are two lines (text, mark)
         it--;
     }
+
+	//float captionMarkHeight = 0;
+	//this->CalcAnchoredPosition((*it), captionMarkHeight);
+
     return &(*it);
 }
 
@@ -115,6 +119,11 @@ void StringRenderer::SetBidiEnabled(bool val) noexcept
 void StringRenderer::SetStringDeadzone(int radiusPx) noexcept
 {
     this->deadzoneRadius2 = radiusPx * radiusPx;
+}
+
+float StringRenderer::GetMaxLineHeight() const 
+{
+	return static_cast<float>(this->fb->GetMaxNewLineOffset() + this->nlOffsetPx);
 }
 
 //=========================================================
@@ -312,7 +321,7 @@ bool StringRenderer::AddStringInternal(const UnicodeString & str,
 	lines.back().len = len;
 	
 	this->strChanged = true;
-
+	
     return true;
 }
 
@@ -512,7 +521,7 @@ AABB StringRenderer::EstimateStringAABB(const UnicodeString & str,
 /// <returns></returns>
 void StringRenderer::CalcStringAABB(StringInfo & si, const UsedGlyphCache * gc) const
 {			
-	float maxNewLineOffset = static_cast<float>(this->fb->GetMaxNewLineOffset() + this->nlOffsetPx);
+	float maxNewLineOffset = this->GetMaxLineHeight();
 				
 	float x = 0;
 	float y = 0;
@@ -606,53 +615,62 @@ void StringRenderer::CalcStringAABB(StringInfo & si, const UsedGlyphCache * gc) 
 
 
 /// <summary>
-/// Calculate start position of text using anchors
+/// Calculate start position of all texts using anchors
 /// </summary>
 void StringRenderer::CalcAnchoredPosition()
 {		
 	float captionMarkHeight = 0;
 
 	for (StringInfo & si : this->strs)
-	{		
-		if (si.lines.front().aabb.IsEmpty() == false)		
-		{
-			//position already computed - linesAABB filled
-			continue;
-		}
+	{				
+		this->CalcAnchoredPosition(si, captionMarkHeight);
+	}
+}
 
-		StringRenderer::UsedGlyphCache gc = this->ExtractGlyphs(si.str);
+/// <summary>
+/// Calculate start position of text using anchors
+/// </summary>
+/// <param name="si"></param>
+/// <param name="captionMarkHeight"></param>
+void StringRenderer::CalcAnchoredPosition(StringInfo& si, float& captionMarkHeight)
+{
+	if (si.lines.front().aabb.IsEmpty() == false)
+	{
+		//position already computed - linesAABB filled
+		return;
+	}
 
-		this->CalcStringAABB(si, &gc);
-		
-		if (si.anchor == TextAnchor::LEFT_TOP)
-		{			
-			si.anchorX = static_cast<float>(si.x);
-			si.anchorY = si.y - std::min(0.0f, si.global.minY);
-		}
-		else if (si.anchor == TextAnchor::CENTER)
-		{						
-			si.anchorX = static_cast<float>(si.x - static_cast<int>(si.global.GetWidth()) / 2);			
-			si.anchorY = static_cast<float>(si.y - std::min(0.0f, si.global.minY) - static_cast<int>(si.global.GetHeight()) / 2);
-		}
-		else if (si.anchor == TextAnchor::LEFT_DOWN)
-		{		
-			si.anchorX = static_cast<float>(si.x);
-			si.anchorY = si.y - si.global.GetHeight();
-		}
+	StringRenderer::UsedGlyphCache gc = this->ExtractGlyphs(si.str);
 
-		if (si.type == TextType::CAPTION_SYMBOL)
-		{
-			captionMarkHeight = si.global.GetHeight();
-		}
-		else if (si.type == TextType::CAPTION_TEXT)
-		{	
-			float h = si.global.GetHeight() + captionMarkHeight;
-			h *= 0.5;
+	this->CalcStringAABB(si, &gc);
 
-			si.anchorY -= h;
-			si.anchorY -= ci.offset;
-		}		
-		
+	if (si.anchor == TextAnchor::LEFT_TOP)
+	{
+		si.anchorX = static_cast<float>(si.x);
+		si.anchorY = si.y - std::min(0.0f, si.global.minY);
+	}
+	else if (si.anchor == TextAnchor::CENTER)
+	{
+		si.anchorX = static_cast<float>(si.x - static_cast<int>(si.global.GetWidth()) / 2);
+		si.anchorY = static_cast<float>(si.y - std::min(0.0f, si.global.minY) - static_cast<int>(si.global.GetHeight()) / 2);
+	}
+	else if (si.anchor == TextAnchor::LEFT_DOWN)
+	{
+		si.anchorX = static_cast<float>(si.x);
+		si.anchorY = si.y - si.global.GetHeight();
+	}
+
+	if (si.type == TextType::CAPTION_SYMBOL)
+	{
+		captionMarkHeight = si.global.GetHeight();
+	}
+	else if (si.type == TextType::CAPTION_TEXT)
+	{
+		float h = si.global.GetHeight() + captionMarkHeight;
+		h *= 0.5;
+
+		si.anchorY -= h;
+		si.anchorY -= ci.offset;
 	}
 }
 

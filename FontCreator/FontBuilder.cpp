@@ -167,7 +167,7 @@ int FontBuilder::InitializeFont(const std::string & fontFacePath)
 
 	FT_Select_Charmap(ff, FT_ENCODING_UNICODE);
 
-	int lastIndex = static_cast<int>(this->fis.size());;
+	int lastIndex = static_cast<int>(this->fis.size());
 
 	fi.fontFace = ff;
 	fi.index = lastIndex;
@@ -224,8 +224,8 @@ bool FontBuilder::SetFontSizePts(FontInfo & f, uint16_t size, uint16_t dpi)
 	double pixel_size = size * dpi / 72.0;
 
 	
-	f.maxPixelsHeight = static_cast<int>(std::round((f.fontFace->bbox.yMax - f.fontFace->bbox.yMin) * pixel_size / f.fontFace->units_per_EM));
-	f.maxPixelsWidth = static_cast<int>(std::round((f.fontFace->bbox.xMax - f.fontFace->bbox.xMin) * pixel_size / f.fontFace->units_per_EM));
+	f.maxPixelsHeight = static_cast<int16_t>(std::round((f.fontFace->bbox.yMax - f.fontFace->bbox.yMin) * pixel_size / f.fontFace->units_per_EM));
+	f.maxPixelsWidth = static_cast<int16_t>(std::round((f.fontFace->bbox.xMax - f.fontFace->bbox.xMin) * pixel_size / f.fontFace->units_per_EM));
 
 	//f.fontSizePixels = (size * (dpi / 64)); // this->fontFace->size->metrics.y_ppem;	
 	f.newLineOffset = static_cast<int16_t>(f.fontFace->size->metrics.height / 64);
@@ -415,17 +415,17 @@ void FontBuilder::SetAllFontSize(const FontSize & fs, uint16_t defaultFontSizeIn
 	{
 		if (fs.sizeType == FontSize::SizeType::px)
 		{
-			this->SetFontSizePixels(f, static_cast<int>(fs.size));
+			this->SetFontSizePixels(f, static_cast<int16_t>(fs.size));
 		}
 		else if (fs.sizeType == FontSize::SizeType::em)
 		{
-			int size = static_cast<int>(defaultFontSizeInPx * fs.size * screenScale);
+			int16_t size = static_cast<int16_t>(defaultFontSizeInPx * fs.size * screenScale);
 
 			this->SetFontSizePixels(f, size);
 		}
 		else
 		{
-			this->SetFontSizePts(f, static_cast<int>(fs.size), screenDpi);
+			this->SetFontSizePts(f, static_cast<int16_t>(fs.size), screenDpi);
 		}
 	}
 
@@ -844,10 +844,10 @@ bool FontBuilder::FillGlyphInfo(CHAR_CODE c, FontInfo & fi) const
 	GlyphInfo gInfo;
 	gInfo.code = c;
 	gInfo.fontIndex = fi.index;
-	gInfo.bmpX = static_cast<int>(glyph->bitmap_left * fi.scaleFactor);
-	gInfo.bmpY = static_cast<int>(glyph->bitmap_top * fi.scaleFactor);
-	gInfo.bmpW = static_cast<int>(glyph->bitmap.width * fi.scaleFactor);
-	gInfo.bmpH = static_cast<int>(glyph->bitmap.rows * fi.scaleFactor);
+	gInfo.bmpX = static_cast<uint16_t>(glyph->bitmap_left * fi.scaleFactor);
+	gInfo.bmpY = static_cast<uint16_t>(glyph->bitmap_top * fi.scaleFactor);
+	gInfo.bmpW = static_cast<uint16_t>(glyph->bitmap.width * fi.scaleFactor);
+	gInfo.bmpH = static_cast<uint16_t>(glyph->bitmap.rows * fi.scaleFactor);
 	gInfo.adv = static_cast<long>(glyph->advance.x * fi.scaleFactor);
 	gInfo.rawData = nullptr;
 

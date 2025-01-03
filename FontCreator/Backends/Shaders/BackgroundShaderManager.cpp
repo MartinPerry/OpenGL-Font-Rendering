@@ -1,10 +1,16 @@
 #include "./BackgroundShaderManager.h"
 
 
-BackgroundShaderManager::BackgroundShaderManager() :
-	positionLocation(0),	
-	colorLocation(0),
-	roundCornerRadius(0)
+BackgroundShaderManager::BackgroundShaderManager() :	
+	positionLocation(-1),	
+	colorLocation(-1),
+	aabbLocation(-1),
+	roundCornerRadius(0.0f),
+	shadow(false),
+	min_x(0),
+	min_y(0),
+	max_x(0),
+	max_y(0)
 {
 }
 
@@ -14,6 +20,11 @@ void BackgroundShaderManager::SetCornerRadius(float radius)
 	this->roundCornerRadius = radius;
 }
 
+void BackgroundShaderManager::SetShadowEnabled(bool shadow)
+{
+	this->shadow = shadow;
+}
+
 /// <summary>
 /// Get shader uniforms and attributes locations
 /// </summary>
@@ -21,14 +32,19 @@ void BackgroundShaderManager::GetAttributtesUniforms()
 {	
 	GL_CHECK(positionLocation = glGetAttribLocation(shaderProgram, "POSITION"));
 	GL_CHECK(colorLocation = glGetAttribLocation(shaderProgram, "COLOR"));
+	GL_CHECK(aabbLocation = glGetAttribLocation(shaderProgram, "AABB"));
 }
 
 void BackgroundShaderManager::BindVertexAtribs()
 {
 	const GLsizei POSITION_SIZE = 2;
 	const GLsizei COLOR_SIZE = 4;
+	const GLsizei AABB_SIZE = 4;
 	
-	const GLsizei VERTEX_SIZE = (POSITION_SIZE + COLOR_SIZE) * sizeof(float);
+	const GLsizei VERTEX_SIZE = (aabbLocation != -1) ? 
+		(POSITION_SIZE + COLOR_SIZE + AABB_SIZE) * sizeof(float) : 
+		(POSITION_SIZE + COLOR_SIZE) * sizeof(float);
+
 	const size_t POSITION_OFFSET = 0;	
 	const size_t COLOR_OFFSET = POSITION_OFFSET + POSITION_SIZE * sizeof(float);
 
@@ -41,6 +57,22 @@ void BackgroundShaderManager::BindVertexAtribs()
 	GL_CHECK(glVertexAttribPointer(colorLocation, COLOR_SIZE,
 		GL_FLOAT, GL_FALSE,
 		VERTEX_SIZE, (void*)(COLOR_OFFSET)));
+
+	if (aabbLocation != -1)
+	{
+		const size_t AABB_OFFSET = COLOR_OFFSET + COLOR_SIZE * sizeof(float);
+
+		GL_CHECK(glEnableVertexAttribArray(aabbLocation));
+		GL_CHECK(glVertexAttribPointer(aabbLocation, AABB_SIZE,
+			GL_FLOAT, GL_FALSE,
+			VERTEX_SIZE, (void*)(AABB_OFFSET)));
+	}
+}
+
+void BackgroundShaderManager::Clear()
+{
+	this->startingElements.clear();
+	this->counts.clear();
 }
 
 void BackgroundShaderManager::PreRender()
@@ -51,17 +83,14 @@ void BackgroundShaderManager::PreRender()
 void BackgroundShaderManager::Render(int quadsCount)
 {
 	auto type = (roundCornerRadius == 0) ? GL_TRIANGLES : GL_TRIANGLE_FAN;
-
-	//GL_CHECK(glDrawArrays(type, 0, quadsCount * this->GetQuadVertices()));	
-	//return;
-
-#if defined(__APPLE__) || defined(__ANDROID_API__)
-	for (int i = 0; i < quadsCount; ++i)
+	
+#if (defined(__APPLE__) || defined(__ANDROID_API__))
+	for (int i = 0; i < counts.size(); ++i)
 	{
 		GL_CHECK(glDrawArrays(type, startingElements[i], counts[i]));
 	}
 #else
-	GL_CHECK(glMultiDrawArrays(type, startingElements.data(), counts.data(), quadsCount));	
+	GL_CHECK(glMultiDrawArrays(type, startingElements.data(), counts.data(), counts.size()));
 #endif
 }
 
@@ -70,12 +99,13 @@ int BackgroundShaderManager::GetQuadVertices() const
 	return (roundCornerRadius == 0) ? 6 : 38;
 }
 
+
 void BackgroundShaderManager::FillQuadVertexData(
 	const AbstractRenderer::Vertex& minVertex,
 	const AbstractRenderer::Vertex& maxVertex,
 	const AbstractRenderer::RenderParams& rp,
 	std::vector<float>& vec)
-{
+{	
 	if (rp.bgColor.has_value() == false)
 	{
 		return;
@@ -87,6 +117,11 @@ void BackgroundShaderManager::FillQuadVertexData(
 
 	const float maxX = 2.0f * maxVertex.x - 1.0f;
 	const float maxY = -(2.0f * maxVertex.y - 1.0f);
+
+	min_x = minX;
+	min_y = minY;
+	max_x = maxX;
+	max_y = maxY;
 
 	if (roundCornerRadius == 0)
 	{
@@ -203,4 +238,10 @@ void BackgroundShaderManager::AddVertex(float x, float y, const AbstractRenderer
 	vec.push_back(x); vec.push_back(y);	
 	vec.push_back(rp.bgColor->r); vec.push_back(rp.bgColor->g);
 	vec.push_back(rp.bgColor->b); vec.push_back(rp.bgColor->a);
+
+	if (this->aabbLocation != -1)
+	{
+		vec.push_back(min_x); vec.push_back(min_y);
+		vec.push_back(max_x); vec.push_back(max_y);
+	}
 }

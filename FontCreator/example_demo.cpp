@@ -444,9 +444,10 @@ void initGL() {
 
 	//todo
 	BackgroundSettings bs;
-	//bs.color = { 1,0, 1, 0.6f };
+	//bs.color = { 0,1, 1, 0.6f };
 	bs.padding = 8;
-	bs.cornerRadius = 40;// 20;
+	bs.cornerRadius =  40;// 20;
+	bs.shadow = true;
 	fr->SetBackgroundSettings(bs);
 
 	RenderSettings ri;

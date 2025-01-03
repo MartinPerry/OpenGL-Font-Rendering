@@ -363,9 +363,11 @@ void BackendOpenGL::Clear()
 {
 	BackendBase::Clear();
 
+	this->sm->Clear();
+
 	if (this->background)
 	{
-		this->background->Clear();
+		this->background->Clear();		
 	}
 }
 

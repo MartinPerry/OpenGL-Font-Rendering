@@ -60,6 +60,12 @@ void SingleColorBackgroundShaderManager::BindVertexAtribs()
 	*/
 }
 
+void SingleColorBackgroundShaderManager::Clear()
+{
+	this->startingElements.clear();
+	this->counts.clear();
+}
+
 void SingleColorBackgroundShaderManager::PreRender()
 {
 	GL_CHECK(glUniform4f(colorUniform, r, g, b, a));
@@ -72,13 +78,14 @@ void SingleColorBackgroundShaderManager::Render(int quadsCount)
 	//GL_CHECK(glDrawArrays(type, 0, quadsCount * this->GetQuadVertices()));	
 	//return;
 
-#if defined(__APPLE__) || defined(__ANDROID_API__)
-	for (int i = 0; i < quadsCount; ++i)
+
+#if (defined(__APPLE__) || defined(__ANDROID_API__))
+	for (int i = 0; i < counts.size(); ++i)
 	{
 		GL_CHECK(glDrawArrays(type, startingElements[i], counts[i]));
-	}
+}
 #else
-	GL_CHECK(glMultiDrawArrays(type, startingElements.data(), counts.data(), quadsCount));	
+	GL_CHECK(glMultiDrawArrays(type, startingElements.data(), counts.data(), counts.size()));
 #endif
 }
 

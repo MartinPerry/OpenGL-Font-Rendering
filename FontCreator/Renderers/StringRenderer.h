@@ -112,6 +112,8 @@ public:
 	
     void SetStringDeadzone(int radiusPx) noexcept;
 	
+	float GetMaxLineHeight() const;
+
 	//=========================================================
 
 	bool AddStringCaption(const char * str,
@@ -186,6 +188,7 @@ protected:
 	void CalcStringAABB(StringInfo & str, const UsedGlyphCache * gc) const;
 
 	void CalcAnchoredPosition();
+	void CalcAnchoredPosition(StringInfo& si, float& captionMarkHeight);
 	void CalcLineAlign(const StringInfo & si, const LineInfo & li, float & x, float & y) const;
 
 	UsedGlyphCache ExtractGlyphs(const UnicodeString & str);

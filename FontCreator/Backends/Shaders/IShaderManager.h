@@ -30,6 +30,8 @@ public:
         const AbstractRenderer::RenderParams& rp,
         std::vector<float>& vec) = 0;
 
+    virtual void Clear() { }
+
     virtual void PreRender() {	}
 
     virtual void Render(int quadsCount);

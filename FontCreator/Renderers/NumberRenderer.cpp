@@ -296,7 +296,13 @@ bool NumberRenderer::AddIntegralNumberInternal(long val,
 			if ((s.x == x) && (s.y == y) &&
 				(s.anchor == anchor) && (s.type == type))
 			{
-				if (s.val == val)
+				if ((s.negative) && (-s.val == val))
+				{
+					//same number on the same position and with same align
+					//already exist - do not add it again
+					return false;
+				}
+				else if (s.val == val)
 				{
 					//same number on the same position and with same align
 					//already exist - do not add it again
@@ -338,7 +344,13 @@ bool NumberRenderer::AddFloatNumberInternal(double val,
 			if ((s.x == x) && (s.y == y) &&
 				(s.anchor == anchor) && (s.type == type))
 			{
-				if (s.val == val)
+				if ((s.negative) && (-s.val == val))
+				{
+					//same number on the same position and with same align
+					//already exist - do not add it again
+					return false;
+				}
+				else if (s.val == val)
 				{
 					//same number on the same position and with same align
 					//already exist - do not add it again

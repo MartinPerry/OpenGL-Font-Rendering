@@ -18,6 +18,7 @@ public:
     void BindVertexAtribs() override;
    
     void SetCornerRadius(float radius);
+    void SetShadowEnabled(bool shadow);
 
     int GetQuadVertices() const override;
 
@@ -26,6 +27,8 @@ public:
         const AbstractRenderer::RenderParams& rp,
         std::vector<float>& vec) override;
 
+    void Clear() override;
+
     void PreRender() override;
 
     void Render(int quadsCount) override;
@@ -33,8 +36,15 @@ public:
 protected:
     GLint positionLocation;
     GLint colorLocation;
-    
+    GLint aabbLocation;
+        
     float roundCornerRadius;
+    bool shadow;
+
+    float min_x;
+    float min_y;
+    float max_x;
+    float max_y;
 
     std::vector<GLint> startingElements;
     std::vector<GLint> counts;

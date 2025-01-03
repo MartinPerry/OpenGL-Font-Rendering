@@ -27,6 +27,8 @@ public:
         const AbstractRenderer::RenderParams& rp,
         std::vector<float>& vec) override;
 
+    void Clear() override;
+
     void PreRender() override;
 
     void Render(int quadsCount) override;

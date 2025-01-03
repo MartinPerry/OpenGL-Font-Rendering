@@ -220,6 +220,7 @@ struct BackgroundSettings
 	std::optional<Color> color = std::nullopt;
 	float padding = 0.0f;
 	float cornerRadius = 0.0f;
+	bool shadow = false;
 };
 
 /// <summary>
