@@ -144,6 +144,8 @@ typedef utf8_string UnicodeString;
 
 #   define NEED_BIDI(x) IcuUtils::RequiresBidi(x)
 
+	//may need reinterpret_cast<const char*>(x) in C++20 for u8"" strings
+	//https://stackoverflow.com/questions/57402464/is-c20-char8-t-the-same-as-our-old-char
 #	define UTF8_TEXT(x) icu::UnicodeString::fromUTF8(x)
 
 #	define UTF8_UNESCAPE(x) icu::UnicodeString::fromUTF8(x).unescape()

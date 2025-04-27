@@ -19,7 +19,7 @@ public:
 
 	void OnFinishQuadGroup(const AbstractRenderer::RenderParams& rp) override;
 	
-	virtual void Render(std::function<void(GLuint)> preDrawCallback, std::function<void()> postDrawCallback);
+	virtual void Render(std::function<void(GLuint)> preDrawCallback, std::function<void()> postDrawCallback) override;
 	
 protected:
 	
