@@ -372,14 +372,17 @@ void TextureAtlasPack::CopyDataToTexture()
 			
 			//safety update - sometimes glyphs are bigger that bin - change size by removing
 			//right / bottom lines from data - during copy, texture will reside in its bin
-			if (g.bmpH > this->gridBinH)
+			if (this->method == PACKING_METHOD::GRID)
 			{
-				g.bmpH = this->gridBinH;				
-			}
+				if (g.bmpH > this->gridBinH)
+				{
+					g.bmpH = this->gridBinH;
+				}
 
-			if (g.bmpW > this->gridBinW)
-			{
-				g.bmpW = this->gridBinW;				
+				if (g.bmpW > this->gridBinW)
+				{
+					g.bmpW = this->gridBinW;
+				}
 			}
 
 			//draw "border around letter"
@@ -679,7 +682,7 @@ bool TextureAtlasPack::FreeSpace(int spaceWidth, int spaceHeight, CHAR_CODE * c)
 		*c = it->first;
 
 		auto jt = this->erased.find(*c);
-		if (jt != this->erased.end())
+		if (jt == this->erased.end())
 		{
 			//already erased - space is not free anymore
 			continue;
