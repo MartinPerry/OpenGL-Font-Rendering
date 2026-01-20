@@ -210,6 +210,10 @@ bool TextureAtlasPack::PackGrid()
 					//no more empty space
 					MY_LOG_INFO("Empty space in atlas not found and cannot be freed for glyph %lu", g.code);										
 					//this->AddToErased(g.fontIndex, g.code);
+
+					g.tx = std::numeric_limits<uint16_t>::max();
+					g.ty = std::numeric_limits<uint16_t>::max();
+
 					return false;
 				}
 
@@ -221,6 +225,10 @@ bool TextureAtlasPack::PackGrid()
 				{
 					MY_LOG_INFO("Empty space in atlas not found and cannot be freed for glyph %lu", g.code);
 					//this->AddToErased(g.fontIndex, g.code);
+
+					g.tx = std::numeric_limits<uint16_t>::max();
+					g.ty = std::numeric_limits<uint16_t>::max();
+
 					return false;
 				}
 				
@@ -308,6 +316,10 @@ bool TextureAtlasPack::PackTight()
 					MY_LOG_ERROR("Empty space in atlas not found and cannot be freed for glyph %lu", g.code);
 					MY_LOG_ERROR("Requested size: %d %d", g.bmpW + b, g.bmpH + b);
 					//return false;
+
+					g.tx = std::numeric_limits<uint16_t>::max();
+					g.ty = std::numeric_limits<uint16_t>::max();
+
 					continue;
 				}
 

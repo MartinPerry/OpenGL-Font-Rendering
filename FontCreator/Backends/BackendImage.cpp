@@ -214,6 +214,12 @@ void BackendImage::Render()
 		int maxU = static_cast<int>(this->geom[i + 6]);
 		int maxV = static_cast<int>(this->geom[i + 7]);
 
+		if (minU == std::numeric_limits<uint16_t>::max())
+		{
+			continue;
+		}
+			
+
 		if (format != Format::GRAYSCALE)
 		{
 			rgba[0] = this->geom[i + 8];
