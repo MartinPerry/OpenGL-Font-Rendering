@@ -7,7 +7,6 @@ typedef uint32_t CHAR_CODE;
 class FontBuilder;
 
 #include <stdint.h>
-#include <unordered_map>
 #include <list>
 #include <string>
 #include <limits>
@@ -60,9 +59,8 @@ struct GlyphInfo
 struct FontInfo
 {	
 	//!!!! in ankerl - iterator is not valid after item erase !!!!
-	using GlyphIterator = ankerl::unordered_dense::map<CHAR_CODE, GlyphInfo>::iterator;
-	//using GlyphIterator = std::unordered_map<CHAR_CODE, GlyphInfo>::iterator;
-
+	using GlyphIterator = HashMap<CHAR_CODE, GlyphInfo>::iterator;
+	
 	std::string faceName;
 	uint16_t maxPixelsWidth;
 	uint16_t maxPixelsHeight;
@@ -70,9 +68,8 @@ struct FontInfo
 	
 	int16_t newLineOffset;
 
-	ankerl::unordered_dense::map<CHAR_CODE, GlyphInfo> glyphs;
-	//std::unordered_map<CHAR_CODE, GlyphInfo> glyphs;
-	
+	HashMap<CHAR_CODE, GlyphInfo> glyphs;
+		
 
 	FT_Face fontFace;
 	int index;

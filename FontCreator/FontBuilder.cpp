@@ -87,30 +87,20 @@ FontBuilder::~FontBuilder()
 /// </summary>
 void FontBuilder::Release()
 {	
-	for (FontInfo & f : this->fis)
+	for (FontInfo& f : this->fis)
 	{
+		for (auto& [code, c] : f.glyphs)
+		{
+			SAFE_DELETE_ARRAY(c.rawData);
+		}
+
 		FT_Done_Face(f.fontFace);
 		f.fontFace = nullptr;
 	}
 
 
 	FT_Done_FreeType(this->library);
-	this->library = nullptr;
-	
-	for (FontInfo & f : this->fis)
-	{
-		for (auto & [code, c] : f.glyphs)
-		{
-			SAFE_DELETE_ARRAY(c.rawData);
-		}
-	}
-
-	/*
-	for (auto & f : this->memoryFonts)
-	{
-		SAFE_DELETE_ARRAY(f);
-	}
-	*/
+	this->library = nullptr;	
 }
 
 //================================================================

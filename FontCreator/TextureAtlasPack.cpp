@@ -39,7 +39,7 @@ TextureAtlasPack::~TextureAtlasPack()
 }
 
 
-std::unordered_map<CHAR_CODE, TextureAtlasPack::PackedInfo> & TextureAtlasPack::GetPackedInfos()
+HashMap<CHAR_CODE, TextureAtlasPack::PackedInfo> & TextureAtlasPack::GetPackedInfos()
 {
 	return this->packedInfo;
 }
@@ -99,7 +99,7 @@ void TextureAtlasPack::SetUnusedGlyphs(std::list<FontInfo::GlyphIterator> * unus
 	this->unused = unused;
 }
 
-const std::unordered_map<CHAR_CODE, int> & TextureAtlasPack::GetErasedGlyphs()
+const HashMap<CHAR_CODE, int> & TextureAtlasPack::GetErasedGlyphs()
 {
 	return this->erased;
 }
@@ -232,9 +232,12 @@ bool TextureAtlasPack::PackGrid()
 					return false;
 				}
 				
-				auto it = this->packedInfo.find(removedCode);
-				info = it->second;
-				this->packedInfo.erase(it);
+				auto tmp = this->packedInfo.extract(removedCode);
+				info = std::move(tmp->second);
+
+				//auto it = this->packedInfo.find(removedCode);
+				//info = it->second;
+				//this->packedInfo.erase(it);
 			}
 			else
 			{
@@ -259,7 +262,7 @@ bool TextureAtlasPack::PackGrid()
 			count++;
 			this->averageGlyphSize += g.bmpW * g.bmpH;
 
-			this->packedInfo[g.code] = info;
+			this->packedInfo.try_emplace(g.code, info);
 		}
 	}
 
@@ -327,10 +330,12 @@ bool TextureAtlasPack::PackTight()
 					continue;
 				}
 
-				auto it = this->packedInfo.find(c);
+				auto tmp = this->packedInfo.extract(c);
+				info = std::move(tmp->second);
 
-				info = it->second;
-				this->packedInfo.erase(it);
+				//auto it = this->packedInfo.find(c);
+				//info = it->second;
+				//this->packedInfo.erase(it);
 			}
 			else
 			{
@@ -344,7 +349,7 @@ bool TextureAtlasPack::PackTight()
 			g.tx = px + this->border;
 			g.ty = py + this->border;
 
-			this->packedInfo[g.code] = info;
+			this->packedInfo.try_emplace(g.code, info);
 		}
 	}
 
@@ -748,11 +753,13 @@ void TextureAtlasPack::RemoveErasedGlyphsFromFontInfo()
 	{				
 		FontInfo& fi = (*this->fontInfos)[fontIndex];
 
-		FontInfo::GlyphIterator gi = fi.glyphs.find(code);
+		auto gi = fi.glyphs.extract(code);
+
+		//FontInfo::GlyphIterator gi = fi.glyphs.find(code);
 		
 		SAFE_DELETE_ARRAY(gi->second.rawData);
 						
-		fi.glyphs.erase(gi);				
+		//fi.glyphs.erase(gi);				
 	}
 
 	this->erased.clear();

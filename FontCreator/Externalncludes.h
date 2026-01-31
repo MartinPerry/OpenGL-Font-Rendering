@@ -44,6 +44,9 @@
 
 #include "./Utils/ankerl/unordered_dense.h"
 
+template <typename K, typename V>
+using HashMap = ankerl::unordered_dense::map<K, V>;
+
 //=====================================================================================
 //Global macros
 

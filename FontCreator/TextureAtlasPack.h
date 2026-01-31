@@ -2,11 +2,11 @@
 #define TEXTURE_ATLAS_PACK_H
 
 #include <list>
-#include <unordered_map>
 #include <stdint.h>
 #include <string.h>
 #include <random>
 
+#include "./Externalncludes.h"
 #include "./FontBuilder.h"
 #include "./FontStructures.h"
 
@@ -30,11 +30,11 @@ public:
 	~TextureAtlasPack();
 
 
-	std::unordered_map<CHAR_CODE, PackedInfo> & GetPackedInfos();
+	HashMap<CHAR_CODE, PackedInfo> & GetPackedInfos();
 
 	void SetAllFontInfos(std::vector<FontInfo> * fontInfos);
 	void SetUnusedGlyphs(std::list<FontInfo::GlyphIterator> * unused);
-	const std::unordered_map<CHAR_CODE, int> & GetErasedGlyphs();
+	const HashMap<CHAR_CODE, int> & GetErasedGlyphs();
 
 	void SetTightPacking();
 	void SetGridPacking(uint16_t binW, uint16_t binH);
@@ -86,7 +86,7 @@ private:
 	//std::list<GlyphInfo> * glyphs;
 	std::vector<FontInfo>* fontInfos;
 	std::list<FontInfo::GlyphIterator>* unused;
-	std::unordered_map<CHAR_CODE, int> erased; //[code] = fontIndex
+	HashMap<CHAR_CODE, int> erased; //[code] = fontIndex
 	
 	uint16_t gridBinW;
 	uint16_t gridBinH;
@@ -98,7 +98,7 @@ private:
 
 	int freePixels;
 	uint8_t * rawPackedData;
-	std::unordered_map<CHAR_CODE, PackedInfo> packedInfo;
+	HashMap<CHAR_CODE, PackedInfo> packedInfo;
 	
 	void Clear();
 	void EraseAllUnused();	

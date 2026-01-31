@@ -5,8 +5,6 @@
 #include <string>
 #include <shared_mutex>
 
-#include <unordered_map>
-
 #include "./Externalncludes.h"
 
 class FontCache 
@@ -35,7 +33,7 @@ protected:
 	std::shared_timed_mutex m;
 #endif
 
-	std::unordered_map<std::string, Cache> cache;
+	HashMap<std::string, Cache> cache;
 
 	FontCache();
 
