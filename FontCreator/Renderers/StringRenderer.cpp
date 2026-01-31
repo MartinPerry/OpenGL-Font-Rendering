@@ -387,53 +387,69 @@ bool StringRenderer::CanAddString(const UnicodeString & uniStr,
     
 	if ((deadzoneRadius2 > 0) && (uniStr != ci.mark))
 	{
-		const int upVectorX = 0;
-		const int upVectorY = (this->axisYOrigin == AbstractRenderer::AxisYOrigin::DOWN) ? -1 : 1;
-
-		//test if new string is in "dead zone" of existing strings
-		//if yes - do not add it
-		for (const StringInfo& s : this->strs)
+		if (this->DeadzoneCheck(x, y))
 		{
-			if (s.type == TextType::CAPTION_SYMBOL)
-			{
-				continue;
-			}
-
-			int dx = (s.x - x);
-			int dy = (s.y - y);
-
-			int dist2 = dx * dx + dy * dy;
-			if (dist2 < deadzoneRadius2)
-			{
-				if (dist2 == 0)
-				{
-					return false;
-				}
-
-				//update distance based on dot product
-				//if new string is in line with existing, we want higher radius
-				//if new string is above, we are ok with a smaller radius
-
-				float lenInv = 1.0f / std::sqrt(static_cast<float>(dist2));
-
-				float dot = (upVectorX * (dx * lenInv) + upVectorY * (dy * lenInv));
-
-				//upper weight is shorter.. based on string estimated length
-				//the longer the string is, the thinner deadzone is
-				const float minWeight = (1.0f / s.str.length()) * s.lines.size();
-				const float maxWeight = 1.0;
-				float dist2Weighted = dist2 * (maxWeight + dot * (minWeight - maxWeight));
-
-				if (dist2Weighted < deadzoneRadius2)
-				{
-					return false;
-				}
-			}
+			return false;
 		}
 	}
 
 
 	return true;
+}
+
+/// <summary>
+/// Check if position [x, y] is nearby some existing string
+/// </summary>
+/// <param name="x"></param>
+/// <param name="y"></param>
+/// <returns></returns>
+bool StringRenderer::DeadzoneCheck(int x, int y) const
+{
+	const int upVectorX = 0;
+	const int upVectorY = (this->axisYOrigin == AbstractRenderer::AxisYOrigin::DOWN) ? -1 : 1;
+
+	//test if new string is in "dead zone" of existing strings
+	//if yes - do not add it
+	for (const StringInfo& s : this->strs)
+	{
+		if (s.type == TextType::CAPTION_SYMBOL)
+		{
+			continue;
+		}
+
+		const int dx = (s.x - x);
+		const int dy = (s.y - y);
+
+		const int dist2 = dx * dx + dy * dy;
+		if (dist2 < this->deadzoneRadius2)
+		{
+			if (dist2 == 0)
+			{
+				return true;
+			}
+
+			//update distance based on dot product
+			//if new string is in line with existing, we want higher radius
+			//if new string is above, we are ok with a smaller radius
+
+			const float lenInv = 1.0f / std::sqrt(static_cast<float>(dist2));
+
+			const float dot = (upVectorX * (dx * lenInv) + upVectorY * (dy * lenInv));
+
+			//upper weight is shorter.. based on string estimated length
+			//the longer the string is, the thinner deadzone is
+			const float minWeight = (1.0f / s.str.length()) * s.lines.size();
+			const float maxWeight = 1.0;
+			const float dist2Weighted = dist2 * (maxWeight + dot * (minWeight - maxWeight));
+
+			if (dist2Weighted < this->deadzoneRadius2)
+			{
+				return true;
+			}
+		}
+	}
+
+	return false;
 }
 
 /// <summary>
@@ -486,7 +502,7 @@ AABB StringRenderer::EstimateStringAABB(const UnicodeString & str,
 		auto it = this->fb->GetGlyph(c, exist, &fi);
 		if (exist)
 		{					
-			const GlyphInfo & gi = *it->second;
+			const GlyphInfo & gi = it->second;
 			w = gi.bmpW * scale;
 			h = gi.bmpH * scale;
 			adv = (gi.adv >> 6) * scale;
@@ -506,6 +522,7 @@ AABB StringRenderer::EstimateStringAABB(const UnicodeString & str,
 
 
 		x += adv;
+		x += this->extraGlyphSpacingSize * scale;
 	}
 
 	return aabb;
@@ -577,17 +594,18 @@ void StringRenderer::CalcStringAABB(StringInfo & si, const UsedGlyphCache * gc) 
 			{
 				continue;
 			}
-			FontInfo::GlyphLutIterator it = std::get<0>(r);
+			FontInfo::GlyphIterator it = std::get<0>(r);
 			newLineOffset = std::max(newLineOffset, static_cast<float>(std::get<2>(r)->newLineOffset + this->nlOffsetPx));
 			
 
-			const GlyphInfo & gi = *it->second;
+			const GlyphInfo & gi = it->second;
 
 			float fx = x + gi.bmpX;
 			float fy = y - gi.bmpY;
 			li.aabb.Update(fx, fy, static_cast<float>(gi.bmpW), static_cast<float>(gi.bmpH));
 
 			x += (gi.adv >> 6);
+			x += this->extraGlyphSpacingSize;
 		}
 											
 				
@@ -737,7 +755,7 @@ long StringRenderer::CalcSpaceSize()
 	auto it = this->fb->GetGlyph(' ', spaceSizeExist);
 	if (spaceSizeExist)
 	{
-		const GlyphInfo & gi = *it->second;
+		const GlyphInfo & gi = it->second;
 		spaceSize = (gi.adv >> 6);
 	}
 	else
@@ -747,7 +765,7 @@ long StringRenderer::CalcSpaceSize()
 		auto tmp = this->fb->GetGlyph('a', tmpExist);
 		if (tmpExist)
 		{
-			const GlyphInfo & gi = *tmp->second;
+			const GlyphInfo & gi = tmp->second;
 			spaceSize = (gi.adv >> 6);
 		}
 		else
@@ -755,6 +773,8 @@ long StringRenderer::CalcSpaceSize()
 			spaceSize = 10;
 		}
 	}
+
+	spaceSize += this->extraGlyphSpacingSize;
 
 	return spaceSize;
 
@@ -837,11 +857,12 @@ bool StringRenderer::GenerateGeometry()
 					continue;
 				}
 
-				const GlyphInfo & gi = *it->second;
+				const GlyphInfo & gi = it->second;
 
 				this->AddQuad(gi, x, y, li.renderParams ? *li.renderParams : si.renderParams);
 
 				x += (gi.adv >> 6) * scale;
+				x += this->extraGlyphSpacingSize * scale;
 			}
 			
 			y += li.maxNewLineOffset;

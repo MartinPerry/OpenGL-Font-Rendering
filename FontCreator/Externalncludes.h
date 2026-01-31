@@ -42,6 +42,8 @@
 
 #include "./Utils/StringIterators.h"
 
+#include "./Utils/ankerl/unordered_dense.h"
+
 //=====================================================================================
 //Global macros
 

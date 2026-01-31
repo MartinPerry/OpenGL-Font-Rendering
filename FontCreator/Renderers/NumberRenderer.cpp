@@ -119,8 +119,8 @@ void NumberRenderer::Init()
 			throw std::invalid_argument("Unknown number character");
 		}
 
-
-		this->gi[it->first] = *it->second;
+		
+		this->gi[it->first] = it->second;
 	}
 
 
@@ -136,12 +136,12 @@ void NumberRenderer::Init()
 		else
 		{
 			this->SetCaption(UTF8_TEXT(u8"."), 10);
-			this->captionMark = *it->second;
+			this->captionMark = it->second;
 		}
 	}
 	else
 	{
-		this->captionMark = *it->second;
+		this->captionMark = it->second;
 	}
 			
 	this->SetDecimalPrecission(2);
@@ -570,7 +570,8 @@ AABB NumberRenderer::CalcNumberAABB(double val, int x, int y,
 		const GlyphInfo & gi = this->gi['-'];
 		
 		aabb.Update(x + gi.bmpX, -gi.bmpY, gi.bmpW, gi.bmpH);		
-		x += (gi.adv >> 6);		
+		x += (gi.adv >> 6);	
+		x += this->extraGlyphSpacingSize;
 	}
 
 	if (intPart <= 9)
@@ -579,7 +580,8 @@ AABB NumberRenderer::CalcNumberAABB(double val, int x, int y,
 		const GlyphInfo & gi = this->gi[intPart + '0'];
 
 		aabb.Update(x + gi.bmpX, -gi.bmpY, gi.bmpW, gi.bmpH);
-		x += (gi.adv >> 6);		
+		x += (gi.adv >> 6);	
+		x += this->extraGlyphSpacingSize;
 	}
 	else
 	{
@@ -592,6 +594,7 @@ AABB NumberRenderer::CalcNumberAABB(double val, int x, int y,
 			
 			aabb.UnionWithOffset(t.aabb, static_cast<float>(x));
 			x += t.xOffset;
+			x += this->extraGlyphSpacingSize;
 
 			intPart = intPart - tmp * divisor;			
 
@@ -604,6 +607,7 @@ AABB NumberRenderer::CalcNumberAABB(double val, int x, int y,
 			
 			aabb.Update(x + gi.bmpX, -gi.bmpY, gi.bmpW, gi.bmpH);
 			x += (gi.adv >> 6);
+			x += this->extraGlyphSpacingSize;
 		}
 	}
 
@@ -614,6 +618,7 @@ AABB NumberRenderer::CalcNumberAABB(double val, int x, int y,
 		
 		aabb.Update(x + gi.bmpX, -gi.bmpY, gi.bmpW, gi.bmpH);
 		x += (gi.adv >> 6);
+		x += this->extraGlyphSpacingSize;
 		
 		while (fractPartReversed)
 		{			
@@ -621,7 +626,8 @@ AABB NumberRenderer::CalcNumberAABB(double val, int x, int y,
 			const GlyphInfo & gi = this->gi[cc + '0'];
 			
 			aabb.Update(x + gi.bmpX, -gi.bmpY, gi.bmpW, gi.bmpH);
-			x += (gi.adv >> 6);			
+			x += (gi.adv >> 6);	
+			x += this->extraGlyphSpacingSize;
 
 			fractPartReversed /= 10;
 		}
@@ -699,6 +705,7 @@ bool NumberRenderer::GenerateGeometry()
 		{
 			this->AddQuad(this->gi['-'], x, y, si.renderParams);
 			x += (this->gi['-'].adv >> 6);
+			x += this->extraGlyphSpacingSize;
 		}				
 		
 		//==========================================================
@@ -713,6 +720,7 @@ bool NumberRenderer::GenerateGeometry()
 			const GlyphInfo & gi = this->gi[intPart + '0'];
 			this->AddQuad(gi, x, y, si.renderParams);
 			x += (gi.adv >> 6);
+			x += this->extraGlyphSpacingSize;
 		}
 		else				
 		{	
@@ -728,9 +736,11 @@ bool NumberRenderer::GenerateGeometry()
 
 				this->AddQuad(*t[1], x, y, si.renderParams);
 				x += (t[1]->adv >> 6);
+				x += this->extraGlyphSpacingSize;
 
 				this->AddQuad(*t[0], x, y, si.renderParams);
 				x += (t[0]->adv >> 6);
+				x += this->extraGlyphSpacingSize;
 
 				//? huh - gives 0 ?
 				intPart = intPart - tmp * divisor;
@@ -744,6 +754,7 @@ bool NumberRenderer::GenerateGeometry()
 				const GlyphInfo & gi = this->gi[intPart + '0'];
 				this->AddQuad(gi, x, y, si.renderParams);
 				x += (gi.adv >> 6);
+				x += this->extraGlyphSpacingSize;
 			}
 		}
 		
@@ -754,6 +765,7 @@ bool NumberRenderer::GenerateGeometry()
 		{
 			this->AddQuad(this->gi['.'], x, y, si.renderParams);
 			x += (this->gi['.'].adv >> 6);
+			x += this->extraGlyphSpacingSize;
 			
 			while (fractPartReverse)
 			{
@@ -762,6 +774,7 @@ bool NumberRenderer::GenerateGeometry()
 
 				this->AddQuad(gi, x, y, si.renderParams);
 				x += (gi.adv >> 6);
+				x += this->extraGlyphSpacingSize;
 
 				fractPartReverse /= 10;
 			}

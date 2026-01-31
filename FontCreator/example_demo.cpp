@@ -256,8 +256,18 @@ void display() {
 
 
 	//fr->AddStringCaption(rrr, 0.5, 0.8);
-
-	//fr->AddString(u8"lll", 200, 300);
+	/*
+	fr->SetExtraGlyphSpacingSize(20);
+	fr->Clear();
+	fr->AddStringCaption(
+		//UTF8_TEXT(CreateRandomString(10).c_str()),
+		UTF8_TEXT("iii iii"),
+		//UTF8_TEXT("H\n1023hPa"),
+		0.5f, 0.35f,
+		AbstractRenderer::RenderParams({ 1,1,0,1 }, 1.0)
+	);
+	fr->AddString(u8"Hello World", 200, 300);
+	*/
 	fr->Render();
 
 	/*

@@ -157,7 +157,7 @@ public:
 
 protected:
 
-	typedef std::vector<std::tuple<FontInfo::GlyphLutIterator, bool, FontInfo *>> UsedGlyphCache;
+	typedef std::vector<std::tuple<FontInfo::GlyphIterator, bool, FontInfo *>> UsedGlyphCache;
 	
 	
 	std::vector<StringInfo> strs;
@@ -175,6 +175,8 @@ protected:
 	bool CanAddString(const UnicodeString & uniStr,
 		int x, int y, const RenderParams & rp,
 		TextAnchor anchor, TextAlign align, TextType type) const;
+
+	bool DeadzoneCheck(int x, int y) const;
 
 	bool AddStringInternal(const UnicodeString & str,
 		int x, int y, const RenderParams & rp,

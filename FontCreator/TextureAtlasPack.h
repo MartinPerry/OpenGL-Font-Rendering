@@ -33,8 +33,8 @@ public:
 	std::unordered_map<CHAR_CODE, PackedInfo> & GetPackedInfos();
 
 	void SetAllFontInfos(std::vector<FontInfo> * fontInfos);
-	void SetUnusedGlyphs(std::list<FontInfo::GlyphLutIterator> * unused);
-	const std::unordered_map<CHAR_CODE, FontInfo::GlyphLutIterator> & GetErasedGlyphs();
+	void SetUnusedGlyphs(std::list<FontInfo::GlyphIterator> * unused);
+	const std::unordered_map<CHAR_CODE, int> & GetErasedGlyphs();
 
 	void SetTightPacking();
 	void SetGridPacking(uint16_t binW, uint16_t binH);
@@ -84,9 +84,9 @@ private:
 	std::uniform_int_distribution<int> uniDist01;
 		
 	//std::list<GlyphInfo> * glyphs;
-	std::vector<FontInfo> * fontInfos;
-	std::list<FontInfo::GlyphLutIterator> * unused;
-	std::unordered_map<CHAR_CODE, FontInfo::GlyphLutIterator> erased;
+	std::vector<FontInfo>* fontInfos;
+	std::list<FontInfo::GlyphIterator>* unused;
+	std::unordered_map<CHAR_CODE, int> erased; //[code] = fontIndex
 	
 	uint16_t gridBinW;
 	uint16_t gridBinH;

@@ -72,7 +72,8 @@ AbstractRenderer::AbstractRenderer(std::shared_ptr<FontBuilder> fb,
 	fb(fb),
 	backend(std::move(backend)),
 	ci({ UTF8_TEXT(u8""), 0 }),
-	axisYOrigin(AxisYOrigin::TOP),	
+	axisYOrigin(AxisYOrigin::TOP),
+	extraGlyphSpacingSize(0),
 	checkVisibility(true),
 	strChanged(false)
 {
@@ -127,6 +128,11 @@ void AbstractRenderer::SetCaptionOffset(int offsetInPixels)
 void AbstractRenderer::SetBackgroundSettings(std::optional<BackgroundSettings> bs)
 {
 	this->backend->SetBackground(bs);
+}
+
+void AbstractRenderer::SetExtraGlyphSpacingSize(int sizeInPixels)
+{
+	this->extraGlyphSpacingSize = sizeInPixels;
 }
 
 void AbstractRenderer::SetCanvasSize(int w, int h)

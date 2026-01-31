@@ -205,6 +205,8 @@
     <ClInclude Include="Unicode\tinyutf8.h" />
     <ClInclude Include="Unicode\uninorms.h" />
     <ClInclude Include="Unicode\utf8.h" />
+    <ClInclude Include="Utils\ankerl\stl.h" />
+    <ClInclude Include="Utils\ankerl\unordered_dense.h" />
     <ClInclude Include="Utils\CharacterExtraxtor.h" />
     <ClInclude Include="Utils\cJSON_JS.h" />
     <ClInclude Include="Utils\DebugUtils.h" />

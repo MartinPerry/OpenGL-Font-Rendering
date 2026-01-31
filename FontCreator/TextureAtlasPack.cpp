@@ -94,12 +94,12 @@ void TextureAtlasPack::SetAllFontInfos(std::vector<FontInfo> * fontInfos)
 	this->fontInfos = fontInfos;
 }
 
-void TextureAtlasPack::SetUnusedGlyphs(std::list<FontInfo::GlyphLutIterator> * unused)
+void TextureAtlasPack::SetUnusedGlyphs(std::list<FontInfo::GlyphIterator> * unused)
 {
 	this->unused = unused;
 }
 
-const std::unordered_map<CHAR_CODE, FontInfo::GlyphLutIterator> & TextureAtlasPack::GetErasedGlyphs()
+const std::unordered_map<CHAR_CODE, int> & TextureAtlasPack::GetErasedGlyphs()
 {
 	return this->erased;
 }
@@ -188,7 +188,7 @@ bool TextureAtlasPack::PackGrid()
 
 	for (auto & fi : *this->fontInfos)
 	{		
-		for (GlyphInfo & g : fi.glyphs)
+		for (auto & [code, g] : fi.glyphs)
 		{
 			if (g.code <= 32)
 			{
@@ -277,22 +277,26 @@ bool TextureAtlasPack::PackGrid()
 /// </summary>
 /// <returns></returns>
 bool TextureAtlasPack::PackTight()
-{
-	for (auto & fi : *this->fontInfos)
-	{
-		fi.glyphs.sort(
-			[](const GlyphInfo &a, GlyphInfo &b) { return a.bmpW * a.bmpH > b.bmpW * b.bmpH; }
-		);
-	}
-	
-
+{	
 	PackedInfo info;
 
 	int b = (2 * this->border);
 
 	for (auto & fi : *this->fontInfos)
 	{
-		for (GlyphInfo & g : fi.glyphs)
+		std::vector<std::reference_wrapper<GlyphInfo>> sorted;
+		sorted.reserve(fi.glyphs.size());
+		for (auto& [k, g] : fi.glyphs)
+		{
+			sorted.emplace_back(g);
+		}
+
+		// sort by area (descending)
+		std::sort(sorted.begin(), sorted.end(), [](const GlyphInfo& a, const GlyphInfo& b) {
+			return a.bmpW * a.bmpH > b.bmpW * b.bmpH;
+		});
+		
+		for (GlyphInfo& g : sorted)
 		{
 			if (this->packedInfo.find(g.code) != this->packedInfo.end())
 			{
@@ -357,7 +361,7 @@ void TextureAtlasPack::CopyDataToTexture()
 
 	for (FontInfo & fi : *this->fontInfos)
 	{
-		for (GlyphInfo & g : fi.glyphs)
+		for (auto & [code, g] : fi.glyphs)
 		{
 			auto it = this->packedInfo.find(g.code);
 			if (it == this->packedInfo.end())
@@ -687,25 +691,23 @@ bool TextureAtlasPack::FreeSpace(int spaceWidth, int spaceHeight, CHAR_CODE * c)
 	int b = (2 * this->border);
 	
 	for (auto & it : *this->unused)	
-	{		
-		if (it->second->bmpW + b < spaceWidth) continue;
-		if (it->second->bmpH + b < spaceHeight) continue;
+	{			
+		
+		if (it->second.bmpW + b < spaceWidth) continue;
+		if (it->second.bmpH + b < spaceHeight) continue;
 				
 		*c = it->first;
 
-		auto jt = this->erased.find(*c);
-		if (jt == this->erased.end())
+		auto jt = this->erased.try_emplace(*c, it->second.fontIndex);
+		if (jt.second == false)
 		{
-			//already erased - space is not free anymore
+			//not inserted => already erased - space is not free anymore
 			continue;
 		}
 
 		//space find				
-		//add glyph to erased				
-
-		jt->second = it;
-		//this->erased[*c] = it;
-								
+		//glyph added to erased				
+						
 		return true;
 	}
 
@@ -722,7 +724,7 @@ void TextureAtlasPack::EraseAllUnused()
 	for (auto & it : *this->unused)
 	{				
 		//add glyph to erased				
-		this->erased[it->first] = it;
+		this->erased.try_emplace(it->first, it->second.fontIndex);
 	}
 
 	this->unused->clear();
@@ -732,27 +734,25 @@ void TextureAtlasPack::AddToErased(int fontIndex, CHAR_CODE c)
 {
 	FontInfo & fi = (*this->fontInfos)[fontIndex];
 	
-	auto it = fi.glyphsLut.find(c);
-	if (it != fi.glyphsLut.end())
+	auto it = fi.glyphs.find(c);
+	if (it != fi.glyphs.end())
 	{
-		this->erased[c] = it;
+		this->erased.try_emplace(c, fontIndex);
 	}			
 }
 
 void TextureAtlasPack::RemoveErasedGlyphsFromFontInfo()
 {	
 	//remove unused, that were removed from texture	
-	for (auto & r : this->erased)
-	{		
-		FontInfo::GlyphIterator gi = r.second->second;
+	for (const auto & [code, fontIndex] : this->erased)
+	{				
+		FontInfo& fi = (*this->fontInfos)[fontIndex];
 
-		SAFE_DELETE_ARRAY(gi->rawData);
-				
-
-		auto & fi = (*this->fontInfos)[gi->fontIndex];
-
-		fi.glyphs.erase(gi);
-		fi.glyphsLut.erase(r.second);
+		FontInfo::GlyphIterator gi = fi.glyphs.find(code);
+		
+		SAFE_DELETE_ARRAY(gi->second.rawData);
+						
+		fi.glyphs.erase(gi);				
 	}
 
 	this->erased.clear();

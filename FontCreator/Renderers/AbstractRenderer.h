@@ -70,6 +70,7 @@ public:
 	void SetCaption(const UnicodeString& mark, int offsetInPixels);
 	void SetCaptionOffset(int offsetInPixels);
 	void SetBackgroundSettings(std::optional<BackgroundSettings> bs);
+	void SetExtraGlyphSpacingSize(int sizeInPixels);
 
 	const RenderSettings& GetRenderSettings() const;
 	int GetCanvasWidth() const;
@@ -103,6 +104,7 @@ protected:
 	CaptionInfo ci;
 
 	AxisYOrigin axisYOrigin;
+	int extraGlyphSpacingSize;
 			
 	bool checkVisibility;
 	bool strChanged;

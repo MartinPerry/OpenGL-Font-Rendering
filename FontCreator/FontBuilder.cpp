@@ -99,7 +99,7 @@ void FontBuilder::Release()
 	
 	for (FontInfo & f : this->fis)
 	{
-		for (GlyphInfo & c : f.glyphs)
+		for (auto & [code, c] : f.glyphs)
 		{
 			SAFE_DELETE_ARRAY(c.rawData);
 		}
@@ -341,12 +341,11 @@ void FontBuilder::SetFontSize(const std::string & fontName, const FontSize & fs,
 
 	for (FontInfo & f : this->fis)
 	{
-		for (GlyphInfo & c : f.glyphs)
+		for (auto & [code, c] : f.glyphs)
 		{
 			SAFE_DELETE_ARRAY(c.rawData);
 		}
-		f.glyphs.clear();
-		f.glyphsLut.clear();
+		f.glyphs.clear();		
 	}
 
 	this->reused.clear();
@@ -398,12 +397,11 @@ void FontBuilder::SetAllFontSize(const FontSize & fs, uint16_t defaultFontSizeIn
 {
 	for (FontInfo & f : this->fis)
 	{
-		for (GlyphInfo & c : f.glyphs)
+		for (auto & [code, c] : f.glyphs)
 		{
 			SAFE_DELETE_ARRAY(c.rawData);
 		}
-		f.glyphs.clear();
-		f.glyphsLut.clear();	
+		f.glyphs.clear();			
 	}
 
 	this->reused.clear();
@@ -509,14 +507,10 @@ int16_t FontBuilder::GetMaxNewLineOffset() const
 
 int16_t FontBuilder::GetNewLineOffsetBasedOnGlyph(CHAR_CODE c)
 {
-	this->LoadGlyphInfo(c);
-
-	for (auto & fi : this->fis)
-	{				
-		if (fi.glyphsLut.find(c) != fi.glyphsLut.end())
-		{
-			return fi.newLineOffset;
-		}		
+	auto gi = this->LoadGlyphInfo(c);
+	if (gi != nullptr)
+	{
+		return this->fis[gi->fontIndex].newLineOffset;		
 	}
 	
 	return this->GetMaxNewLineOffset();
@@ -530,21 +524,21 @@ int16_t FontBuilder::GetNewLineOffsetBasedOnGlyph(CHAR_CODE c)
 /// <param name="c"></param>
 /// <param name="exist"></param>
 /// <returns></returns>
-FontInfo::GlyphLutIterator FontBuilder::GetGlyph(CHAR_CODE c, bool & exist)
+FontInfo::GlyphIterator FontBuilder::GetGlyph(CHAR_CODE c, bool & exist)
 {
 	FontInfo * f = nullptr;
 	return this->GetGlyph(c, exist, &f);
 }
 
-FontInfo::GlyphLutIterator FontBuilder::GetGlyph(CHAR_CODE c, bool & exist, FontInfo ** usedFi)
+FontInfo::GlyphIterator FontBuilder::GetGlyph(CHAR_CODE c, bool & exist, FontInfo ** usedFi)
 {
 	exist = false;
 
 	for (FontInfo & fi : this->fis)
 	{
 
-		auto it = fi.glyphsLut.find(c);
-		if (it != fi.glyphsLut.end())
+		auto it = fi.glyphs.find(c);
+		if (it != fi.glyphs.end())
 		{	
 			*usedFi = &fi;			
 			exist = true;
@@ -553,7 +547,7 @@ FontInfo::GlyphLutIterator FontBuilder::GetGlyph(CHAR_CODE c, bool & exist, Font
 	}
 
 	*usedFi = &this->fis[0];	
-	return this->fis[0].glyphsLut.end();
+	return this->fis[0].glyphs.end();
 }
 
 /// <summary>
@@ -671,10 +665,10 @@ bool FontBuilder::AddCharacter(CHAR_CODE c)
 	
 	for (const FontInfo & fi : this->fis)
 	{
-		if (fi.glyphsLut.find(c) != fi.glyphsLut.end())
+		if (fi.glyphs.find(c) != fi.glyphs.end())
 		{
 			//character already exist
-			this->reused.insert(c);
+			this->reused.insert(c);			
 			return false;
 		}		
 	}
@@ -710,12 +704,12 @@ bool FontBuilder::CreateFontAtlas()
 
 	
 	//find unused glyphs, that can possibly be deleted
-	std::list<FontInfo::GlyphLutIterator> unused;
+	std::list<FontInfo::GlyphIterator> unused;
 	
 	for (FontInfo & fi : this->fis)
 	{
-		for (FontInfo::GlyphLutIterator it = fi.glyphsLut.begin();
-			it != fi.glyphsLut.end();
+		for (FontInfo::GlyphIterator it = fi.glyphs.begin();
+			it != fi.glyphs.end();
 			it++)
 		{			
 			if (this->reused.find(it->first) == this->reused.end())
@@ -776,17 +770,19 @@ bool FontBuilder::CreateFontAtlas()
 /// and fill local structure
 /// </summary>
 /// <param name="c"></param>
-void FontBuilder::LoadGlyphInfo(CHAR_CODE c)
+GlyphInfo* FontBuilder::LoadGlyphInfo(CHAR_CODE c)
 {	
 	for (FontInfo & fi : this->fis)
 	{
-		if (this->FillGlyphInfo(c, fi))
+		auto tmp = this->FillGlyphInfo(c, fi);
+		if (tmp != nullptr)
 		{
-			return;
+			return tmp;
 		}
 	}
 
 	MY_LOG_ERROR("Character %lu not found", c);
+	return nullptr;
 }
 
 /// <summary>
@@ -796,27 +792,27 @@ void FontBuilder::LoadGlyphInfo(CHAR_CODE c)
 /// <param name="c">glyph code</param>
 /// <param name="fi">structure to be filled</param>
 /// <returns></returns>
-bool FontBuilder::FillGlyphInfo(CHAR_CODE c, FontInfo & fi) const
+GlyphInfo* FontBuilder::FillGlyphInfo(CHAR_CODE c, FontInfo & fi) const
 {
-	
-	if (fi.glyphsLut.find(c) != fi.glyphsLut.end())
+	auto it = fi.glyphs.find(c);
+	if (it != fi.glyphs.end())
 	{
 		//glyph already exist
-		return true;
+		return &it->second;
 	}
 
 	FT_UInt ci = FT_Get_Char_Index(fi.fontFace, c);
 
 	if (ci == 0)
 	{		
-		return false;
+		return nullptr;
 	}
 	
 	
 	//FT_LOAD_RENDER
 	if (FT_Error err = FT_Load_Glyph(fi.fontFace, ci, FT_LOAD_RENDER))
 	{		
-		return false;
+		return nullptr;
 	}
 	
 	FT_GlyphSlot glyph = fi.fontFace->glyph;
@@ -831,7 +827,7 @@ bool FontBuilder::FillGlyphInfo(CHAR_CODE c, FontInfo & fi) const
 	if (glyph->bitmap.pixel_mode != FT_PIXEL_MODE_GRAY)
 	{
 		MY_LOG_ERROR("Only gray-scale glyphs are supported");
-		return false;		
+		return nullptr;
 	}
 
 
@@ -892,11 +888,9 @@ bool FontBuilder::FillGlyphInfo(CHAR_CODE c, FontInfo & fi) const
 		}
 	}
 
-
-	fi.glyphs.push_back(std::move(gInfo));	
-	fi.glyphsLut[c] = std::prev(fi.glyphs.end());
-
-	return true;
+	auto tmp = fi.glyphs.try_emplace(c, std::move(gInfo));
+	
+	return &tmp.first->second;
 
 }
 

@@ -43,6 +43,9 @@
     <Filter Include="Header Files\Renderers">
       <UniqueIdentifier>{3ee6ec0a-b6b7-40c0-87ba-ffae1037cc98}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Header Files\Utils\ankerl">
+      <UniqueIdentifier>{51dd08ef-0250-4c26-a906-a7c9e1ac0daf}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="TextureAtlasPack.cpp">
@@ -196,6 +199,12 @@
     </ClInclude>
     <ClInclude Include="Backends\Shaders\BackgroundShaderManager.h">
       <Filter>Header Files\Backends\Shaders</Filter>
+    </ClInclude>
+    <ClInclude Include="Utils\ankerl\stl.h">
+      <Filter>Header Files\Utils\ankerl</Filter>
+    </ClInclude>
+    <ClInclude Include="Utils\ankerl\unordered_dense.h">
+      <Filter>Header Files\Utils\ankerl</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

@@ -2,6 +2,7 @@
 #define FONT_STRUCTURES_H
 
 typedef struct FT_FaceRec_*  FT_Face;
+typedef uint32_t CHAR_CODE;
 
 class FontBuilder;
 
@@ -12,30 +13,31 @@ class FontBuilder;
 #include <limits>
 #include <optional>
 
-typedef uint32_t CHAR_CODE;
+#include "./Externalncludes.h"
+
 
 /// <summary>
 /// Info for single glyph
 /// </summary>
 struct GlyphInfo
 {
-	CHAR_CODE code;
-	int fontIndex;
+	CHAR_CODE code = 0;
+	int fontIndex = 0;
 
 	//"glyph" texture size
-	uint16_t bmpW;
-	uint16_t bmpH;
+	uint16_t bmpW = 0;
+	uint16_t bmpH = 0;
 
 	//glyph offset
-	int16_t bmpX;
-	int16_t bmpY;
+	int16_t bmpX = 0;
+	int16_t bmpY = 0;
 	
 
 	//bitmap raw data
-	uint8_t * rawData;
+	uint8_t * rawData = nullptr;
 
 	//advance to next glyph
-	long adv;
+	long adv = 0;
 	//advX = adv
 	//advY = 0 for horizontal
 
@@ -43,8 +45,8 @@ struct GlyphInfo
 	//long descent;
 
 	//position in FontTexture atlas
-	uint16_t tx;
-	uint16_t ty;
+	uint16_t tx = 0;
+	uint16_t ty = 0;
 
 };
 
@@ -56,9 +58,10 @@ struct GlyphInfo
 /// calculated pixel size of font, faces etc.
 /// </summary>
 struct FontInfo
-{
-	typedef std::list<GlyphInfo>::iterator GlyphIterator;
-	typedef std::unordered_map<CHAR_CODE, GlyphIterator>::iterator GlyphLutIterator;
+{	
+	//!!!! in ankerl - iterator is not valid after item erase !!!!
+	using GlyphIterator = ankerl::unordered_dense::map<CHAR_CODE, GlyphInfo>::iterator;
+	//using GlyphIterator = std::unordered_map<CHAR_CODE, GlyphInfo>::iterator;
 
 	std::string faceName;
 	uint16_t maxPixelsWidth;
@@ -67,9 +70,8 @@ struct FontInfo
 	
 	int16_t newLineOffset;
 
-	//FontTexture texture;
-	std::unordered_map<CHAR_CODE, GlyphIterator> glyphsLut;
-	std::list<GlyphInfo> glyphs;
+	ankerl::unordered_dense::map<CHAR_CODE, GlyphInfo> glyphs;
+	//std::unordered_map<CHAR_CODE, GlyphInfo> glyphs;
 	
 
 	FT_Face fontFace;

@@ -48,8 +48,8 @@ public:
 
 	int16_t GetMaxNewLineOffset() const;
 	int16_t GetNewLineOffsetBasedOnGlyph(CHAR_CODE c);
-	FontInfo::GlyphLutIterator GetGlyph(CHAR_CODE c, bool & exist);
-	FontInfo::GlyphLutIterator GetGlyph(CHAR_CODE c, bool & exist, FontInfo ** usedFi);
+	FontInfo::GlyphIterator GetGlyph(CHAR_CODE c, bool & exist);
+	FontInfo::GlyphIterator GetGlyph(CHAR_CODE c, bool & exist, FontInfo ** usedFi);
 
 	uint16_t GetTextureWidth() const;
 	uint16_t GetTextureHeight() const;
@@ -84,8 +84,8 @@ protected:
 	bool SetClosestFontSizeForBitmaps(FontInfo & f, uint16_t size);
 	void UpdateBitmapFontsSizes(uint16_t maxEmSize);
 
-	void LoadGlyphInfo(CHAR_CODE c);
-	bool FillGlyphInfo(CHAR_CODE c, FontInfo & fi) const;
+	GlyphInfo* LoadGlyphInfo(CHAR_CODE c);
+	GlyphInfo* FillGlyphInfo(CHAR_CODE c, FontInfo & fi) const;
 
 	
 	uint8_t * ResizeBitmap(FT_GlyphSlot glyph, FontInfo & fi) const;
