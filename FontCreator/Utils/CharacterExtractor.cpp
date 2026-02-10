@@ -235,7 +235,7 @@ void CharacterExtractor::AddText(const UnicodeString& str)
 	//in case that Bidi replace some Arabic chars with some others
 	//in arabic shaping
 	{
-		auto it = CustromIteratorCreator::Create(str);
+		auto it = CustomIteratorCreator::Create(str);
 		while ((c = it.GetCurrentAndAdvance()) != it.DONE)
 		{
 			this->AddCharacter(c);
@@ -246,7 +246,7 @@ void CharacterExtractor::AddText(const UnicodeString& str)
 	//that will use arabic shaping
 	UnicodeString bidiStr = BIDI(str);
 
-	auto it = CustromIteratorCreator::Create(bidiStr);
+	auto it = CustomIteratorCreator::Create(bidiStr);
 
 	while ((c = it.GetCurrentAndAdvance()) != it.DONE)
 	{

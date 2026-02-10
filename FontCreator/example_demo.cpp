@@ -340,7 +340,7 @@ void initGL() {
 
 	Wrapper<std::string> strA;
 	strA.str = "ahaoj";
-	CustromAsciiIterator it2 = CustromIteratorCreator::Create(strA.str);
+	CustomAsciiIterator it2 = CustomIteratorCreator::Create(strA.str);
 
 	uint32_t c2;
 	while ((c2 = it2.GetCurrentAndAdvance()) != it2.DONE)
@@ -509,7 +509,7 @@ void Normalize()
 	//UErrorCode pError;
 	//ucnv_convert("US-ASCII", "UTF-8", tt, 50, ss.data(), ss.size(), &pError);
 
-	auto it = CustromIteratorCreator::Create(u8str);
+	auto it = CustomIteratorCreator::Create(u8str);
 	uint32_t c;
 
 	while ((c = it.GetCurrentAndAdvance()) != it.DONE)

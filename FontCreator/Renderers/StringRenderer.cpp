@@ -299,7 +299,7 @@ bool StringRenderer::AddStringInternal(const UnicodeString & str,
 	int len = 0;
 	int start = 0;
     
-	auto it = CustromIteratorCreator::Create(added.str);
+	auto it = CustomIteratorCreator::Create(added.str);
     uint32_t c;
 	while ((c = it.GetCurrentAndAdvance()) != it.DONE)
 	{		
@@ -477,7 +477,7 @@ AABB StringRenderer::EstimateStringAABB(const UnicodeString & str,
 	float lastNewLineOffset = this->fb->GetMaxNewLineOffset() * scale;
 	float newLineOffset = 0;
     
-	auto it = CustromIteratorCreator::Create(str);
+	auto it = CustomIteratorCreator::Create(str);
 	uint32_t c;
 	while ((c = it.GetCurrentAndAdvance()) != it.DONE)	
 	{
@@ -549,7 +549,7 @@ void StringRenderer::CalcStringAABB(StringInfo & si, const UsedGlyphCache * gc) 
 	//-> offset is calculated from glyphs
 	float newLineOffset = 0;
 	
-	auto it = CustromIteratorCreator::Create(si.str);
+	auto it = CustomIteratorCreator::Create(si.str);
 	uint32_t c;
 	uint32_t lastOffset = 0;
 
@@ -721,7 +721,7 @@ StringRenderer::UsedGlyphCache StringRenderer::ExtractGlyphs(const UnicodeString
 	UsedGlyphCache g;
 	g.reserve(str.length());
 
-	auto it = CustromIteratorCreator::Create(str);
+	auto it = CustomIteratorCreator::Create(str);
 	uint32_t c;
 	while ((c = it.GetCurrentAndAdvance()) != it.DONE)	
 	{
@@ -824,7 +824,7 @@ bool StringRenderer::GenerateGeometry()
 	{						
 		float y = si.anchorY;
 		
-		auto it = CustromIteratorCreator::Create(si.str);
+		auto it = CustomIteratorCreator::Create(si.str);
 		uint32_t c;
 		uint32_t lastOffset = 0;
 

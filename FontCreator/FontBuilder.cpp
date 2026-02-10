@@ -605,7 +605,7 @@ void FontBuilder::SetGridPacking(uint16_t binW, uint16_t binH)
 bool FontBuilder::AddString(const UnicodeString & str)
 {
 	bool res = false;
-	auto it = CustromIteratorCreator::Create(str);
+	auto it = CustomIteratorCreator::Create(str);
 	uint32_t c;
 	while ((c = it.GetCurrentAndAdvance()) != it.DONE)
 	{	

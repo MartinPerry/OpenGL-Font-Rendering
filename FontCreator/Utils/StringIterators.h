@@ -1,6 +1,7 @@
 #ifndef STRING_ITERATORS_H
 #define STRING_ITERATORS_H
 
+#include <string>
 #include <string_view>
 
 #include "../Externalncludes.h"
@@ -10,16 +11,16 @@
 #	include <unicode/schriter.h>
 #endif
 
-struct CustromAsciiIterator 
+struct CustomAsciiIterator 
 {	
 	static inline uint32_t DONE = 65535;
 
-	CustromAsciiIterator(const std::string & str) :
+	CustomAsciiIterator(const std::string & str) :
 		v(str),
 		index(0)
 	{}
 
-	CustromAsciiIterator(const std::string_view & view) :
+	CustomAsciiIterator(const std::string_view & view) :
 		v(view),
 		index(0)
 	{}
@@ -34,7 +35,7 @@ struct CustromAsciiIterator
 	{ 
 		if (this->HasNext() == false)
 		{
-			return CustromAsciiIterator::DONE;
+			return CustomAsciiIterator::DONE;
 		}
 		uint32_t c = this->v[this->index];
 		this->index++; 		
@@ -68,19 +69,19 @@ struct CustomUnicodeIterator : public icu::StringCharacterIterator
 
 #endif
 
-struct CustromIteratorCreator
+struct CustomIteratorCreator
 {
 	template <typename T>
 	static auto Create(const T & str)
 	{
 		if constexpr (std::is_same<T, std::string>::value)
 		{
-			return CustromAsciiIterator(str);
+			return CustomAsciiIterator(str);
 		}
 
 		if constexpr (std::is_same<T, std::string_view>::value)
 		{
-			return CustromAsciiIterator(str);
+			return CustomAsciiIterator(str);
 		}
 
 #ifdef USE_ICU_LIBRARY
