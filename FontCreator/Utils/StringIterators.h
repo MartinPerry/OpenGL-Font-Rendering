@@ -6,15 +6,13 @@
 #include <limits>
 #include <array>
 
+#include "../Externalncludes.h"
 
 #ifdef USE_ICU_LIBRARY
 #	include <unicode/unistr.h>
 #	include <unicode/schriter.h>
 #endif
 
-#if __has_include("./utf8/utf8.h")
-#	include "./utf8/utf8.h"
-#endif
 
 //========================================================================
 
@@ -64,8 +62,6 @@ protected:
 };
 
 //========================================================================
-
-#if __has_include("./utf8/utf8.h")
 
 /// <summary>
 /// Input string is unicode string
@@ -167,7 +163,6 @@ protected:
 	const char8_t* itStart;
 };
 
-#endif
 
 //========================================================================
 
@@ -374,7 +369,6 @@ struct CustomIteratorCreator
 			return CustomAsciiIterator(str);
 		}
 
-#if __has_include("./utf8/utf8.h")
 		if constexpr (std::is_same<T, std::u8string>::value)
 		{
 			return CustomU8Iterator(str);
@@ -384,7 +378,6 @@ struct CustomIteratorCreator
 		{
 			return CustomU8Iterator(str);
 		}
-#endif
 
 #ifdef USE_ICU_LIBRARY
 		if constexpr (std::is_same<T, icu::UnicodeString>::value)

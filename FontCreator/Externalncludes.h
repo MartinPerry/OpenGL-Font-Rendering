@@ -41,6 +41,8 @@
 #	include <dirent.h>
 #endif
 
+#include "./Utils/utf8/utf8.h"
+
 #include "./Utils/StringIterators.h"
 
 #include "./Utils/ankerl/unordered_dense.h"
