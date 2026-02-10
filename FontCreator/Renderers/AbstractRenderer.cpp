@@ -71,7 +71,7 @@ AbstractRenderer::AbstractRenderer(std::shared_ptr<FontBuilder> fb,
 	std::unique_ptr<BackendBase>&& backend) :
 	fb(fb),
 	backend(std::move(backend)),
-	ci({ UTF8_TEXT(u8""), 0 }),
+	ci({ u8"", 0 }),
 	axisYOrigin(AxisYOrigin::TOP),
 	extraGlyphSpacingSize(0),
 	checkVisibility(true),
@@ -80,7 +80,7 @@ AbstractRenderer::AbstractRenderer(std::shared_ptr<FontBuilder> fb,
 
 	this->backend->SetMainRenderer(this);
 	
-	this->SetCaption(UTF8_TEXT(u8"\u2022"), 10);			
+	this->SetCaption(u8"\u2022", 10);			
 }
 
 
@@ -109,12 +109,12 @@ BackendBase* AbstractRenderer::GetBackend() const
 }
 
 
-void AbstractRenderer::SetCaption(const UnicodeString& mark)
+void AbstractRenderer::SetCaption(const StringUtf8& mark)
 {
 	ci.mark = mark;
 }
 
-void AbstractRenderer::SetCaption(const UnicodeString& mark, int offsetInPixels)
+void AbstractRenderer::SetCaption(const StringUtf8& mark, int offsetInPixels)
 {
 	this->SetCaption(mark);
 	this->SetCaptionOffset(offsetInPixels);

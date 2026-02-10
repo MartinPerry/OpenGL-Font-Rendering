@@ -90,7 +90,7 @@
       <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;NOMINMAX;U_STATIC_IMPLEMENTATION;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <AdditionalIncludeDirectories>./include;C:\Program Files %28x86%29\Visual Leak Detector\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
-      <LanguageStandard>stdcpp17</LanguageStandard>
+      <LanguageStandard>stdcpp20</LanguageStandard>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -175,9 +175,8 @@
     <ClCompile Include="Renderers\NumberRenderer.cpp" />
     <ClCompile Include="Renderers\StringRenderer.cpp" />
     <ClCompile Include="TextureAtlasPack.cpp" />
-    <ClCompile Include="Unicode\tinyutf8.cpp" />
+    <ClCompile Include="Unicode\BidiHelper.cpp" />
     <ClCompile Include="Unicode\uninorms.cpp" />
-    <ClCompile Include="Unicode\utf8.cpp" />
     <ClCompile Include="Utils\CharacterExtractor.cpp" />
     <ClCompile Include="Utils\cJSON_JS.c" />
   </ItemGroup>
@@ -201,16 +200,22 @@
     <ClInclude Include="Renderers\NumberRenderer.h" />
     <ClInclude Include="Renderers\StringRenderer.h" />
     <ClInclude Include="TextureAtlasPack.h" />
+    <ClInclude Include="Unicode\BidiHelper.h" />
     <ClInclude Include="Unicode\ICUUtils.h" />
-    <ClInclude Include="Unicode\tinyutf8.h" />
     <ClInclude Include="Unicode\uninorms.h" />
-    <ClInclude Include="Unicode\utf8.h" />
     <ClInclude Include="Utils\ankerl\stl.h" />
     <ClInclude Include="Utils\ankerl\unordered_dense.h" />
     <ClInclude Include="Utils\CharacterExtraxtor.h" />
     <ClInclude Include="Utils\cJSON_JS.h" />
     <ClInclude Include="Utils\DebugUtils.h" />
     <ClInclude Include="Utils\StringIterators.h" />
+    <ClInclude Include="Utils\utf8\checked.h" />
+    <ClInclude Include="Utils\utf8\core.h" />
+    <ClInclude Include="Utils\utf8\cpp11.h" />
+    <ClInclude Include="Utils\utf8\cpp17.h" />
+    <ClInclude Include="Utils\utf8\cpp20.h" />
+    <ClInclude Include="Utils\utf8\unchecked.h" />
+    <ClInclude Include="Utils\utf8\utf8.h" />
     <ClInclude Include="Utils\win_dirent.h" />
   </ItemGroup>
   <ItemGroup>

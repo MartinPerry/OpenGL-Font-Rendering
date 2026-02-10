@@ -19,6 +19,8 @@
 //=====================================================================================
 //includes
 
+#include <string>
+
 #include "./lodepng.h"
 
 
@@ -26,13 +28,12 @@
 #include "./freeglut/include/GL/wgl/wglew.h"
 #include "./freeglut/include/GL/glut.h"
 
-#include <unicode/unistr.h>
-#include <unicode/schriter.h>
-
-//#include "./Unicode/tinyutf8.h"
-//#include "./Unicode/utf8.h"
-
-#include "./Unicode/ICUUtils.h"
+#ifdef USE_ICU_LIBRARY
+#	include <unicode/unistr.h>
+#	include <unicode/schriter.h>
+#	include "./Unicode/BidiHelper.h"
+#	include "./Unicode/ICUUtils.h"
+#endif
 
 #ifdef _WIN32
 #	include "./Utils/win_dirent.h"
@@ -131,30 +132,9 @@ static void CheckOpenGLError(const char* stmt, const char* fname, int line)
 //=====================================================================================
 //String manipulation
 
-/*
-typedef utf8_string UnicodeString;
+using StringUtf8 = std::u8string;
 
-#define BIDI(x) x
-#define UTF8_TEXT(x) x
-#define UTF8_UNESCAPE(x) utf8_string::build_from_escaped(x.c_str())
-*/
+#define AS_UTF8(x) StringUtf8((char8_t*)x)
 
-
-#ifdef USE_ICU_LIBRARY
-
-	typedef icu::UnicodeString UnicodeString;
-	typedef icu::StringCharacterIterator UnicodeCharacterPtr;
-
-#	define BIDI(x) BidiHelper::ConvertOneLine(x)
-
-#   define NEED_BIDI(x) IcuUtils::RequiresBidi(x)
-
-	//may need reinterpret_cast<const char*>(x) in C++20 for u8"" strings
-	//https://stackoverflow.com/questions/57402464/is-c20-char8-t-the-same-as-our-old-char
-#	define UTF8_TEXT(x) icu::UnicodeString::fromUTF8(x)
-
-#	define UTF8_UNESCAPE(x) icu::UnicodeString::fromUTF8(x).unescape()
-
-#endif
 
 #endif

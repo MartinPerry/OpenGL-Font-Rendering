@@ -1,6 +1,10 @@
 #ifndef CHARACTER_EXTRACTOR_H
 #define CHARACTER_EXTRACTOR_H
 
+#include "../Externalncludes.h"
+
+#ifdef USE_ICU_LIBRARY
+
 #include <set>
 #include <cstdint>
 #include <vector>
@@ -11,9 +15,6 @@
 
 #include <ft2build.h>
 #include FT_FREETYPE_H
-
-
-#include "../Externalncludes.h"
 
 
 /// <summary>
@@ -36,7 +37,7 @@ public:
 
 	void AddAllAsciiLetters();
 	void AddCharacter(uint32_t c);
-	void AddText(const UnicodeString & strU);
+	void AddText(const StringUtf8& strU);
 	void AddTextFromFile(const std::string & filePath);
 	void AddTextFromFile(const std::string & filePath, std::function<void(const char* str, CharacterExtractor * ce)> parseCallback);
 	void AddDirectory(const std::string & dirPath);
@@ -52,7 +53,7 @@ protected:
 	struct GlyphsInfo 
 	{
 		std::unordered_map<FaceName, std::string> glyphsCodes;
-		std::unordered_map<FaceName, UnicodeString> glyphsUnicode;		
+		std::unordered_map<FaceName, StringUtf8> glyphsUnicode;
 	};
 
 	std::string outputDir;
@@ -75,5 +76,7 @@ protected:
 
 	int GetFontsCount(const GlyphsInfo& gi);
 };
+
+#endif
 
 #endif

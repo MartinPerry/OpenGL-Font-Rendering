@@ -66,8 +66,8 @@ public:
 	void SetCanvasSize(int w, int h);
 		
 	void SetAxisYOrigin(AxisYOrigin axisY);
-	void SetCaption(const UnicodeString& mark);
-	void SetCaption(const UnicodeString& mark, int offsetInPixels);
+	void SetCaption(const StringUtf8& mark);
+	void SetCaption(const StringUtf8& mark, int offsetInPixels);
 	void SetCaptionOffset(int offsetInPixels);
 	void SetBackgroundSettings(std::optional<BackgroundSettings> bs);
 	void SetExtraGlyphSpacingSize(int sizeInPixels);
@@ -93,7 +93,7 @@ protected:
 
 	struct CaptionInfo
 	{
-		UnicodeString mark;
+		StringUtf8 mark;
 		int offset;
 
 	};

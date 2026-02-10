@@ -46,7 +46,7 @@ public:
 	/// </summary>
 	struct StringInfo
 	{
-		UnicodeString str;
+		StringUtf8 str;
 		int x;
 		int y;
 
@@ -62,7 +62,7 @@ public:
 		std::vector<LineInfo> lines;
 		AABB global;
 
-		StringInfo(const UnicodeString& str, int x, int y,
+		StringInfo(const StringUtf8& str, int x, int y,
 			TextAnchor anchor,
 			TextAlign align, TextType type) noexcept :
 			str(str),
@@ -76,7 +76,7 @@ public:
 			renderParams(DEFAULT_PARAMS)
 		{}
 
-		StringInfo(UnicodeString&& str, int x, int y,
+		StringInfo(StringUtf8&& str, int x, int y,
 			TextAnchor anchor,
 			TextAlign align, TextType type,
 			const RenderParams& rp) noexcept :
@@ -119,13 +119,13 @@ public:
 	bool AddStringCaption(const char * str,
 		float x, float y, const RenderParams & rp = DEFAULT_PARAMS);
 
-	bool AddStringCaption(const UnicodeString & str,
+	bool AddStringCaption(const StringUtf8& str,
 		float x, float y, const RenderParams & rp = DEFAULT_PARAMS);
 
 	bool AddStringCaption(const char * str,
 		int x, int y, const RenderParams & rp = DEFAULT_PARAMS);
 
-	bool AddStringCaption(const UnicodeString & str,
+	bool AddStringCaption(const StringUtf8& str,
 		int x, int y, const RenderParams & rp = DEFAULT_PARAMS);
 
 	bool AddCaptionOnly(float x, float y, const RenderParams& rp = DEFAULT_PARAMS);
@@ -143,12 +143,12 @@ public:
 		TextAnchor anchor = TextAnchor::LEFT_TOP,
 		TextAlign align = TextAlign::ALIGN_LEFT);
 
-	bool AddString(const UnicodeString & str,
+	bool AddString(const StringUtf8& str,
 		float x, float y, const RenderParams & rp = DEFAULT_PARAMS,
 		TextAnchor anchor = TextAnchor::LEFT_TOP,
 		TextAlign align = TextAlign::ALIGN_LEFT);
 
-	bool AddString(const UnicodeString & str,
+	bool AddString(const StringUtf8& str,
 		int x, int y, const RenderParams & rp = DEFAULT_PARAMS,
 		TextAnchor anchor = TextAnchor::LEFT_TOP,
 		TextAlign align = TextAlign::ALIGN_LEFT);
@@ -172,13 +172,13 @@ protected:
 
 	long CalcSpaceSize();
 
-	bool CanAddString(const UnicodeString & uniStr,
+	bool CanAddString(const StringUtf8& uniStr,
 		int x, int y, const RenderParams & rp,
 		TextAnchor anchor, TextAlign align, TextType type) const;
 
 	bool DeadzoneCheck(int x, int y) const;
 
-	bool AddStringInternal(const UnicodeString & str,
+	bool AddStringInternal(const StringUtf8& str,
 		int x, int y, const RenderParams & rp,
 		TextAnchor anchor = TextAnchor::LEFT_TOP,
 		TextAlign align = TextAlign::ALIGN_LEFT,
@@ -186,14 +186,14 @@ protected:
 
 	bool GenerateGeometry() override;
 
-	AABB EstimateStringAABB(const UnicodeString & str, float x, float y, float scale) const;
+	AABB EstimateStringAABB(const StringUtf8& str, float x, float y, float scale) const;
 	void CalcStringAABB(StringInfo & str, const UsedGlyphCache * gc) const;
 
 	void CalcAnchoredPosition();
 	void CalcAnchoredPosition(StringInfo& si, float& captionMarkHeight);
 	void CalcLineAlign(const StringInfo & si, const LineInfo & li, float & x, float & y) const;
 
-	UsedGlyphCache ExtractGlyphs(const UnicodeString & str);
+	UsedGlyphCache ExtractGlyphs(const StringUtf8& str);
 };
 
 #endif

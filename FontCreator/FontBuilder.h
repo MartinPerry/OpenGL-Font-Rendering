@@ -30,7 +30,7 @@ public:
 	void SetFontSize(const std::string & fontName, const FontSize & fs, uint16_t defaultFontSizeInPx = 0);
 	void SetAllFontSize(const FontSize & fs, uint16_t defaultFontSizeInPx = 0);
 
-	bool AddString(const UnicodeString & str);	
+	bool AddString(const StringUtf8& str);
 	bool AddCharacter(CHAR_CODE c);
 	void AddAllAsciiLetters();
 	void AddAllAsciiNumbers();

@@ -1,5 +1,7 @@
 #include "./CharacterExtraxtor.h"
 
+#ifdef USE_ICU_LIBRARY
+
 #include <fstream>
 #include <streambuf>
 #include <sstream>
@@ -17,7 +19,7 @@
 
 
 #include "../Unicode/ICUUtils.h"
-
+#include "../Unicode/BidiHelper.h"
 
 /*
 CharacterExtractor::CharacterExtractor(const std::vector<std::string> & inputTTF, const std::string & outputTTF)
@@ -227,9 +229,9 @@ void CharacterExtractor::AddAllAsciiLetters()
 /// Add text - extract all UNICODE letters from it
 /// </summary>
 /// <param name="str"></param>
-void CharacterExtractor::AddText(const UnicodeString& str)
+void CharacterExtractor::AddText(const StringUtf8& str)
 {
-	uint32_t c;
+	char32_t c;
 
 	//Add original text
 	//in case that Bidi replace some Arabic chars with some others
@@ -244,7 +246,7 @@ void CharacterExtractor::AddText(const UnicodeString& str)
 
 	//now add the same text with Bidi	
 	//that will use arabic shaping
-	UnicodeString bidiStr = BIDI(str);
+	StringUtf8 bidiStr = BidiHelper::ConvertOneLine(str);
 
 	auto it = CustomIteratorCreator::Create(bidiStr);
 
@@ -263,7 +265,13 @@ void CharacterExtractor::AddTextFromFile(const std::string& filePath)
 	std::ifstream t(filePath);
 	std::string str((std::istreambuf_iterator<char>(t)), std::istreambuf_iterator<char>());
 
-	this->AddText(UTF8_UNESCAPE(str));
+	//UnicodeString::fromUTF8(u8"\\u00E9").unescape()
+	//results in a UnicodeString containing é, not the literal characters \, u, 0, 0, E, 9.
+
+	auto uniStr = icu::UnicodeString::fromUTF8(str).unescape();
+	auto str8 = IcuUtils::to_u8string(uniStr);
+
+	this->AddText(str8);
 };
 
 /// <summary>
@@ -277,12 +285,9 @@ void CharacterExtractor::AddTextFromFile(const std::string& filePath,
 {
 	std::ifstream t(filePath);
 	std::string str((std::istreambuf_iterator<char>(t)), std::istreambuf_iterator<char>());
-	
-	
-
+		
 	parseCallback(str.c_str(), this);
-
-	//this->AddText(UTF8_UNESCAPE(str));
+	
 };
 
 /// <summary>
@@ -381,7 +386,7 @@ CharacterExtractor::GlyphsInfo CharacterExtractor::BuildGlyphs()
 	for (auto& s : this->faces)
 	{
 		gi.glyphsCodes[s.first] = "";
-		gi.glyphsUnicode[s.first] = "";
+		gi.glyphsUnicode[s.first] = u8"";
 	}
 
 	for (auto c : this->characters)
@@ -455,6 +460,7 @@ CharacterExtractor::GlyphsInfo CharacterExtractor::BuildGlyphs()
 			gi.glyphsCodes[faceName] += g;
 		}
 
+		//todo - will this work?
 		gi.glyphsUnicode[faceName] += c;
 	}
 
@@ -764,3 +770,5 @@ void CharacterExtractor::GenerateScript(const std::string& scriptFileName)
 	//--name-IDs = '*' --name-legacy --output-file = "ii/ll.ttf"
 
 };
+
+#endif

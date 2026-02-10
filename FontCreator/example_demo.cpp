@@ -53,7 +53,7 @@ std::vector<int32_t> allChars;
 
 static int randInited = 0;
 
-std::string CreateRandomString(int len)
+std::u8string CreateRandomString(int len)
 {
 	if (randInited == 0)
 	{
@@ -66,7 +66,7 @@ std::string CreateRandomString(int len)
 		"ABCDEFGHIJKLMNOPQRSTUVWXYZ"
 		"abcdefghijklmnopqrstuvwxyz\n";
 
-	std::string r = "";
+	std::u8string r = u8"";
 	for (int i = 0; i < len; ++i) 
 	{
 		r += alphanum[rand() % (sizeof(alphanum) - 1)];
@@ -211,7 +211,7 @@ void display() {
 	fr->SetCaptionOffset(80);	
 	
 	fr->AddStringCaption(
-		UTF8_TEXT(CreateRandomString(10).c_str()),
+		CreateRandomString(10),
 		//UTF8_TEXT("Ahoj\nsvete\nsvetg kuk"),
 		//UTF8_TEXT("H\n1023hPa"),
 		0.5f, 0.85f,
@@ -221,7 +221,7 @@ void display() {
 
 	fr->AddStringCaption(
 		//UTF8_TEXT(CreateRandomString(10).c_str()),
-		UTF8_TEXT("i"),		
+		u8"i",
 		//UTF8_TEXT("H\n1023hPa"),
 		0.5f, 0.35f,
 		AbstractRenderer::RenderParams({1,1,0,1 }, 1.0)
@@ -440,9 +440,9 @@ void initGL() {
 	//fr = new StringRenderer({ fNum }, r);
 	//fr = new StringRenderer({ f4 }, r);
 	
-	fr->SetCaption(UTF8_TEXT(u8"\U0001F300"), 10);
-	fr->SetCaption(UTF8_TEXT(u8"\U00002b55"), 0);
-	fr->SetCaption(UTF8_TEXT(u8"*"), 0);
+	fr->SetCaption(u8"\U0001F300", 10);
+	fr->SetCaption(u8"\U00002b55", 0);
+	fr->SetCaption(u8"*", 0);
 
 
 
@@ -476,7 +476,7 @@ void initGL() {
 
 	imageSr->AddString(
 		//UTF8_TEXT(CreateRandomString(10).c_str()),				
-		UTF8_TEXT(u8"Pøílíš málo qqq"),
+		u8"Pøílíš málo qqq",
 		0.0f, 0.1f,
 		AbstractRenderer::RenderParams({ 1,1,0,1 }, 1.0),
 		AbstractRenderer::TextAnchor::LEFT_TOP);
@@ -491,24 +491,17 @@ void initGL() {
 
 }
 
-
-
-
-#include <unicode\ucnv.h>
-
+#ifdef USE_ICU_LIBRARY 
 void Normalize()
 {
 	//http://unicode.org/reports/tr15/
 	//UnicodeString u8str = UTF8_TEXT(u8"\u4e0a\u6d77 Pøíliš luouèkı kùò úpìl ïábelské ódy");
-	UnicodeString u8str = UTF8_TEXT(u8"\u0141\u00f3d\u017a");
+	StringUtf8 u8str = u8"\u0141\u00f3d\u017a";
 	
 	//std::string ss;
 	//u8str.toUTF8String(ss);
 
-	//char * tt = new char[50];
-	//UErrorCode pError;
-	//ucnv_convert("US-ASCII", "UTF-8", tt, 50, ss.data(), ss.size(), &pError);
-
+	
 	auto it = CustomIteratorCreator::Create(u8str);
 	uint32_t c;
 
@@ -534,6 +527,7 @@ void Normalize()
 		//ufal::unilib::uninorms::nfkd(uu);
 	}
 }
+#endif
 
 int main(int argc, char ** argv)
 {

@@ -602,7 +602,7 @@ void FontBuilder::SetGridPacking(uint16_t binW, uint16_t binH)
 /// String is iterated character by character and they are added
 /// to set
 /// </summary>
-bool FontBuilder::AddString(const UnicodeString & str)
+bool FontBuilder::AddString(const StringUtf8& str)
 {
 	bool res = false;
 	auto it = CustomIteratorCreator::Create(str);

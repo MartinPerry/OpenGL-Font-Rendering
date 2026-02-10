@@ -46,6 +46,12 @@
     <Filter Include="Header Files\Utils\ankerl">
       <UniqueIdentifier>{51dd08ef-0250-4c26-a906-a7c9e1ac0daf}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Header Files\Utils\utf8">
+      <UniqueIdentifier>{d602b6c6-f6c7-4833-a147-e0a799fc54fe}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Utils\utf8">
+      <UniqueIdentifier>{707b15aa-9a2d-4031-aeb6-e70a7c9f446a}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="TextureAtlasPack.cpp">
@@ -60,13 +66,7 @@
     <ClCompile Include="example_demo.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Unicode\tinyutf8.cpp">
-      <Filter>Source Files\Unicode</Filter>
-    </ClCompile>
     <ClCompile Include="Unicode\uninorms.cpp">
-      <Filter>Source Files\Unicode</Filter>
-    </ClCompile>
-    <ClCompile Include="Unicode\utf8.cpp">
       <Filter>Source Files\Unicode</Filter>
     </ClCompile>
     <ClCompile Include="Utils\cJSON_JS.c">
@@ -114,6 +114,9 @@
     <ClCompile Include="Backends\Shaders\BackgroundShaderManager.cpp">
       <Filter>Source Files\Backends\Shaders</Filter>
     </ClCompile>
+    <ClCompile Include="Unicode\BidiHelper.cpp">
+      <Filter>Source Files\Unicode</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="TextureAtlasPack.h">
@@ -128,13 +131,7 @@
     <ClInclude Include="FontStructures.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Unicode\tinyutf8.h">
-      <Filter>Header Files\Unicode</Filter>
-    </ClInclude>
     <ClInclude Include="Unicode\uninorms.h">
-      <Filter>Header Files\Unicode</Filter>
-    </ClInclude>
-    <ClInclude Include="Unicode\utf8.h">
       <Filter>Header Files\Unicode</Filter>
     </ClInclude>
     <ClInclude Include="Externalncludes.h">
@@ -205,6 +202,30 @@
     </ClInclude>
     <ClInclude Include="Utils\ankerl\unordered_dense.h">
       <Filter>Header Files\Utils\ankerl</Filter>
+    </ClInclude>
+    <ClInclude Include="Utils\utf8\core.h">
+      <Filter>Header Files\Utils\utf8</Filter>
+    </ClInclude>
+    <ClInclude Include="Utils\utf8\cpp11.h">
+      <Filter>Header Files\Utils\utf8</Filter>
+    </ClInclude>
+    <ClInclude Include="Utils\utf8\cpp17.h">
+      <Filter>Header Files\Utils\utf8</Filter>
+    </ClInclude>
+    <ClInclude Include="Utils\utf8\cpp20.h">
+      <Filter>Header Files\Utils\utf8</Filter>
+    </ClInclude>
+    <ClInclude Include="Utils\utf8\checked.h">
+      <Filter>Header Files\Utils\utf8</Filter>
+    </ClInclude>
+    <ClInclude Include="Utils\utf8\unchecked.h">
+      <Filter>Header Files\Utils\utf8</Filter>
+    </ClInclude>
+    <ClInclude Include="Utils\utf8\utf8.h">
+      <Filter>Header Files\Utils\utf8</Filter>
+    </ClInclude>
+    <ClInclude Include="Unicode\BidiHelper.h">
+      <Filter>Header Files\Unicode</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

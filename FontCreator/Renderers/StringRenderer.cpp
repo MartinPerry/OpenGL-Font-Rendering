@@ -133,11 +133,11 @@ bool StringRenderer::AddStringCaption(const char * str,
 {
 	int xx = static_cast<int>(x * this->backend->GetSettings().deviceW);
 	int yy = static_cast<int>(y * this->backend->GetSettings().deviceH);
-
-	return this->AddStringCaption(UTF8_TEXT(str), xx, yy, rp);
+	
+	return this->AddStringCaption(AS_UTF8(str), xx, yy, rp);
 }
 
-bool StringRenderer::AddStringCaption(const UnicodeString & str,
+bool StringRenderer::AddStringCaption(const StringUtf8& str,
 	float x, float y, const RenderParams & rp)
 {
 	int xx = static_cast<int>(x * this->backend->GetSettings().deviceW);
@@ -149,7 +149,7 @@ bool StringRenderer::AddStringCaption(const UnicodeString & str,
 bool StringRenderer::AddStringCaption(const char * str,
 	int x, int y, const RenderParams & rp)
 {
-	bool added = this->AddStringInternal(UTF8_TEXT(str), x, y, rp, TextAnchor::CENTER, TextAlign::ALIGN_CENTER, TextType::CAPTION_TEXT);
+	bool added = this->AddStringInternal(AS_UTF8(str), x, y, rp, TextAnchor::CENTER, TextAlign::ALIGN_CENTER, TextType::CAPTION_TEXT);
     
     if (added)
     {
@@ -158,7 +158,7 @@ bool StringRenderer::AddStringCaption(const char * str,
     return added;
 }
 
-bool StringRenderer::AddStringCaption(const UnicodeString & str,
+bool StringRenderer::AddStringCaption(const StringUtf8& str,
 	int x, int y, const RenderParams & rp)
 {
     bool added = this->AddStringInternal(str, x, y, rp, TextAnchor::CENTER, TextAlign::ALIGN_CENTER, TextType::CAPTION_TEXT);
@@ -200,7 +200,7 @@ bool StringRenderer::AddString(const char * str,
 	int xx = static_cast<int>(x * this->backend->GetSettings().deviceW);
 	int yy = static_cast<int>(y * this->backend->GetSettings().deviceH);
 
-	return this->AddStringInternal(UTF8_TEXT(str), xx, yy, rp, anchor, align, TextType::TEXT);
+	return this->AddStringInternal(AS_UTF8(str), xx, yy, rp, anchor, align, TextType::TEXT);
 }
 
 /// <summary>
@@ -212,7 +212,7 @@ bool StringRenderer::AddString(const char * str,
 /// <param name="strUTF8"></param>
 /// <param name="x"></param>
 /// <param name="y"></param>
-bool StringRenderer::AddString(const UnicodeString & str,
+bool StringRenderer::AddString(const StringUtf8& str,
 	float x, float y, const RenderParams & rp,
 	TextAnchor anchor, TextAlign align)
 {
@@ -234,7 +234,7 @@ bool StringRenderer::AddString(const char * str,
 	int x, int y, const RenderParams & rp,
 	TextAnchor anchor, TextAlign align)
 {
-	return this->AddStringInternal(UTF8_TEXT(str), x, y, rp, anchor, align, TextType::TEXT);
+	return this->AddStringInternal(AS_UTF8(str), x, y, rp, anchor, align, TextType::TEXT);
 }
 
 /// <summary>
@@ -245,7 +245,7 @@ bool StringRenderer::AddString(const char * str,
 /// <param name="strUTF8"></param>
 /// <param name="x"></param>
 /// <param name="y"></param>
-bool StringRenderer::AddString(const UnicodeString & str,
+bool StringRenderer::AddString(const StringUtf8& str,
 	int x, int y, const RenderParams & rp,
 	TextAnchor anchor, TextAlign align)
 {
@@ -254,7 +254,7 @@ bool StringRenderer::AddString(const UnicodeString & str,
 
 //=========================================================
 
-bool StringRenderer::AddStringInternal(const UnicodeString & str,
+bool StringRenderer::AddStringInternal(const StringUtf8& str,
 	int x, int y, const RenderParams & rp,
 	TextAnchor anchor, TextAlign align, TextType type)
 {
@@ -262,6 +262,8 @@ bool StringRenderer::AddStringInternal(const UnicodeString & str,
 	{
 		y = this->backend->GetSettings().deviceH - y;
 	}
+
+#ifdef USE_ICU_LIBRARY
 
     //check if string contains only ASCII letters
     //if so - we dont need BIDI changing of the string
@@ -272,11 +274,18 @@ bool StringRenderer::AddStringInternal(const UnicodeString & str,
     bool needBidi = false;
     if (this->isBidiEnabled)
     {
-        needBidi = NEED_BIDI(str);
+        needBidi = BidiHelper::RequiresBidi(str);
     }
     
-	UnicodeString uniStr = (this->isBidiEnabled && needBidi) ? BIDI(str) : str;
-	
+	StringUtf8 uniStr = (this->isBidiEnabled && needBidi) ? BidiHelper::ConvertOneLine(str) : str;
+#else
+	if (this->isBidiEnabled)
+	{
+		MY_LOG_ERROR("Bidi enabled, but not complied with ICU support");
+	}
+
+	StringUtf8 uniStr = str;
+#endif
 	
 	if (this->CanAddString(uniStr, x, y, rp, anchor, align, type) == false)
 	{
@@ -300,7 +309,7 @@ bool StringRenderer::AddStringInternal(const UnicodeString & str,
 	int start = 0;
     
 	auto it = CustomIteratorCreator::Create(added.str);
-    uint32_t c;
+    char32_t c;
 	while ((c = it.GetCurrentAndAdvance()) != it.DONE)
 	{		
 		this->fb->AddCharacter(c);
@@ -336,7 +345,7 @@ bool StringRenderer::AddStringInternal(const UnicodeString & str,
 /// <param name="align"></param>
 /// <param name="type"></param>
 /// <returns></returns>
-bool StringRenderer::CanAddString(const UnicodeString & uniStr,
+bool StringRenderer::CanAddString(const StringUtf8& uniStr,
 	int x, int y, const RenderParams & rp,
 	TextAnchor anchor, TextAlign align, TextType type) const
 {
@@ -461,7 +470,7 @@ bool StringRenderer::DeadzoneCheck(int x, int y) const
 /// <param name="x"></param>
 /// <param name="y"></param>
 /// <returns></returns>
-AABB StringRenderer::EstimateStringAABB(const UnicodeString & str,
+AABB StringRenderer::EstimateStringAABB(const StringUtf8& str,
 	float x, float y, float scale) const
 {
 	AABB aabb;
@@ -716,7 +725,7 @@ void StringRenderer::CalcLineAlign(const StringInfo & si, const LineInfo & li, f
 /// </summary>
 /// <param name="strUTF8"></param>
 /// <returns></returns>
-StringRenderer::UsedGlyphCache StringRenderer::ExtractGlyphs(const UnicodeString & str)
+StringRenderer::UsedGlyphCache StringRenderer::ExtractGlyphs(const StringUtf8& str)
 {
 	UsedGlyphCache g;
 	g.reserve(str.length());

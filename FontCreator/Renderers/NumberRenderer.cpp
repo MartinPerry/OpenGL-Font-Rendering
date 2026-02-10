@@ -135,7 +135,7 @@ void NumberRenderer::Init()
 		}
 		else
 		{
-			this->SetCaption(UTF8_TEXT(u8"."), 10);
+			this->SetCaption(u8".", 10);
 			this->captionMark = it->second;
 		}
 	}
