@@ -134,7 +134,7 @@ bool StringRenderer::AddStringCaption(const char * str,
 	int xx = static_cast<int>(x * this->backend->GetSettings().deviceW);
 	int yy = static_cast<int>(y * this->backend->GetSettings().deviceH);
 	
-	return this->AddStringCaption(AS_UTF8(str), xx, yy, rp);
+	return this->AddStringCaption(AsStringUtf8(str), xx, yy, rp);
 }
 
 bool StringRenderer::AddStringCaption(const StringUtf8& str,
@@ -149,7 +149,7 @@ bool StringRenderer::AddStringCaption(const StringUtf8& str,
 bool StringRenderer::AddStringCaption(const char * str,
 	int x, int y, const RenderParams & rp)
 {
-	bool added = this->AddStringInternal(AS_UTF8(str), x, y, rp, TextAnchor::CENTER, TextAlign::ALIGN_CENTER, TextType::CAPTION_TEXT);
+	bool added = this->AddStringInternal(AsStringUtf8(str), x, y, rp, TextAnchor::CENTER, TextAlign::ALIGN_CENTER, TextType::CAPTION_TEXT);
     
     if (added)
     {
@@ -200,7 +200,7 @@ bool StringRenderer::AddString(const char * str,
 	int xx = static_cast<int>(x * this->backend->GetSettings().deviceW);
 	int yy = static_cast<int>(y * this->backend->GetSettings().deviceH);
 
-	return this->AddStringInternal(AS_UTF8(str), xx, yy, rp, anchor, align, TextType::TEXT);
+	return this->AddStringInternal(AsStringUtf8(str), xx, yy, rp, anchor, align, TextType::TEXT);
 }
 
 /// <summary>
@@ -234,7 +234,7 @@ bool StringRenderer::AddString(const char * str,
 	int x, int y, const RenderParams & rp,
 	TextAnchor anchor, TextAlign align)
 {
-	return this->AddStringInternal(AS_UTF8(str), x, y, rp, anchor, align, TextType::TEXT);
+	return this->AddStringInternal(AsStringUtf8(str), x, y, rp, anchor, align, TextType::TEXT);
 }
 
 /// <summary>

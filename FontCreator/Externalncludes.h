@@ -131,7 +131,14 @@ static void CheckOpenGLError(const char* stmt, const char* fname, int line)
 
 using StringUtf8 = std::u8string;
 
-#define AS_UTF8(x) StringUtf8((char8_t*)x)
+static inline StringUtf8 AsStringUtf8(const char* str)
+{
+	return StringUtf8(reinterpret_cast<const char8_t*>(str));
+}
 
+static inline StringUtf8 AsStringUtf8(const std::string& str)
+{
+	return StringUtf8(reinterpret_cast<const char8_t*>(str.c_str()), str.length());
+}
 
 #endif
