@@ -140,9 +140,6 @@
     <ClInclude Include="Utils\CharacterExtraxtor.h">
       <Filter>Header Files\Utils</Filter>
     </ClInclude>
-    <ClInclude Include="Utils\win_dirent.h">
-      <Filter>Header Files\Utils</Filter>
-    </ClInclude>
     <ClInclude Include="Utils\DebugUtils.h">
       <Filter>Header Files\Utils</Filter>
     </ClInclude>

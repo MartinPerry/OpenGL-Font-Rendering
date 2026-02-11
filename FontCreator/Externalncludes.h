@@ -35,11 +35,6 @@
 #	include "./Unicode/ICUUtils.h"
 #endif
 
-#ifdef _WIN32
-#	include "./Utils/win_dirent.h"
-#else 
-#	include <dirent.h>
-#endif
 
 #include "./Utils/utf8/utf8.h"
 

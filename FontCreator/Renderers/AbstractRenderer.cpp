@@ -2,6 +2,7 @@
 
 #include <limits>
 #include <algorithm>
+#include <filesystem>
 
 #include "../Backends/Shaders/Shaders.h"
 #include "../FontBuilder.h"
@@ -18,46 +19,16 @@ std::vector<std::string> AbstractRenderer::GetFontsInDirectory(const std::string
 {
 	std::vector<std::string> t;
 
-	DIR* dir = opendir(fontDir.c_str());
-
-	if (dir == nullptr)
+	for (const auto& dirEntry : std::filesystem::directory_iterator(fontDir))
 	{
-		printf("Failed to open dir %s\n", fontDir.c_str());
-		return t;
-	}
-
-	struct dirent* ent;
-	std::string fullPath;
-
-	/* print all the files and directories within directory */
-	while ((ent = readdir(dir)) != nullptr)
-	{
-		if (ent->d_name[0] == '.')
+		if (dirEntry.is_regular_file() == false)
 		{
 			continue;
 		}
-		if (ent->d_type == DT_REG)
-		{
-			fullPath = fontDir;
-#ifdef _WIN32
-			fullPath = dir->patt; //full path using Windows dirent
-			fullPath = fullPath.substr(0, fullPath.length() - 1);
-#else
-			if (fullPath[fullPath.length() - 1] != '/')
-			{
-				fullPath += '/';
-			}
-#endif				
-			fullPath += ent->d_name;
 
-
-			t.push_back(std::move(fullPath));
-		}
+		t.emplace_back(dirEntry.path().string());
 	}
-
-
-	closedir(dir);
-
+	
 	return t;
 }
 

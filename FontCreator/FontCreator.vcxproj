@@ -216,7 +216,6 @@
     <ClInclude Include="Utils\utf8\cpp20.h" />
     <ClInclude Include="Utils\utf8\unchecked.h" />
     <ClInclude Include="Utils\utf8\utf8.h" />
-    <ClInclude Include="Utils\win_dirent.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="..\README.md" />

@@ -31,20 +31,20 @@ public:
 
 	void Release();
 
-	std::vector<int32_t> GetAllCharacters() const;
+	std::vector<char32_t> GetAllCharacters() const;
 
 	void SetOutputDir(const std::string & outputDir);
 
 	void AddAllAsciiLetters();
-	void AddCharacter(uint32_t c);
+	void AddCharacter(char32_t c);
 	void AddText(const StringUtf8& strU);
 	void AddTextFromFile(const std::string & filePath);
 	void AddTextFromFile(const std::string & filePath, std::function<void(const char* str, CharacterExtractor * ce)> parseCallback);
 	void AddDirectory(const std::string & dirPath);
 
-	void RemoveChar(int32_t c);
-
-	void GenerateScript(const std::string & scriptFileName = "run.sh");
+	void RemoveChar(char32_t c);
+	
+	void GenerateScript(const std::string& scriptFileName, bool useLinuxPath);
 
 protected:
 
@@ -59,13 +59,14 @@ protected:
 	std::string outputDir;
 	std::vector<std::string> inputTTF;
 	std::string outputTTF;
-	std::set<int32_t> characters;
+	std::set<char32_t> characters;
 
 	std::unordered_map<FaceName, FT_Face> faces;
 	std::unordered_map<FaceName, int> facesLineOffset;
 	
 	FT_Library library;
 	
+	void AppendCodePoint(StringUtf8& utf8_str, char32_t cp) const;
 
 	void InitFreeType();
 	std::string BaseName(std::string const & path);

@@ -6,79 +6,43 @@
 #include <streambuf>
 #include <sstream>
 #include <iomanip>
+#include <regex>
 
 #include <algorithm>
-
-
-
-#ifdef _WIN32
-#	include "./win_dirent.h"
-#else 
-#	include <dirent.h>
-#endif
+#include <filesystem>
 
 
 #include "../Unicode/ICUUtils.h"
 #include "../Unicode/BidiHelper.h"
 
-/*
-CharacterExtractor::CharacterExtractor(const std::vector<std::string> & inputTTF, const std::string & outputTTF)
-	: outputDir(""), inputTTF(inputTTF), outputTTF(outputTTF), library(nullptr)
-{
-	this->InitFreeType();
-};
-*/
 
 CharacterExtractor::CharacterExtractor(const std::vector<std::string>& fontDir, const std::string& outputTTF) :
 	outputDir(""),
 	outputTTF(outputTTF),
 	library(nullptr)
 {
-
-	for (auto d : fontDir)
+	for (const auto& d : fontDir)
 	{
-		if (DIR* dir = opendir(d.c_str()))
+		std::filesystem::path dirPath(d);
+
+		for (const auto& dirEntry : std::filesystem::directory_iterator(dirPath))
 		{
-			struct dirent* ent;
-
-			/* print all the files and directories within directory */
-			while ((ent = readdir(dir)) != nullptr)
+			if (dirEntry.is_regular_file() == false)
 			{
-				if (ent->d_name[0] == '.')
-				{
-					continue;
-				}
-
-				if (ent->d_type == DT_REG)
-				{
-
-					//printf ("%s (file)\n", ent->d_name);
-					std::string fullPath = d;
-#ifdef _WIN32
-					fullPath = dir->patt; //full path using Windows dirent
-					fullPath = fullPath.substr(0, fullPath.length() - 1);
-#else
-					if (fullPath[fullPath.length() - 1] != '/')
-					{
-						fullPath += '/';
-					}
-#endif				
-					fullPath += ent->d_name;
-
-
-					if ((this->HasEnding(ent->d_name, ".ttf")) || (this->HasEnding(ent->d_name, ".otf")))
-					{
-						this->inputTTF.push_back(fullPath);
-					}
-				}
+				continue;
 			}
 
-			closedir(dir);
+			auto ext = dirEntry.path().extension().string();
+			if ((ext == ".ttf") || (ext == ".otf"))
+			{
+				this->inputTTF.push_back(dirEntry.path().string());
+			}			
 		}
 	}
+		
 
 	this->InitFreeType();
-};
+}
 
 /// <summary>
 /// dtor
@@ -86,7 +50,7 @@ CharacterExtractor::CharacterExtractor(const std::vector<std::string>& fontDir, 
 CharacterExtractor::~CharacterExtractor()
 {
 	this->Release();
-};
+}
 
 void CharacterExtractor::Release()
 {
@@ -113,9 +77,9 @@ void CharacterExtractor::Release()
 	this->facesLineOffset.clear();
 }
 
-std::vector<int32_t> CharacterExtractor::GetAllCharacters() const
+std::vector<char32_t> CharacterExtractor::GetAllCharacters() const
 {
-	return std::vector<int32_t>(characters.begin(), characters.end());
+	return std::vector<char32_t>(characters.begin(), characters.end());
 }
 
 void CharacterExtractor::SetOutputDir(const std::string& outputDir)
@@ -182,7 +146,7 @@ void CharacterExtractor::InitFreeType()
 		this->faces[s] = fontFace;
 		this->facesLineOffset[s] = newLineOffset;
 	}
-};
+}
 
 //=======================================================================================
 // Adding data
@@ -192,16 +156,16 @@ void CharacterExtractor::InitFreeType()
 /// Remove single character
 /// </summary>
 /// <param name="c"></param>
-void CharacterExtractor::RemoveChar(int32_t c)
+void CharacterExtractor::RemoveChar(char32_t c)
 {
 	this->characters.erase(c);
-};
+}
 
 /// <summary>
 /// Add single character
 /// </summary>
 /// <param name="c"></param>
-void CharacterExtractor::AddCharacter(uint32_t c)
+void CharacterExtractor::AddCharacter(char32_t c)
 {
 	this->characters.insert(c);
 }
@@ -254,7 +218,7 @@ void CharacterExtractor::AddText(const StringUtf8& str)
 	{
 		this->AddCharacter(c);
 	}
-};
+}
 
 /// <summary>
 /// Add content of file
@@ -272,7 +236,7 @@ void CharacterExtractor::AddTextFromFile(const std::string& filePath)
 	auto str8 = IcuUtils::to_u8string(uniStr);
 
 	this->AddText(str8);
-};
+}
 
 /// <summary>
 /// Add content of JSON file
@@ -288,7 +252,7 @@ void CharacterExtractor::AddTextFromFile(const std::string& filePath,
 		
 	parseCallback(str.c_str(), this);
 	
-};
+}
 
 /// <summary>
 /// Add all files in directory and its subdirectories
@@ -296,67 +260,18 @@ void CharacterExtractor::AddTextFromFile(const std::string& filePath,
 /// <param name="dirPath"></param>
 void CharacterExtractor::AddDirectory(const std::string& dirPath)
 {
-	if (DIR* dir = opendir(dirPath.c_str()))
+	
+		
+	for (const auto& dirEntry : std::filesystem::recursive_directory_iterator(dirPath))
 	{
-		struct dirent* ent;
-		std::string newDirName;
-		std::string fullPath;
-
-		/* print all the files and directories within directory */
-		while ((ent = readdir(dir)) != nullptr)
+		if (dirEntry.is_regular_file() == false)
 		{
-			if (ent->d_name[0] == '.')
-			{
-				continue;
-			}
-			switch (ent->d_type)
-			{
-			case DT_REG:
-
-				//printf ("%s (file)\n", ent->d_name);
-				fullPath = dirPath;
-#ifdef _WIN32
-				fullPath = dir->patt; //full path using Windows dirent
-				fullPath = fullPath.substr(0, fullPath.length() - 1);
-#else
-				if (fullPath[fullPath.length() - 1] != '/')
-				{
-					fullPath += '/';
-				}
-#endif				
-				fullPath += ent->d_name;
-
-
-				//printf("Full file path: %s\n", fullPath.c_str());
-
-				this->AddTextFromFile(fullPath);
-				break;
-
-			case DT_DIR:
-				newDirName = dirPath;
-				if (newDirName[newDirName.length() - 1] != '/')
-				{
-					newDirName += '/';
-				}
-				newDirName += ent->d_name;
-				this->AddDirectory(newDirName);
-
-				break;
-
-			default:
-				//printf ("%s:\n", ent->d_name);
-				break;
-			}
+			continue;
 		}
 
-
-		closedir(dir);
-	}
-	else
-	{
-		printf("Failed to open dir %s\n", dirPath.c_str());
-	}
-};
+		this->AddTextFromFile(dirEntry.path().string());
+	}	
+}
 
 //=======================================================================================
 //=======================================================================================
@@ -365,7 +280,7 @@ void CharacterExtractor::AddDirectory(const std::string& dirPath)
 std::string CharacterExtractor::BaseName(std::string const& path)
 {
 	return path.substr(path.find_last_of("/\\") + 1);
-};
+}
 
 bool CharacterExtractor::HasEnding(std::string const& fullString, std::string const& ending)
 {
@@ -377,7 +292,29 @@ bool CharacterExtractor::HasEnding(std::string const& fullString, std::string co
 	{
 		return false;
 	}
-};
+}
+
+void CharacterExtractor::AppendCodePoint(StringUtf8& utf8_str, char32_t cp) const
+{
+	if (cp <= 0x7F) {
+		utf8_str.push_back(static_cast<char8_t>(cp));
+	}
+	else if (cp <= 0x7FF) {
+		utf8_str.push_back(static_cast<char8_t>(0xC0 | ((cp >> 6) & 0x1F)));
+		utf8_str.push_back(static_cast<char8_t>(0x80 | (cp & 0x3F)));
+	}
+	else if (cp <= 0xFFFF) {
+		utf8_str.push_back(static_cast<char8_t>(0xE0 | ((cp >> 12) & 0x0F)));
+		utf8_str.push_back(static_cast<char8_t>(0x80 | ((cp >> 6) & 0x3F)));
+		utf8_str.push_back(static_cast<char8_t>(0x80 | (cp & 0x3F)));
+	}
+	else if (cp <= 0x10FFFF) {
+		utf8_str.push_back(static_cast<char8_t>(0xF0 | ((cp >> 18) & 0x07)));
+		utf8_str.push_back(static_cast<char8_t>(0x80 | ((cp >> 12) & 0x3F)));
+		utf8_str.push_back(static_cast<char8_t>(0x80 | ((cp >> 6) & 0x3F)));
+		utf8_str.push_back(static_cast<char8_t>(0x80 | (cp & 0x3F)));
+	}
+}
 
 CharacterExtractor::GlyphsInfo CharacterExtractor::BuildGlyphs()
 {
@@ -407,7 +344,7 @@ CharacterExtractor::GlyphsInfo CharacterExtractor::BuildGlyphs()
 		bool found = false;
 		int minOffset = std::numeric_limits<int>::max();
 
-		for (auto& s : this->faces)
+		for (const auto& s : this->faces)
 		{
 
 			FT_UInt ci = FT_Get_Char_Index(s.second, c);
@@ -429,7 +366,7 @@ CharacterExtractor::GlyphsInfo CharacterExtractor::BuildGlyphs()
 		}
 
 		std::stringstream s;
-		s << std::hex << c;
+		s << std::hex << static_cast<uint32_t>(c);
 		std::string result(s.str());
 
 		if (found == false)
@@ -461,7 +398,7 @@ CharacterExtractor::GlyphsInfo CharacterExtractor::BuildGlyphs()
 		}
 
 		//todo - will this work?
-		gi.glyphsUnicode[faceName] += c;
+		AppendCodePoint(gi.glyphsUnicode[faceName], c);
 	}
 
 	return gi;
@@ -545,7 +482,7 @@ int CharacterExtractor::GetFontsCount(const GlyphsInfo& gi)
 /// This will generate script for "pyftsubset" and "pyftmerge" from "fonttools"
 /// https://github.com/fonttools/fonttools
 /// </summary>
-void CharacterExtractor::GenerateScript(const std::string& scriptFileName)
+void CharacterExtractor::GenerateScript(const std::string& scriptFileName, bool useLinuxPath)
 {
 	GlyphsInfo gi = this->BuildGlyphs();
 	this->AddSpaceToAllGlyphs(gi);
@@ -558,7 +495,7 @@ void CharacterExtractor::GenerateScript(const std::string& scriptFileName)
 
 	std::string remove = "";
 
-	std::string e = "#!/bin/sh";
+	std::string e = "#!/bin/bash";
 	e += '\n';
 
 	std::string lastFileName = "";
@@ -584,10 +521,19 @@ void CharacterExtractor::GenerateScript(const std::string& scriptFileName)
 
 		lastFileName = subsetFileName;
 
+		std::string inputFileName = s.first;
+		if (useLinuxPath)
+		{
+			inputFileName = std::regex_replace(inputFileName, std::regex("\\\\"), "/");
+			inputFileName = std::regex_replace(inputFileName, std::regex("D:"), "/mnt/d");
+		}
+
+
+
 		//https://github.com/fonttools/fonttools/issues/336
 
 		e += "pyftsubset \"";
-		e += s.first;
+		e += inputFileName;
 		e += "\"";
 		e += " --output-file=\"";
 		e += subsetFileName;
