@@ -21,13 +21,14 @@
 
 BackendOpenGL::BackendOpenGL(const RenderSettings& r, int glVersion) :
 	BackendOpenGL(r, glVersion,
-                       DEFAULT_VERTEX_SHADER_SOURCE, DEFAULT_PIXEL_SHADER_SOURCE,
+                       nullptr, nullptr,
                        std::make_shared<DefaultFontShaderManager>())
 {
 }
 
 BackendOpenGL::BackendOpenGL(const RenderSettings& r, int glVersion,
-	const char* vSource, const char* pSource, std::shared_ptr<IShaderManager> sm) :
+	const char* vSource, const char* pSource, 
+	std::shared_ptr<IShaderManager> sm) :
 	BackendBase(r),
 	glVersion(glVersion),
 	sm(sm),		
@@ -37,10 +38,10 @@ BackendOpenGL::BackendOpenGL(const RenderSettings& r, int glVersion,
 	background(nullptr)
 {	
 	this->shader.program = 0;
-	this->shader.pSource = pSource;
-	this->shader.vSource = vSource;
+	this->shader.pSource = (pSource) ? pSource : sm->GetPixelShaderSource();
+	this->shader.vSource = (vSource) ? vSource : sm->GetVertexShaderSource();
 
-	if ((pSource == DEFAULT_PIXEL_SHADER_SOURCE) && (vSource == DEFAULT_VERTEX_SHADER_SOURCE))
+	if ((vSource == sm->GetVertexShaderSource()) && (pSource == sm->GetPixelShaderSource()))
 	{
 		this->shader.isDefault = true;
 	}

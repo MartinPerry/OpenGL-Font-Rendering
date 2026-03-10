@@ -5,13 +5,9 @@
 #include "./Shaders/BackgroundShaderManager.h"
 
 BackendBackgroundOpenGL::BackendBackgroundOpenGL(const BackgroundSettings& bs, const RenderSettings& r, int glVersion) :	
-	BackendBackgroundOpenGL(bs, r, glVersion,
-		bs.color.has_value() ? 
-			SINGLE_COLOR_BACKGROUND_VERTEX_SHADER_SOURCE : 
-			(bs.shadow ? BACKGROUND_SHADOW_VERTEX_SHADER_SOURCE : BACKGROUND_VERTEX_SHADER_SOURCE), 
-		bs.color.has_value() ? 
-			SINGLE_COLOR_BACKGROUND_PIXEL_SHADER_SOURCE : 
-			(bs.shadow ? BACKGROUND_SHADOW_PIXEL_SHADER_SOURCE : BACKGROUND_PIXEL_SHADER_SOURCE),
+	BackendBackgroundOpenGL(bs, r, glVersion,		
+		nullptr, 		
+		nullptr,
 		bs.color.has_value() ? 
 			std::dynamic_pointer_cast<IShaderManager>(std::make_shared<SingleColorBackgroundShaderManager>()) :
 			std::dynamic_pointer_cast<IShaderManager>(std::make_shared<BackgroundShaderManager>())

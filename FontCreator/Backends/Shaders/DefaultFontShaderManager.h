@@ -14,6 +14,9 @@ public:
     DefaultFontShaderManager();
 	virtual ~DefaultFontShaderManager() = default;
     
+    const char* GetVertexShaderSource() const override;
+    const char* GetPixelShaderSource() const override;
+
     void GetAttributtesUniforms() override;
     void BindVertexAtribs() override;
     

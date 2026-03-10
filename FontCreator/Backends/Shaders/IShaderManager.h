@@ -18,6 +18,9 @@ public:
         this->shaderProgram = program;
     };
 
+    virtual const char* GetVertexShaderSource() const = 0;
+    virtual const char* GetPixelShaderSource() const = 0;
+
     GLuint BuildFromSources(const char* vSource, const char* pSource);
 
     virtual void GetAttributtesUniforms() = 0;

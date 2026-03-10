@@ -7,6 +7,7 @@
 #include "../Backends/Shaders/SingleColorFontShaderManager.h"
 
 #include "../Backends/BackendBase.h"
+#include "../Backends/BackendOpenGL.h"
 
 const std::string NumberRenderer::NUMBERS_STRING = "0123456789,.-";
 
@@ -21,22 +22,25 @@ const std::string NumberRenderer::NUMBERS_STRING = "0123456789,.-";
 /// <param name="glVersion"></param>
 /// <returns></returns>
 NumberRenderer * NumberRenderer::CreateSingleColor(Color color, const FontBuilderSettings& fs, 
-	std::unique_ptr<BackendBase>&& renderer)
+	const RenderSettings& r, int glVersion)
 {
-	
 	auto sm = std::make_shared<SingleColorFontShaderManager>();
 	sm->SetColor(color.r, color.g, color.b, color.a);
 
-	return new NumberRenderer(fs, std::move(renderer));
+	auto backend = std::make_unique<BackendOpenGL>(r, glVersion, nullptr, nullptr, sm);
+
+	return new NumberRenderer(fs, std::move(backend));
 
 }
 
 NumberRenderer* NumberRenderer::CreateSingleColor(Color color, std::shared_ptr<FontBuilder> fb,
-	std::unique_ptr<BackendBase>&& backend)
+	const RenderSettings& r, int glVersion)
 {
 
 	auto sm = std::make_shared<SingleColorFontShaderManager>();
 	sm->SetColor(color.r, color.g, color.b, color.a);
+
+	auto backend = std::make_unique<BackendOpenGL>(r, glVersion, nullptr, nullptr, sm);
 
 	return new NumberRenderer(fb, std::move(backend));
 

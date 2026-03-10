@@ -1,5 +1,6 @@
 #include "./SingleColorBackgroundShaderManager.h"
 
+#include "./Shaders.h"
 
 SingleColorBackgroundShaderManager::SingleColorBackgroundShaderManager() :
 	positionLocation(0),	
@@ -10,6 +11,16 @@ SingleColorBackgroundShaderManager::SingleColorBackgroundShaderManager() :
 	a(1.0f),
 	roundCornerRadius(0)
 {
+}
+
+const char* SingleColorBackgroundShaderManager::GetVertexShaderSource() const
+{
+	return SINGLE_COLOR_BACKGROUND_VERTEX_SHADER_SOURCE;
+}
+
+const char* SingleColorBackgroundShaderManager::GetPixelShaderSource() const
+{
+	return SINGLE_COLOR_BACKGROUND_PIXEL_SHADER_SOURCE;
 }
 
 void SingleColorBackgroundShaderManager::SetColor(float r, float g, float b, float a)

@@ -1,5 +1,6 @@
 #include "./BackgroundShaderManager.h"
 
+#include "./Shaders.h"
 
 BackgroundShaderManager::BackgroundShaderManager() :	
 	positionLocation(-1),	
@@ -14,6 +15,16 @@ BackgroundShaderManager::BackgroundShaderManager() :
 {
 }
 
+
+const char* BackgroundShaderManager::GetVertexShaderSource() const
+{
+	return shadow ? BACKGROUND_SHADOW_VERTEX_SHADER_SOURCE : BACKGROUND_VERTEX_SHADER_SOURCE;
+}
+
+const char* BackgroundShaderManager::GetPixelShaderSource() const
+{
+	return shadow ? BACKGROUND_SHADOW_PIXEL_SHADER_SOURCE : BACKGROUND_PIXEL_SHADER_SOURCE;
+}
 
 void BackgroundShaderManager::SetCornerRadius(float radius)
 {	

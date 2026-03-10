@@ -1,5 +1,7 @@
 #include "./SingleColorFontShaderManager.h"
 
+#include "./Shaders.h"
+
 SingleColorFontShaderManager::SingleColorFontShaderManager() :
 	positionLocation(0),
 	texCoordLocation(0),
@@ -9,6 +11,16 @@ SingleColorFontShaderManager::SingleColorFontShaderManager() :
 	b(1.0f),
 	a(1.0f)
 {
+}
+
+const char* SingleColorFontShaderManager::GetVertexShaderSource() const
+{
+	return SINGLE_COLOR_VERTEX_SHADER_SOURCE;
+}
+
+const char* SingleColorFontShaderManager::GetPixelShaderSource() const
+{
+	return SINGLE_COLOR_PIXEL_SHADER_SOURCE;
 }
 
 void SingleColorFontShaderManager::SetColor(float r, float g, float b, float a)

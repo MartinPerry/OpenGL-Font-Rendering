@@ -1,11 +1,24 @@
 #include "./DefaultFontShaderManager.h"
 
+#include "./Shaders.h"
+
 DefaultFontShaderManager::DefaultFontShaderManager() : 
 	positionLocation(0), 
 	texCoordLocation(0), 
 	colorLocation(0)
 {
 }
+
+const char* DefaultFontShaderManager::GetVertexShaderSource() const
+{
+    return DEFAULT_VERTEX_SHADER_SOURCE;
+}
+
+const char* DefaultFontShaderManager::GetPixelShaderSource() const
+{
+    return DEFAULT_PIXEL_SHADER_SOURCE;
+}
+
 
 /// <summary>
 /// Get shader uniforms and attributes locations

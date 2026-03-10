@@ -24,7 +24,8 @@ public:
 	
 	BackendOpenGL(const RenderSettings& r, int glVersion = 3);
 	BackendOpenGL(const RenderSettings& r, int glVersion,
-                  const char * vSource, const char * pSource, std::shared_ptr<IShaderManager> sm);
+		const char * vSource, const char * pSource, 
+		std::shared_ptr<IShaderManager> sm);
    	
 	virtual ~BackendOpenGL();
 

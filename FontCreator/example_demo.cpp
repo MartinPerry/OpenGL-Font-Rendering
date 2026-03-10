@@ -423,9 +423,7 @@ void initGL() {
 	r.deviceW = g_width;
 	r.deviceH = g_height;
 
-	auto backend = std::make_unique<BackendOpenGL>(r);
 	
-
 	FontBuilderSettings fs;
 	fs.screenDpi = 260;
 	fs.textureW = 512;
@@ -436,7 +434,7 @@ void initGL() {
 	//fs.fonts = { f, f2, f3 };
 	//fr = new StringRenderer(fs, r);
 	//fr = new StringRenderer(fs, r);
-	fr = StringRenderer::CreateSingleColor({ 1,0,1,1 }, fs, std::move(backend));
+	fr = StringRenderer::CreateSingleColor({ 1,0,1,1 }, fs, r);
 	//fr = new StringRenderer({ fNum }, r);
 	//fr = new StringRenderer({ f4 }, r);
 	
@@ -465,7 +463,7 @@ void initGL() {
 
 	ri.deviceH = 256;
 	
-	StringRenderer* imageSr = StringRenderer::CreateSingleColor({ 1,0,1,1 }, fs, std::make_unique<BackendImage>(ri, BackendImage::Format::RGBA));
+	StringRenderer* imageSr = new StringRenderer(fs, std::make_unique<BackendImage>(ri, BackendImage::Format::RGBA));
 	
 	BackendImage* image = dynamic_cast<BackendImage*>(imageSr->GetBackend());
 	image->SetTightDynamicCanvasEnabled(true);

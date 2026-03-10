@@ -6,6 +6,7 @@
 #include "../Backends/Shaders/SingleColorFontShaderManager.h"
 
 #include "../Backends/BackendBase.h"
+#include "../Backends/BackendOpenGL.h"
 
 #include "../Externalncludes.h"
 
@@ -20,11 +21,12 @@
 /// <param name="glVersion"></param>
 /// <returns></returns>
 StringRenderer * StringRenderer::CreateSingleColor(Color color, 
-	const FontBuilderSettings& fs, 
-	std::unique_ptr<BackendBase>&& backend)
+	const FontBuilderSettings& fs, const RenderSettings& r, int glVersion)
 {
 	auto sm = std::make_shared<SingleColorFontShaderManager>();
 	sm->SetColor(color.r, color.g, color.b, color.a);
+		
+	auto backend = std::make_unique<BackendOpenGL>(r, glVersion, nullptr, nullptr, sm);
 
 	return new StringRenderer(fs, std::move(backend));
 
