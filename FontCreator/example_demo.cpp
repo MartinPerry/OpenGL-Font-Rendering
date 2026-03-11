@@ -46,6 +46,7 @@ int g_width = 800;
 int g_height = 600;
 
 StringRenderer * fr;
+StringRenderer* frWithBg;
 NumberRenderer * fn;
 
 
@@ -146,6 +147,9 @@ void display() {
 	*/
 	
 	fr->Clear();
+	frWithBg->Clear();
+
+
 	//fr->AddStringCaption(UTF8_TEXT(u8"Velmi"), -0.05f, 0.5f, { 1,1,0,1 });
 	//fr->AddString(UTF8_TEXT(u8"Velmi \U0001F300"), 0.5f, 0.5f, { 1,1,0,1 });
 	//fr->AddStringCaption(UTF8_TEXT(u8"\U0001F300Pøíliš malý p\n(žluouèký)\nkùyòy"), 0.5f, 0.5f, { 1,1,0,1 });
@@ -165,6 +169,12 @@ void display() {
 	//fr->AddString(UTF8_TEXT(u8"x"), 0.5f, 0.5f);
 	auto backend = fr->GetBackend();
 	if (auto glBack = dynamic_cast<BackendOpenGL *>(backend))
+	{
+		glBack->SetFontTextureLinearFiler(true);
+	}
+
+	auto backendBg = frWithBg->GetBackend();
+	if (auto glBack = dynamic_cast<BackendOpenGL*>(backendBg))
 	{
 		glBack->SetFontTextureLinearFiler(true);
 	}
@@ -210,21 +220,22 @@ void display() {
 	
 	fr->SetCaptionOffset(80);	
 	
-	fr->AddStringCaption(
+	
+	frWithBg->AddStringCaption(
 		CreateRandomString(10),
 		//UTF8_TEXT("Ahoj\nsvete\nsvetg kuk"),
 		//UTF8_TEXT("H\n1023hPa"),
 		0.5f, 0.85f,
-		AbstractRenderer::RenderParams({ 1,1,0,1 }, { 1, 0, 1, 1 }, 1.0)
+		AbstractRenderer::RenderParams({ 1,1,0,1 }, { 0, 1, 0, 1 }, 1.0)
 	);
 	
 
 	fr->AddStringCaption(
 		//UTF8_TEXT(CreateRandomString(10).c_str()),
-		u8"i",
+		u8"iiiii",
 		//UTF8_TEXT("H\n1023hPa"),
 		0.5f, 0.35f,
-		AbstractRenderer::RenderParams({1,1,0,1 }, 1.0)
+		AbstractRenderer::RenderParams({1,1,1,1 }, 1.0)
 	);
 	
 	/*
@@ -269,6 +280,7 @@ void display() {
 	fr->AddString(u8"Hello World", 200, 300);
 	*/
 	fr->Render();
+	frWithBg->Render();
 
 	/*
 	fr->Clear();
@@ -303,7 +315,7 @@ void display() {
 	fn->AddNumber((double)(nmbr + nmbr / 100.0), 0.5f, 0.5f);
 	//fn->AddNumber(600010, 0.5f, 0.5f, { 1,1,0,1 }, AbstractRenderer::TextAnchor::CENTER);
 	//fn->AddNumberCaption(60000, 0.5f, 0.4f, { 1,1,0,1 });
-	fn->Render();
+	//fn->Render();
 	
 	
 
@@ -431,10 +443,12 @@ void initGL() {
 	fs.screenScale = 1.0;
 	fs.fonts = fonts;
 
+	//======================================================================
+
 	//fs.fonts = { f, f2, f3 };
 	//fr = new StringRenderer(fs, r);
-	//fr = new StringRenderer(fs, r);
-	fr = StringRenderer::CreateSingleColor({ 1,0,1,1 }, fs, r);
+	fr = StringRenderer::CreateDefault(fs, r);
+	//fr = StringRenderer::CreateSingleColor({ 1,0,1,1 }, fs, r);
 	//fr = new StringRenderer({ fNum }, r);
 	//fr = new StringRenderer({ f4 }, r);
 	
@@ -450,13 +464,22 @@ void initGL() {
 	//fr->GetFontBuilder()->Save("D://88.png");
 	fr->SetNewLineOffset(0);
 
-	//todo
+	//======================================================================
+
+	frWithBg = StringRenderer::CreateDefault(fs, r);
+	frWithBg->SetCaption(u8"\U0001F300", 10);
+	frWithBg->SetCaption(u8"\U00002b55", 0);
+	frWithBg->SetCaption(u8"*", 0);
+	frWithBg->SetCaptionOffset(40);
+
 	BackgroundSettings bs;
 	//bs.color = { 0,1, 1, 0.6f };
 	bs.padding = 8;
 	bs.cornerRadius =  40;// 20;
 	bs.shadow = true;
-	fr->SetBackgroundSettings(bs);
+	frWithBg->SetBackgroundSettings(bs);
+
+	//======================================================================
 
 	RenderSettings ri;
 	ri.deviceW = 512;
@@ -482,7 +505,7 @@ void initGL() {
 	imageSr->Render();
 	image->SaveToFile("D://test2.png");
 
-
+	//======================================================================
 
 	fs.fonts = { fArial };
 	fn = new NumberRenderer(fs, std::make_unique<BackendOpenGL>(r));

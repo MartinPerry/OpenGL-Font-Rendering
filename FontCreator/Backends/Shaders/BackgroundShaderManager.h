@@ -11,7 +11,7 @@
 class BackgroundShaderManager : public IShaderManager
 {
 public:
-    BackgroundShaderManager();
+    BackgroundShaderManager(bool shadow);
     virtual ~BackgroundShaderManager() = default;
 
     const char* GetVertexShaderSource() const override;
@@ -21,8 +21,7 @@ public:
     void BindVertexAtribs() override;
    
     void SetCornerRadius(float radius);
-    void SetShadowEnabled(bool shadow);
-
+    
     int GetQuadVertices() const override;
 
     void FillQuadVertexData(const AbstractRenderer::Vertex& minVertex,

@@ -4,6 +4,7 @@
 #include <algorithm>
 
 #include "../FontBuilder.h"
+#include "../Backends/Shaders/DefaultFontShaderManager.h"
 #include "../Backends/Shaders/SingleColorFontShaderManager.h"
 
 #include "../Backends/BackendBase.h"
@@ -45,6 +46,17 @@ NumberRenderer* NumberRenderer::CreateSingleColor(Color color, std::shared_ptr<F
 	return new NumberRenderer(fb, std::move(backend));
 
 }
+
+NumberRenderer* NumberRenderer::CreateDefault(const FontBuilderSettings& fs,
+	const RenderSettings& r, int glVersion)
+{
+	auto sm = std::make_shared<DefaultFontShaderManager>();
+
+	auto backend = std::make_unique<BackendOpenGL>(r, glVersion, nullptr, nullptr, sm);
+
+	return new NumberRenderer(fs, std::move(backend));
+}
+
 
 /// <summary>
 /// ctor

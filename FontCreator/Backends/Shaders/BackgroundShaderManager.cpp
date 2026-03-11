@@ -2,12 +2,12 @@
 
 #include "./Shaders.h"
 
-BackgroundShaderManager::BackgroundShaderManager() :	
+BackgroundShaderManager::BackgroundShaderManager(bool shadow) :
 	positionLocation(-1),	
 	colorLocation(-1),
 	aabbLocation(-1),
 	roundCornerRadius(0.0f),
-	shadow(false),
+	shadow(shadow),
 	min_x(0),
 	min_y(0),
 	max_x(0),
@@ -31,10 +31,6 @@ void BackgroundShaderManager::SetCornerRadius(float radius)
 	this->roundCornerRadius = radius;
 }
 
-void BackgroundShaderManager::SetShadowEnabled(bool shadow)
-{
-	this->shadow = shadow;
-}
 
 /// <summary>
 /// Get shader uniforms and attributes locations

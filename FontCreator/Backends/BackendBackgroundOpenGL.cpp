@@ -10,7 +10,7 @@ BackendBackgroundOpenGL::BackendBackgroundOpenGL(const BackgroundSettings& bs, c
 		nullptr,
 		bs.color.has_value() ? 
 			std::dynamic_pointer_cast<IShaderManager>(std::make_shared<SingleColorBackgroundShaderManager>()) :
-			std::dynamic_pointer_cast<IShaderManager>(std::make_shared<BackgroundShaderManager>())
+			std::dynamic_pointer_cast<IShaderManager>(std::make_shared<BackgroundShaderManager>(bs.shadow))
 	)
 {
 }
@@ -27,8 +27,7 @@ BackendBackgroundOpenGL::BackendBackgroundOpenGL(const BackgroundSettings& bs, c
 	}
 	else if (auto tmp = std::dynamic_pointer_cast<BackgroundShaderManager>(this->sm))
 	{		
-		tmp->SetCornerRadius(bs.cornerRadius * this->psW);
-		tmp->SetShadowEnabled(bs.shadow);
+		tmp->SetCornerRadius(bs.cornerRadius * this->psW);		
 	}
 }
 

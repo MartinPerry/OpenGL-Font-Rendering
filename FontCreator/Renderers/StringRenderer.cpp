@@ -3,6 +3,7 @@
 #include <limits>
 
 #include "../FontBuilder.h"
+#include "../Backends/Shaders/DefaultFontShaderManager.h"
 #include "../Backends/Shaders/SingleColorFontShaderManager.h"
 
 #include "../Backends/BackendBase.h"
@@ -32,6 +33,15 @@ StringRenderer * StringRenderer::CreateSingleColor(Color color,
 
 }
 
+StringRenderer* StringRenderer::CreateDefault(const FontBuilderSettings& fs,
+	const RenderSettings& r, int glVersion)
+{
+	auto sm = std::make_shared<DefaultFontShaderManager>();
+	
+	auto backend = std::make_unique<BackendOpenGL>(r, glVersion, nullptr, nullptr, sm);
+
+	return new StringRenderer(fs, std::move(backend));
+}
 
 StringRenderer::StringRenderer(const FontBuilderSettings& fs, 
 	std::unique_ptr<BackendBase>&& backend) :

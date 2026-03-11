@@ -95,6 +95,8 @@ public:
 	
 	static StringRenderer* CreateSingleColor(Color color, const FontBuilderSettings& fs, 
 		const RenderSettings& r, int glVersion = 3);
+	static StringRenderer* CreateDefault(const FontBuilderSettings& fs,
+		const RenderSettings& r, int glVersion = 3);
 	
 	StringRenderer(const FontBuilderSettings& fs, std::unique_ptr<BackendBase>&& backend);
 	~StringRenderer();
