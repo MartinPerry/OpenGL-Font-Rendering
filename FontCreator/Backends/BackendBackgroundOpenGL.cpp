@@ -90,6 +90,7 @@ void BackendBackgroundOpenGL::Render(std::function<void(GLuint)> preDrawCallback
 	FONT_BIND_VAO(this->vao);
 #endif		
 
+	this->sm->BindUniforms();
 	this->sm->PreRender();
 	this->sm->Render(this->quadsCount);
 

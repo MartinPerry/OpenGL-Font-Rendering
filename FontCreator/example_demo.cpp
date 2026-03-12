@@ -445,9 +445,9 @@ void initGL() {
 	fs.screenScale = 1.0;
 	fs.fonts = fonts;
 	fs.sdf = SDF();
-	fs.sdf->outlineColor = { 0, 0, 0, 1 };
-	fs.sdf->outlineWidth = 0.3;
-	//fs.sdf->softness = 1.0f;
+	//fs.sdf->outlineColor = { 0, 0, 0, 1 };
+	//fs.sdf->outlineWidth = 0.3;
+	fs.sdf->softness = 0.0f;
 	
 	//======================================================================
 
