@@ -21,14 +21,14 @@ class IShaderManager;
 class BackendOpenGL : public BackendBase
 {
 public:
-	
-	BackendOpenGL(const RenderSettings& r, int glVersion = 3);
+		
 	BackendOpenGL(const RenderSettings& r, int glVersion,
 		const char * vSource, const char * pSource, 
 		std::shared_ptr<IShaderManager> sm);
    	
 	virtual ~BackendOpenGL();
 
+	const BackgroundSettings* GetBackgroundSettings() const;
 	void SetBackground(std::optional<BackgroundSettings> bs) override;
 	void SetMainRenderer(AbstractRenderer* mainRenderer) override;
 	
@@ -62,7 +62,7 @@ protected:
 	
     std::shared_ptr<IShaderManager> sm;
 	
-	std::unique_ptr<BackendBase> background;
+	std::unique_ptr<BackendBackgroundOpenGL> background;
 
 	GLuint vbo;
 	GLuint vao;

@@ -193,6 +193,14 @@ struct RenderSettings
 	bool useTextureLinearFilter = false;
 };
 
+struct SDF
+{
+	float edgeValue = 0.5f;
+	float softness = 0.1f;
+	
+	float outlineWidth = 0.0f;
+	std::optional<Color> outlineColor = std::nullopt;
+};
 
 struct FontBuilderSettings
 {
@@ -207,7 +215,9 @@ struct FontBuilderSettings
 	//used on iPhones
 	float screenScale = 1.0f;
 
+	std::optional<SDF> sdf = std::nullopt;
 };
+
 
 /// <summary>
 /// If background color is set to value,

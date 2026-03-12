@@ -3,6 +3,7 @@
 
 #include <algorithm>
 
+
 #include "./TextureAtlasPack.h"
 
 
@@ -24,6 +25,8 @@
 /// <param name="fonts"></param>
 /// <param name="r"></param>
 FontBuilder::FontBuilder(const FontBuilderSettings& r) : 
+	stroker(nullptr),
+	sdfEnabled(r.sdf.has_value()),
 	screenScale(r.screenScale),
 	screenDpi(r.screenDpi)
 {
@@ -39,7 +42,7 @@ FontBuilder::FontBuilder(const FontBuilderSettings& r) :
 		//return;
 	}
 
-	
+			
 	for (const auto & f : r.fonts)
 	{
 		int index = this->InitializeFont(f.name);
@@ -68,7 +71,7 @@ FontBuilder::FontBuilder(const FontBuilderSettings& r) :
 	
 	int maxEmSize = this->GetMaxEmSize();
 	this->UpdateBitmapFontsSizes(maxEmSize);
-
+		
 
 	int ps = this->GetMaxEmSize();// this->fb->GetMaxFontPixelHeight();
 	this->SetGridPacking(ps, ps);
@@ -98,7 +101,7 @@ void FontBuilder::Release()
 		f.fontFace = nullptr;
 	}
 
-
+	FT_Stroker_Done(stroker);
 	FT_Done_FreeType(this->library);
 	this->library = nullptr;	
 }
@@ -317,6 +320,18 @@ void FontBuilder::UpdateBitmapFontsSizes(uint16_t maxEmSize)
 }
 
 //================================================================
+
+
+void FontBuilder::SetStrokeSize(int strokeSize)
+{
+	if (stroker == nullptr)
+	{
+		FT_Stroker_New(library, &stroker);
+	}
+	//  2 * 64 result in 2px outline
+	FT_Stroker_Set(stroker, strokeSize * 64, FT_STROKER_LINECAP_ROUND, FT_STROKER_LINEJOIN_ROUND, 0);
+
+}
 
 /// <summary>
 /// Set size for font with name fontName to fs
@@ -738,7 +753,7 @@ bool FontBuilder::CreateFontAtlas()
 	}
 
 #if defined(_WIN32) && defined(_DEBUG)
-	//this->texPacker->SaveToFile("D://packed_tex.png");
+	this->texPacker->SaveToFile("D://packed_tex.png");
 #endif
 	
 	this->texPacker->RemoveErasedGlyphsFromFontInfo();
@@ -775,6 +790,7 @@ GlyphInfo* FontBuilder::LoadGlyphInfo(CHAR_CODE c)
 	return nullptr;
 }
 
+
 /// <summary>
 /// Load single glyph info
 /// and fill local fi
@@ -798,43 +814,39 @@ GlyphInfo* FontBuilder::FillGlyphInfo(CHAR_CODE c, FontInfo & fi) const
 		return nullptr;
 	}
 	
-	
+	FT_Bitmap glyphBmp;
+	int glyphLeft;
+	int glyphTop;
+	int advanceX;
+
 	//FT_LOAD_RENDER
-	if (FT_Error err = FT_Load_Glyph(fi.fontFace, ci, FT_LOAD_RENDER))
-	{		
+	if (this->FillGlyphGraphics(fi, ci, glyphBmp, glyphLeft, glyphTop, advanceX) == false)
+	{
 		return nullptr;
 	}
 	
-	FT_GlyphSlot glyph = fi.fontFace->glyph;
-
-	/*
-	if (FT_Error err = FT_Render_Glyph(glyph, FT_RENDER_MODE_NORMAL))
-	{		
-		return false;
-	}
-	*/
-			
-	if (glyph->bitmap.pixel_mode != FT_PIXEL_MODE_GRAY)
+				
+	if (glyphBmp.pixel_mode != FT_PIXEL_MODE_GRAY)
 	{
 		MY_LOG_ERROR("Only gray-scale glyphs are supported");
 		return nullptr;
 	}
 
 
-	//bitmap_left is the horizontal distance from the current pen position 
+	//glyphLeft is the horizontal distance from the current pen position 
 	//to the left - most border of the glyph bitmap, 
-	//bitmap_top is the vertical distance from the pen position (on the baseline) 
+	//glyphTop is the vertical distance from the pen position (on the baseline) 
 	//to the top - most border of the glyph bitmap.
 	//It is positive to indicate an upwards distance.
 	
 	GlyphInfo gInfo;
 	gInfo.code = c;
 	gInfo.fontIndex = fi.index;
-	gInfo.bmpX = static_cast<uint16_t>(glyph->bitmap_left * fi.scaleFactor);
-	gInfo.bmpY = static_cast<uint16_t>(glyph->bitmap_top * fi.scaleFactor);
-	gInfo.bmpW = static_cast<uint16_t>(glyph->bitmap.width * fi.scaleFactor);
-	gInfo.bmpH = static_cast<uint16_t>(glyph->bitmap.rows * fi.scaleFactor);
-	gInfo.adv = static_cast<long>(glyph->advance.x * fi.scaleFactor);
+	gInfo.bmpX = static_cast<uint16_t>(glyphLeft * fi.scaleFactor);
+	gInfo.bmpY = static_cast<uint16_t>(glyphTop * fi.scaleFactor);
+	gInfo.bmpW = static_cast<uint16_t>(glyphBmp.width * fi.scaleFactor);
+	gInfo.bmpH = static_cast<uint16_t>(glyphBmp.rows * fi.scaleFactor);
+	gInfo.adv = static_cast<long>(advanceX * fi.scaleFactor);
 	gInfo.rawData = nullptr;
 
 	if (c > 32)
@@ -843,34 +855,34 @@ GlyphInfo* FontBuilder::FillGlyphInfo(CHAR_CODE c, FontInfo & fi) const
 
 		if (fi.scaleFactor != 1.0)
 		{
-			gInfo.rawData = this->ResizeBitmapHermite(glyph, fi);
+			gInfo.rawData = this->ResizeBitmapHermite(glyphBmp, fi);
 		}
 		else
 		{
-			int bitmapSize = glyph->bitmap.width * glyph->bitmap.rows;
+			int bitmapSize = glyphBmp.width * glyphBmp.rows;
 			uint8_t * textureData = new uint8_t[bitmapSize];
 
-			if (glyph->bitmap.pitch == 1)
+			if (glyphBmp.pitch == 1)
 			{
-				std::copy(glyph->bitmap.buffer,
-					glyph->bitmap.buffer + bitmapSize,
+				std::copy(glyphBmp.buffer,
+					glyphBmp.buffer + bitmapSize,
 					textureData);
 			}
 			else
 			{
 				//because of pitch, we cannot directly copy
-				//glyph->bitmap.buffer to textureData
+				//glyphBmp.buffer to textureData
 				
 				size_t j = 0;
-				for (unsigned int y = 0; y < glyph->bitmap.rows; y++)
+				for (unsigned int y = 0; y < glyphBmp.rows; y++)
 				{					
-					int yh = y * glyph->bitmap.pitch;
+					int yh = y * glyphBmp.pitch;
 
-					std::copy(glyph->bitmap.buffer + yh,
-						glyph->bitmap.buffer + (glyph->bitmap.width + yh),
+					std::copy(glyphBmp.buffer + yh,
+						glyphBmp.buffer + (glyphBmp.width + yh),
 						textureData + j);
 
-					j += glyph->bitmap.width;
+					j += glyphBmp.width;
 				}
 			}
 			
@@ -884,6 +896,63 @@ GlyphInfo* FontBuilder::FillGlyphInfo(CHAR_CODE c, FontInfo & fi) const
 
 }
 
+bool FontBuilder::FillGlyphGraphics(FontInfo& fi, FT_UInt ci,
+	FT_Bitmap& glyphBmp, int& glyphLeft, int& glyphTop, int& advanceX) const
+{
+	if (stroker == nullptr)
+	{
+		//FT_LOAD_RENDER
+		if (FT_Error err = FT_Load_Glyph(fi.fontFace, ci, FT_LOAD_DEFAULT))
+		{
+			return false;
+		}
+				
+		FT_GlyphSlot glyphSlot = fi.fontFace->glyph;
+
+		if (this->sdfEnabled)
+		{
+			FT_Render_Glyph(glyphSlot, FT_RENDER_MODE_SDF);
+		}
+		else
+		{
+			FT_Render_Glyph(glyphSlot, FT_RENDER_MODE_NORMAL);
+		}
+				
+
+		glyphBmp = glyphSlot->bitmap;
+		glyphLeft = glyphSlot->bitmap_left;
+		glyphTop = glyphSlot->bitmap_top;
+		advanceX = static_cast<int>(glyphSlot->advance.x >> 6);
+	}
+	else
+	{
+		if (FT_Error err = FT_Load_Glyph(fi.fontFace, ci, FT_LOAD_DEFAULT))
+		{
+			return false;
+		}
+
+		FT_Glyph glyph;
+		FT_Get_Glyph(fi.fontFace->glyph, &glyph);
+		FT_Glyph_StrokeBorder(&glyph, stroker, false, true);
+		
+		if (this->sdfEnabled)
+		{
+			FT_Glyph_To_Bitmap(&glyph, FT_RENDER_MODE_SDF, nullptr, true);
+		}
+		else
+		{
+			FT_Glyph_To_Bitmap(&glyph, FT_RENDER_MODE_NORMAL, nullptr, true);
+		}
+		FT_BitmapGlyph bitmapGlyph = reinterpret_cast<FT_BitmapGlyph>(glyph);
+
+		glyphBmp = bitmapGlyph->bitmap;
+		glyphLeft = bitmapGlyph->left;
+		glyphTop = bitmapGlyph->top;
+		advanceX = static_cast<int>(glyph->advance.x >> 16); // FT_Glyph advance is 16.16
+	}
+
+	return true;
+}
 
 /// <summary>
 /// Nearest neighbor resize
@@ -892,26 +961,26 @@ GlyphInfo* FontBuilder::FillGlyphInfo(CHAR_CODE c, FontInfo & fi) const
 /// <param name="glyph"></param>
 /// <param name="fi"></param>
 /// <returns></returns>
-uint8_t * FontBuilder::ResizeBitmap(FT_GlyphSlot glyph, FontInfo & fi) const
+uint8_t * FontBuilder::ResizeBitmap(FT_Bitmap glyphBmp, FontInfo & fi) const
 {
-	size_t w = static_cast<size_t>(glyph->bitmap.width * fi.scaleFactor);
-	size_t h = static_cast<size_t>(glyph->bitmap.rows * fi.scaleFactor);
+	size_t w = static_cast<size_t>(glyphBmp.width * fi.scaleFactor);
+	size_t h = static_cast<size_t>(glyphBmp.rows * fi.scaleFactor);
 
 	uint8_t * textureData = new uint8_t[w * h];
 	
-	double x_ratio = glyph->bitmap.width / (double)w;
-	double y_ratio = glyph->bitmap.rows / (double)h;
+	double x_ratio = glyphBmp.width / (double)w;
+	double y_ratio = glyphBmp.rows / (double)h;
 	double px, py;
 	for (size_t i = 0; i < h; i++) 
 	{
 		py = floor(i * y_ratio);
-		double pyW = py * glyph->bitmap.pitch;
+		double pyW = py * glyphBmp.pitch;
 		size_t iw = i * w;
 
 		for (size_t j = 0; j < w; j++)
 		{
 			px = floor(j * x_ratio);			
-			textureData[j + iw] = glyph->bitmap.buffer[static_cast<int>(px + pyW)];
+			textureData[j + iw] = glyphBmp.buffer[static_cast<int>(px + pyW)];
 		}
 	}
 	return textureData;
@@ -925,16 +994,16 @@ uint8_t * FontBuilder::ResizeBitmap(FT_GlyphSlot glyph, FontInfo & fi) const
 /// <param name="glyph"></param>
 /// <param name="fi"></param>
 /// <returns></returns>
-uint8_t * FontBuilder::ResizeBitmapHermite(FT_GlyphSlot glyph, FontInfo & fi) const
+uint8_t * FontBuilder::ResizeBitmapHermite(FT_Bitmap glyphBmp, FontInfo & fi) const
 {
 
-	size_t width = static_cast<size_t>(glyph->bitmap.width * fi.scaleFactor);
-	size_t height = static_cast<size_t>(glyph->bitmap.rows * fi.scaleFactor);
+	size_t width = static_cast<size_t>(glyphBmp.width * fi.scaleFactor);
+	size_t height = static_cast<size_t>(glyphBmp.rows * fi.scaleFactor);
 	
 	uint8_t * textureData = new uint8_t[width * height];
 
-	double ratio_w = static_cast<double>(glyph->bitmap.width) / width;
-	double ratio_h = static_cast<double>(glyph->bitmap.rows) / height;
+	double ratio_w = static_cast<double>(glyphBmp.width) / width;
+	double ratio_h = static_cast<double>(glyphBmp.rows) / height;
 	double ratio_w_half = std::ceil(ratio_w / 2.0);
 	double ratio_h_half = std::ceil(ratio_h / 2.0);
 
@@ -945,7 +1014,7 @@ uint8_t * FontBuilder::ResizeBitmapHermite(FT_GlyphSlot glyph, FontInfo & fi) co
 
 		size_t yy_start = static_cast<size_t>(std::floor(j * ratio_h));
 		size_t yy_stop = static_cast<size_t>(std::ceil((j + 1) * ratio_h));
-		yy_stop = std::min(yy_stop, static_cast<size_t>(glyph->bitmap.rows));
+		yy_stop = std::min(yy_stop, static_cast<size_t>(glyphBmp.rows));
 
 		for (size_t i = 0; i < width; i++) 
 		{
@@ -962,7 +1031,7 @@ uint8_t * FontBuilder::ResizeBitmapHermite(FT_GlyphSlot glyph, FontInfo & fi) co
 						
 			size_t xx_start = static_cast<size_t>(std::floor(i * ratio_w));
 			size_t xx_stop = static_cast<size_t>(std::ceil((i + 1) * ratio_w));
-			xx_stop = std::min(xx_stop, static_cast<size_t>(glyph->bitmap.width));
+			xx_stop = std::min(xx_stop, static_cast<size_t>(glyphBmp.width));
 			
 			for (size_t yy = yy_start; yy < yy_stop; yy++) 
 			{
@@ -982,18 +1051,18 @@ uint8_t * FontBuilder::ResizeBitmapHermite(FT_GlyphSlot glyph, FontInfo & fi) co
 
 					//hermite filter
 					double weight = 2 * w2 * w - 3 * w2 + 1;
-					size_t pos_x = (xx + yy * glyph->bitmap.width); //* 4;
+					size_t pos_x = (xx + yy * glyphBmp.width); //* 4;
 					//alpha
-					//gx_a += weight * glyph->bitmap.buffer[pos_x + 3];
+					//gx_a += weight * glyphBmp.buffer[pos_x + 3];
 					//weights_alpha += weight;
 					//colors
-					//if (glyph->bitmap.buffer[pos_x + 3] < 255)
+					//if (glyphBmp.buffer[pos_x + 3] < 255)
 					//{
-					//	weight = weight * glyph->bitmap.buffer[pos_x + 3] / 250;
+					//	weight = weight * glyphBmp.buffer[pos_x + 3] / 250;
 					//}
-					gx_r += weight * glyph->bitmap.buffer[pos_x];
-					//gx_g += weight * glyph->bitmap.buffer[pos_x + 1];
-					//gx_b += weight * glyph->bitmap.buffer[pos_x + 2];
+					gx_r += weight * glyphBmp.buffer[pos_x];
+					//gx_g += weight * glyphBmp.buffer[pos_x + 1];
+					//gx_b += weight * glyphBmp.buffer[pos_x + 2];
 					weights += weight;
 				}
 			}

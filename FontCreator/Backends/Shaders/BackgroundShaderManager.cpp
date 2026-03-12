@@ -76,6 +76,10 @@ void BackgroundShaderManager::BindVertexAtribs()
 	}
 }
 
+void BackgroundShaderManager::BindUniforms()
+{
+}
+
 void BackgroundShaderManager::Clear()
 {
 	this->startingElements.clear();

@@ -232,7 +232,7 @@ void display() {
 
 	fr->AddStringCaption(
 		//UTF8_TEXT(CreateRandomString(10).c_str()),
-		u8"iiiii",
+		u8"i i i i i",
 		//UTF8_TEXT("H\n1023hPa"),
 		0.5f, 0.35f,
 		AbstractRenderer::RenderParams({1,1,1,1 }, 1.0)
@@ -389,20 +389,22 @@ void initGL() {
 	f2.size = 16_pt;
 	*/
 
+	auto ftSize = 12_pt;
+
 	auto fontFiles = AbstractRenderer::GetFontsInDirectory("../fonts2/");
 
 	std::vector<Font> fonts;
 	for (auto d : fontFiles)
 	{
-		Font f(d, 12_pt);
+		Font f(d, ftSize);
 
 		fonts.push_back(f);
 	}
 
-	Font ft("../fonts2/merged_out_2048_94.ttf", 12_pt);
+	Font ft("../fonts2/merged_out_2048_94.ttf", ftSize);
 	//fonts.push_back(ft);
 
-	Font fArial("../fonts/arial_unicode.ttf", 12_pt);
+	Font fArial("../fonts/arial_unicode.ttf", ftSize);
 	//fonts.clear();
 	//fonts.push_back(fArial);
 
@@ -427,7 +429,7 @@ void initGL() {
 	f3.size = 16_pt;
 	*/
 
-	Font fNum("../fonts2/merged_out_2048_53.ttf", 12_pt);
+	Font fNum("../fonts2/merged_out_2048_53.ttf", ftSize);
 	//fNum.name = "../fonts/arial.ttf";
 	//fNum.name = "../fonts/NotoSans-Regular.ttf";
 	
@@ -442,7 +444,11 @@ void initGL() {
 	fs.textureH = 512;
 	fs.screenScale = 1.0;
 	fs.fonts = fonts;
-
+	fs.sdf = SDF();
+	fs.sdf->outlineColor = { 0, 0, 0, 1 };
+	fs.sdf->outlineWidth = 0.3;
+	//fs.sdf->softness = 1.0f;
+	
 	//======================================================================
 
 	//fs.fonts = { f, f2, f3 };
@@ -451,7 +457,9 @@ void initGL() {
 	//fr = StringRenderer::CreateSingleColor({ 1,0,1,1 }, fs, r);
 	//fr = new StringRenderer({ fNum }, r);
 	//fr = new StringRenderer({ f4 }, r);
-	
+		
+	//fr->GetFontBuilder()->SetStrokeSize(2);
+
 	fr->SetCaption(u8"\U0001F300", 10);
 	fr->SetCaption(u8"\U00002b55", 0);
 	fr->SetCaption(u8"*", 0);
@@ -508,7 +516,7 @@ void initGL() {
 	//======================================================================
 
 	fs.fonts = { fArial };
-	fn = new NumberRenderer(fs, std::make_unique<BackendOpenGL>(r));
+	fn = NumberRenderer::CreateDefault(fs, r);
 
 }
 

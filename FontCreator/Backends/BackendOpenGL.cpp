@@ -19,13 +19,6 @@
 //=============================================================================
 
 
-BackendOpenGL::BackendOpenGL(const RenderSettings& r, int glVersion) :
-	BackendOpenGL(r, glVersion,
-                       nullptr, nullptr,
-                       std::make_shared<DefaultFontShaderManager>())
-{
-}
-
 BackendOpenGL::BackendOpenGL(const RenderSettings& r, int glVersion,
 	const char* vSource, const char* pSource, 
 	std::shared_ptr<IShaderManager> sm) :
@@ -167,7 +160,7 @@ void BackendOpenGL::InitVAO()
 	FONT_BIND_VAO(this->vao);
 
 	this->sm->BindVertexAtribs();
-
+	
 	FONT_UNBIND_ARRAY_BUFFER;
 
 	FONT_UNBIND_VAO;
@@ -195,11 +188,28 @@ void BackendOpenGL::SetFontTextureLinearFiler(bool val)
 	FONT_UNBIND_TEXTURE_2D;
 }
 
+const BackgroundSettings* BackendOpenGL::GetBackgroundSettings() const
+{
+	if (this->background)
+	{
+		return &this->background->GetBackgroundSettings();
+	}
+
+	return nullptr;
+}
+
 void BackendOpenGL::SetBackground(std::optional<BackgroundSettings> bs)
 {
 	if (bs)
 	{
-		this->background = std::make_unique<BackendBackgroundOpenGL>(*bs, rs, glVersion);
+		if (this->background)
+		{
+			this->background->SetBackgroundSettings(*bs);
+		}
+		else
+		{
+			this->background = std::make_unique<BackendBackgroundOpenGL>(*bs, rs, glVersion);
+		}
 	}
 	else 	
 	{
@@ -257,7 +267,7 @@ void BackendOpenGL::Render(std::function<void(GLuint)> preDrawCallback,
 
 	if (this->background)
 	{
-		this->background->Render();
+		this->background->Render(nullptr, nullptr);
 	}
     
 	//activate texture
@@ -284,6 +294,7 @@ void BackendOpenGL::Render(std::function<void(GLuint)> preDrawCallback,
 	FONT_BIND_VAO(this->vao);
 #endif		
 
+	this->sm->BindUniforms();
 	this->sm->PreRender();
 
     if (preDrawCallback != nullptr)

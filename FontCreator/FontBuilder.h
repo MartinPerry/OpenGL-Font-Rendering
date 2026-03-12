@@ -10,6 +10,7 @@ class TextureAtlasPack;
 #include <vector>
 
 #include <ft2build.h>
+#include <freetype/ftstroke.h>
 #include FT_FREETYPE_H
 
 
@@ -26,7 +27,8 @@ public:
 
 	void Release();
 	bool IsInited() const;
-
+	
+	void SetStrokeSize(int strokeSize);
 	void SetFontSize(const std::string & fontName, const FontSize & fs, uint16_t defaultFontSizeInPx = 0);
 	void SetAllFontSize(const FontSize & fs, uint16_t defaultFontSizeInPx = 0);
 
@@ -68,9 +70,11 @@ protected:
 	uint16_t screenDpi;
 
 	FT_Library library;
+	FT_Stroker stroker;
 	
 	std::vector<FontInfo> fis;
 	
+	bool sdfEnabled;
 
 	std::unordered_set<CHAR_CODE> reused; //codes that were already added and are also in current string
 	std::unordered_set<CHAR_CODE> newCodes; //newly added codes
@@ -86,9 +90,11 @@ protected:
 	GlyphInfo* LoadGlyphInfo(CHAR_CODE c);
 	GlyphInfo* FillGlyphInfo(CHAR_CODE c, FontInfo & fi) const;
 
+	bool FillGlyphGraphics(FontInfo& fi, FT_UInt ci,
+		FT_Bitmap& glyphBmp, int& glyphLeft, int& glyphTop, int& advanceX) const;
 	
-	uint8_t * ResizeBitmap(FT_GlyphSlot glyph, FontInfo & fi) const;
-	uint8_t * ResizeBitmapHermite(FT_GlyphSlot glyph, FontInfo & fi) const;
+	uint8_t * ResizeBitmap(FT_Bitmap glyphBmp, FontInfo & fi) const;
+	uint8_t * ResizeBitmapHermite(FT_Bitmap glyphBmp, FontInfo & fi) const;
 
 };
 

@@ -2,6 +2,7 @@
 #define DEFAULT_FONT_SHADER_MANAGER_H
 
 #include <vector>
+#include <optional>
 
 #include "../../Externalncludes.h"
 #include "../../Renderers/AbstractRenderer.h"
@@ -11,7 +12,7 @@
 class DefaultFontShaderManager : public IShaderManager
 {
 public:
-    DefaultFontShaderManager();
+    DefaultFontShaderManager(std::optional<SDF> sdf);
 	virtual ~DefaultFontShaderManager() = default;
     
     const char* GetVertexShaderSource() const override;
@@ -19,6 +20,7 @@ public:
 
     void GetAttributtesUniforms() override;
     void BindVertexAtribs() override;
+    void BindUniforms() override;
     
     int GetQuadVertices() const override;
 
@@ -28,9 +30,17 @@ public:
                         std::vector<float> & vec) override;
     	
 protected:
+    std::optional<SDF> sdf;
+
     GLint positionLocation;
     GLint texCoordLocation;
-    GLint colorLocation;        
+    GLint colorLocation;     
+
+    GLint sdfEdgeLocation;
+    GLint sdfSoftnessLocation;
+
+    GLint sdfOutlineColorLocation;
+    GLint sdfOutlineWidthLocation;
 };
 
 

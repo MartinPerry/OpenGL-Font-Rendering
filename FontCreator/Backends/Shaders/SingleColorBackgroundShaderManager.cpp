@@ -71,6 +71,12 @@ void SingleColorBackgroundShaderManager::BindVertexAtribs()
 	*/
 }
 
+void SingleColorBackgroundShaderManager::BindUniforms()
+{
+	GL_CHECK(glUniform4f(colorUniform, r, g, b, a));
+}
+
+
 void SingleColorBackgroundShaderManager::Clear()
 {
 	this->startingElements.clear();
@@ -78,8 +84,7 @@ void SingleColorBackgroundShaderManager::Clear()
 }
 
 void SingleColorBackgroundShaderManager::PreRender()
-{
-	GL_CHECK(glUniform4f(colorUniform, r, g, b, a));
+{	
 }
 
 void SingleColorBackgroundShaderManager::Render(int quadsCount)

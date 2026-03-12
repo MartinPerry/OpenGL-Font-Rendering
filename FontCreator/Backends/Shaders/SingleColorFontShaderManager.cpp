@@ -63,9 +63,13 @@ void SingleColorFontShaderManager::BindVertexAtribs()
 		VERTEX_SIZE, (void*)(TEX_COORD_OFFSET)));
 }
 
-void SingleColorFontShaderManager::PreRender()
+void SingleColorFontShaderManager::BindUniforms()
 {
 	GL_CHECK(glUniform4f(colorUniform, r, g, b, a));
+}
+
+void SingleColorFontShaderManager::PreRender()
+{	
 }
 
 int SingleColorFontShaderManager::GetQuadVertices() const

@@ -50,7 +50,7 @@ NumberRenderer* NumberRenderer::CreateSingleColor(Color color, std::shared_ptr<F
 NumberRenderer* NumberRenderer::CreateDefault(const FontBuilderSettings& fs,
 	const RenderSettings& r, int glVersion)
 {
-	auto sm = std::make_shared<DefaultFontShaderManager>();
+	auto sm = std::make_shared<DefaultFontShaderManager>(fs.sdf);
 
 	auto backend = std::make_unique<BackendOpenGL>(r, glVersion, nullptr, nullptr, sm);
 
@@ -202,7 +202,7 @@ void NumberRenderer::Precompute()
 		{
 			const GlyphInfo * gi = this->precomputed[i].gi[j];
 			this->precomputed[i].aabb.Update(x + gi->bmpX, -gi->bmpY, gi->bmpW, gi->bmpH);			
-			x += (gi->adv >> 6);
+			x += gi->adv;
 		}
 		this->precomputed[i].xOffset = x;
 
@@ -586,7 +586,7 @@ AABB NumberRenderer::CalcNumberAABB(double val, int x, int y,
 		const GlyphInfo & gi = this->gi['-'];
 		
 		aabb.Update(x + gi.bmpX, -gi.bmpY, gi.bmpW, gi.bmpH);		
-		x += (gi.adv >> 6);	
+		x += (gi.adv);	
 		x += this->extraGlyphSpacingSize;
 	}
 
@@ -596,7 +596,7 @@ AABB NumberRenderer::CalcNumberAABB(double val, int x, int y,
 		const GlyphInfo & gi = this->gi[intPart + '0'];
 
 		aabb.Update(x + gi.bmpX, -gi.bmpY, gi.bmpW, gi.bmpH);
-		x += (gi.adv >> 6);	
+		x += (gi.adv);	
 		x += this->extraGlyphSpacingSize;
 	}
 	else
@@ -622,7 +622,7 @@ AABB NumberRenderer::CalcNumberAABB(double val, int x, int y,
 			const GlyphInfo & gi = this->gi[intPart + '0'];
 			
 			aabb.Update(x + gi.bmpX, -gi.bmpY, gi.bmpW, gi.bmpH);
-			x += (gi.adv >> 6);
+			x += (gi.adv);
 			x += this->extraGlyphSpacingSize;
 		}
 	}
@@ -633,7 +633,7 @@ AABB NumberRenderer::CalcNumberAABB(double val, int x, int y,
 		const GlyphInfo & gi = this->gi['.'];
 		
 		aabb.Update(x + gi.bmpX, -gi.bmpY, gi.bmpW, gi.bmpH);
-		x += (gi.adv >> 6);
+		x += (gi.adv);
 		x += this->extraGlyphSpacingSize;
 		
 		while (fractPartReversed)
@@ -642,7 +642,7 @@ AABB NumberRenderer::CalcNumberAABB(double val, int x, int y,
 			const GlyphInfo & gi = this->gi[cc + '0'];
 			
 			aabb.Update(x + gi.bmpX, -gi.bmpY, gi.bmpW, gi.bmpH);
-			x += (gi.adv >> 6);	
+			x += (gi.adv);	
 			x += this->extraGlyphSpacingSize;
 
 			fractPartReversed /= 10;
@@ -720,7 +720,7 @@ bool NumberRenderer::GenerateGeometry()
 		if (si.negative)
 		{
 			this->AddQuad(this->gi['-'], x, y, si.renderParams);
-			x += (this->gi['-'].adv >> 6);
+			x += (this->gi['-'].adv);
 			x += this->extraGlyphSpacingSize;
 		}				
 		
@@ -735,7 +735,7 @@ bool NumberRenderer::GenerateGeometry()
 			//one digit number
 			const GlyphInfo & gi = this->gi[intPart + '0'];
 			this->AddQuad(gi, x, y, si.renderParams);
-			x += (gi.adv >> 6);
+			x += (gi.adv);
 			x += this->extraGlyphSpacingSize;
 		}
 		else				
@@ -751,11 +751,11 @@ bool NumberRenderer::GenerateGeometry()
 				const GlyphInfo * const * t = precomputed[tmp].gi;
 
 				this->AddQuad(*t[1], x, y, si.renderParams);
-				x += (t[1]->adv >> 6);
+				x += (t[1]->adv);
 				x += this->extraGlyphSpacingSize;
 
 				this->AddQuad(*t[0], x, y, si.renderParams);
-				x += (t[0]->adv >> 6);
+				x += (t[0]->adv);
 				x += this->extraGlyphSpacingSize;
 
 				//? huh - gives 0 ?
@@ -769,7 +769,7 @@ bool NumberRenderer::GenerateGeometry()
 				//one digit remaining number
 				const GlyphInfo & gi = this->gi[intPart + '0'];
 				this->AddQuad(gi, x, y, si.renderParams);
-				x += (gi.adv >> 6);
+				x += (gi.adv);
 				x += this->extraGlyphSpacingSize;
 			}
 		}
@@ -780,7 +780,7 @@ bool NumberRenderer::GenerateGeometry()
 		if (fractPartReverse)
 		{
 			this->AddQuad(this->gi['.'], x, y, si.renderParams);
-			x += (this->gi['.'].adv >> 6);
+			x += (this->gi['.'].adv);
 			x += this->extraGlyphSpacingSize;
 			
 			while (fractPartReverse)
@@ -789,7 +789,7 @@ bool NumberRenderer::GenerateGeometry()
 				const GlyphInfo & gi = this->gi[cc + '0'];
 
 				this->AddQuad(gi, x, y, si.renderParams);
-				x += (gi.adv >> 6);
+				x += (gi.adv);
 				x += this->extraGlyphSpacingSize;
 
 				fractPartReverse /= 10;

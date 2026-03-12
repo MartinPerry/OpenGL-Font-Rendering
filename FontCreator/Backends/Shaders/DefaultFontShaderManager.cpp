@@ -2,7 +2,8 @@
 
 #include "./Shaders.h"
 
-DefaultFontShaderManager::DefaultFontShaderManager() : 
+DefaultFontShaderManager::DefaultFontShaderManager(std::optional<SDF> sdf) :
+    sdf(sdf),
 	positionLocation(0), 
 	texCoordLocation(0), 
 	colorLocation(0)
@@ -16,7 +17,9 @@ const char* DefaultFontShaderManager::GetVertexShaderSource() const
 
 const char* DefaultFontShaderManager::GetPixelShaderSource() const
 {
-    return DEFAULT_PIXEL_SHADER_SOURCE;
+    return (sdf.has_value()) ? (
+        sdf->outlineColor.has_value() ? DEFAULT_SDF_OUTLINE_PIXEL_SHADER_SOURCE : DEFAULT_SDF_PIXEL_SHADER_SOURCE
+    ) : DEFAULT_PIXEL_SHADER_SOURCE;
 }
 
 
@@ -28,6 +31,19 @@ void DefaultFontShaderManager::GetAttributtesUniforms()
     GL_CHECK(positionLocation = glGetAttribLocation(shaderProgram, "POSITION"));
     GL_CHECK(texCoordLocation = glGetAttribLocation(shaderProgram, "TEXCOORD0"));
     GL_CHECK(colorLocation = glGetAttribLocation(shaderProgram, "COLOR"));
+
+    if (sdf.has_value())
+    {
+        // Typical setup values for FreeType-generated SDF:
+        GL_CHECK(sdfEdgeLocation = glGetUniformLocation(shaderProgram, "uEdge"));
+        GL_CHECK(sdfSoftnessLocation = glGetUniformLocation(shaderProgram, "uSoftness"));
+
+        if (sdf->outlineColor.has_value())
+        {
+            GL_CHECK(sdfOutlineColorLocation = glGetUniformLocation(shaderProgram, "uOutlineColor"));
+            GL_CHECK(sdfOutlineWidthLocation = glGetUniformLocation(shaderProgram, "uOutlineWidth"));
+        }
+    }
     
 }
 
@@ -58,6 +74,22 @@ void DefaultFontShaderManager::BindVertexAtribs()
                                    GL_FLOAT, GL_FALSE,
                                    VERTEX_SIZE, (void*)(COLOR_OFFSET)));
     
+}
+
+void DefaultFontShaderManager::BindUniforms()
+{
+    if (sdf.has_value())
+    {        
+        glUniform1f(sdfEdgeLocation, sdf->edgeValue);
+        glUniform1f(sdfSoftnessLocation, sdf->softness);   
+
+        if (sdf->outlineColor.has_value())
+        {
+            glUniform1f(sdfOutlineWidthLocation, sdf->outlineWidth);
+            glUniform4f(sdfOutlineColorLocation, sdf->outlineColor->r, sdf->outlineColor->g,
+                sdf->outlineColor->b, sdf->outlineColor->a);
+        }
+    }
 }
 
 int DefaultFontShaderManager::GetQuadVertices() const

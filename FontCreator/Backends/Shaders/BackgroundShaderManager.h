@@ -19,6 +19,7 @@ public:
 
     void GetAttributtesUniforms() override;
     void BindVertexAtribs() override;
+    void BindUniforms() override;
    
     void SetCornerRadius(float radius);
     

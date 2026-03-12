@@ -36,7 +36,7 @@ StringRenderer * StringRenderer::CreateSingleColor(Color color,
 StringRenderer* StringRenderer::CreateDefault(const FontBuilderSettings& fs,
 	const RenderSettings& r, int glVersion)
 {
-	auto sm = std::make_shared<DefaultFontShaderManager>();
+	auto sm = std::make_shared<DefaultFontShaderManager>(fs.sdf);
 	
 	auto backend = std::make_unique<BackendOpenGL>(r, glVersion, nullptr, nullptr, sm);
 
@@ -526,7 +526,7 @@ AABB StringRenderer::EstimateStringAABB(const StringUtf8& str,
 			const GlyphInfo & gi = it->second;
 			w = gi.bmpW * scale;
 			h = gi.bmpH * scale;
-			adv = (gi.adv >> 6) * scale;
+			adv = (gi.adv) * scale;
 		}
 		else
 		{
@@ -625,7 +625,7 @@ void StringRenderer::CalcStringAABB(StringInfo & si, const UsedGlyphCache * gc) 
 			float fy = y - gi.bmpY;
 			li.aabb.Update(fx, fy, static_cast<float>(gi.bmpW), static_cast<float>(gi.bmpH));
 
-			x += (gi.adv >> 6);
+			x += (gi.adv);
 			x += this->extraGlyphSpacingSize;
 		}
 											
@@ -777,7 +777,7 @@ long StringRenderer::CalcSpaceSize()
 	if (spaceSizeExist)
 	{
 		const GlyphInfo & gi = it->second;
-		spaceSize = (gi.adv >> 6);
+		spaceSize = gi.adv;
 	}
 	else
 	{
@@ -787,7 +787,7 @@ long StringRenderer::CalcSpaceSize()
 		if (tmpExist)
 		{
 			const GlyphInfo & gi = tmp->second;
-			spaceSize = (gi.adv >> 6);
+			spaceSize = gi.adv;
 		}
 		else
 		{
@@ -879,10 +879,10 @@ bool StringRenderer::GenerateGeometry()
 				}
 
 				const GlyphInfo & gi = it->second;
-
+								
 				this->AddQuad(gi, x, y, li.renderParams ? *li.renderParams : si.renderParams);
 
-				x += (gi.adv >> 6) * scale;
+				x += gi.adv * scale;
 				x += this->extraGlyphSpacingSize * scale;
 			}
 			

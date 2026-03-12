@@ -25,6 +25,7 @@ public:
 
     virtual void GetAttributtesUniforms() = 0;
     virtual void BindVertexAtribs() = 0;
+    virtual void BindUniforms() = 0;
 
     virtual int GetQuadVertices() const = 0;
 

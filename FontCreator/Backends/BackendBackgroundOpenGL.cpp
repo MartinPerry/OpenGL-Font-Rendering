@@ -17,27 +17,33 @@ BackendBackgroundOpenGL::BackendBackgroundOpenGL(const BackgroundSettings& bs, c
 
 BackendBackgroundOpenGL::BackendBackgroundOpenGL(const BackgroundSettings& bs, const RenderSettings& r, int glVersion,
 	const char* vSource, const char* pSource, std::shared_ptr<IShaderManager> sm) :
-	BackendOpenGL(r, glVersion, vSource, pSource, sm), 
-	bs(bs)	
+	BackendOpenGL(r, glVersion, vSource, pSource, sm)	
 {
-	if (auto tmp = std::dynamic_pointer_cast<SingleColorBackgroundShaderManager>(this->sm))
-	{
-		tmp->SetColor(bs.color->r, bs.color->g, bs.color->b, bs.color->a);
-		tmp->SetCornerRadius(bs.cornerRadius * this->psW);
-	}
-	else if (auto tmp = std::dynamic_pointer_cast<BackgroundShaderManager>(this->sm))
-	{		
-		tmp->SetCornerRadius(bs.cornerRadius * this->psW);		
-	}
+	this->SetBackgroundSettings(bs);
 }
 
 BackendBackgroundOpenGL::~BackendBackgroundOpenGL()
 {
 }
 
+const BackgroundSettings& BackendBackgroundOpenGL::GetBackgroundSettings() const
+{
+	return this->bs;
+}
+
 void BackendBackgroundOpenGL::SetBackgroundSettings(const BackgroundSettings& bs)
 {
 	this->bs = bs;
+
+	if (auto tmp = std::dynamic_pointer_cast<SingleColorBackgroundShaderManager>(this->sm))
+	{
+		tmp->SetColor(bs.color->r, bs.color->g, bs.color->b, bs.color->a);
+		tmp->SetCornerRadius(bs.cornerRadius * this->psW);
+	}
+	else if (auto tmp = std::dynamic_pointer_cast<BackgroundShaderManager>(this->sm))
+	{
+		tmp->SetCornerRadius(bs.cornerRadius * this->psW);		
+	}
 }
 
 /// <summary>

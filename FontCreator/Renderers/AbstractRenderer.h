@@ -37,15 +37,24 @@ public:
 
 	
 	struct RenderParams
-	{
-		Color color;
+	{		
+		mutable Color color;
 		float scale = 1.0f;			
 		std::optional<Color> bgColor = std::nullopt;
-
+		
 		RenderParams() : color({ 0, 0, 0, 1 }), scale(1.0f) {};
 		RenderParams(float scale) : color({ 0, 0, 0, 1 }), scale(scale) {};
 		RenderParams(Color c, float scale) : color(c), scale(scale) {};
 		RenderParams(Color c, Color bgColor, float scale) : color(c), scale(scale), bgColor(bgColor) {};
+		
+		/*
+		inline RenderParams& setBorder(float width, const Color& c)
+		{
+			this->borderColor = c;
+			this->border = width;
+			return *this;
+		}
+		*/
 	};
 
 	static const Color DEFAULT_COLOR;
