@@ -14,6 +14,14 @@
 #   define PS_CODE(x) #x
 #endif
 
+#if defined(__APPLE__) || defined(__ANDROID_API__)
+#   define VS_CODE_3(x) "#version 300 es\nprecision highp float; " #x
+#   define PS_CODE_3(x) "#version 300 es\nprecision highp float; " #x
+#else
+#   define VS_CODE_3(x) #x
+#   define PS_CODE_3(x) #x
+#endif
+
 //============================================================
 // Default shaders
 //============================================================
@@ -51,17 +59,35 @@ static const char* DEFAULT_PIXEL_SHADER_SOURCE = PS_CODE(
 // Default SDF shaders
 //============================================================
 
-static const char* DEFAULT_SDF_PIXEL_SHADER_SOURCE = PS_CODE(
-    varying vec2 texCoord;
-    varying vec4 color;
+static const char* DEFAULT_SDF_VERTEX_SHADER_SOURCE = VS_CODE_3(
+    in vec2 POSITION;
+    in vec2 TEXCOORD0;
+    in vec4 COLOR;
+    
+    out vec2 texCoord;
+    out vec4 color;
 
+    void main()
+    {
+        gl_Position = vec4(POSITION.x, POSITION.y, 0.0, 1.0);
+        texCoord = TEXCOORD0;
+        color = COLOR;
+    }
+);
+
+static const char* DEFAULT_SDF_PIXEL_SHADER_SOURCE = PS_CODE_3(
+    in vec2 texCoord;
+    in vec4 color;
+
+    out vec4 fragColor;
+                                                               
     uniform sampler2D fontTex;
     uniform float uSoftness; // 0.0 = sharpest, larger values = softer.
     uniform float uEdge; //default: 0.5
         
     void main()
     {       
-        float val = texture2D(fontTex, texCoord.xy).x;
+        float val = texture(fontTex, texCoord.xy).x;
         
         // Screen-space antialiasing width
         float w = fwidth(val) + uSoftness;
@@ -69,16 +95,18 @@ static const char* DEFAULT_SDF_PIXEL_SHADER_SOURCE = PS_CODE(
         // Coverage from signed distance
         float alpha = smoothstep(uEdge - w, uEdge + w, val);
 
-        gl_FragColor = vec4(color.rgb, color.a * alpha);
-        //gl_FragColor = color * alpha; // premultiplied alpha  
+        fragColor = vec4(color.rgb, color.a * alpha);
+        //fragColor = color * alpha; // premultiplied alpha
         
     }
 );
 
-static const char* DEFAULT_SDF_OUTLINE_PIXEL_SHADER_SOURCE = PS_CODE(
-    varying vec2 texCoord;
-    varying vec4 color;
+static const char* DEFAULT_SDF_OUTLINE_PIXEL_SHADER_SOURCE = PS_CODE_3(
+    in vec2 texCoord;
+    in vec4 color;
 
+    out vec4 fragColor;
+                                                                       
     uniform sampler2D fontTex;
     uniform float uSoftness;
     uniform float uEdge;
@@ -87,7 +115,7 @@ static const char* DEFAULT_SDF_OUTLINE_PIXEL_SHADER_SOURCE = PS_CODE(
        
     void main()
     {        
-        float val = texture2D(fontTex, texCoord.xy).x;
+        float val = texture(fontTex, texCoord.xy).x;
 
         float w = fwidth(val) + uSoftness;
 
@@ -99,8 +127,8 @@ static const char* DEFAULT_SDF_OUTLINE_PIXEL_SHADER_SOURCE = PS_CODE(
         vec4 finalColor = mix(uOutlineColor, color, fillAlpha);
         float alpha = max(fillAlpha, outlineAlpha) * color.a;
 
-        gl_FragColor = vec4(finalColor.rgb, finalColor.a * alpha);
-        //gl_FragColor = finalColor * alpha; // premultiplied alpha           
+        fragColor = vec4(finalColor.rgb, finalColor.a * alpha);
+        //fragColor = finalColor * alpha; // premultiplied alpha
     }
 );
 
@@ -139,9 +167,25 @@ static const char* SINGLE_COLOR_PIXEL_SHADER_SOURCE = PS_CODE(
 // Single color SDF
 //============================================================
 
-static const char* SINGLE_COLOR_SDF_PIXEL_SHADER_SOURCE = PS_CODE(
-    varying vec2 texCoord;
+static const char* SINGLE_COLOR_SDF_VERTEX_SHADER_SOURCE = VS_CODE_3(
+    in vec2 POSITION;
+    in vec2 TEXCOORD0;
     
+    out vec2 texCoord;
+    
+    void main()
+    {
+        gl_Position = vec4(POSITION.x, POSITION.y, 0.0, 1.0);
+        texCoord = TEXCOORD0;
+    }
+);
+
+
+static const char* SINGLE_COLOR_SDF_PIXEL_SHADER_SOURCE = PS_CODE_3(
+    in vec2 texCoord;
+    
+    out vec4 fragColor;
+                                                                    
     uniform sampler2D fontTex;
     uniform float uSoftness; // 0.0 = sharpest, larger values = softer.
     uniform float uEdge; //default: 0.5    
@@ -149,7 +193,7 @@ static const char* SINGLE_COLOR_SDF_PIXEL_SHADER_SOURCE = PS_CODE(
     
     void main()
     {
-        float val = texture2D(fontTex, texCoord.xy).x;
+        float val = texture(fontTex, texCoord.xy).x;
 
         // Screen-space antialiasing width
         float w = fwidth(val) + uSoftness;
@@ -157,15 +201,17 @@ static const char* SINGLE_COLOR_SDF_PIXEL_SHADER_SOURCE = PS_CODE(
         // Coverage from signed distance
         float alpha = smoothstep(uEdge - w, uEdge + w, val);
 
-        gl_FragColor = vec4(fontColor.rgb, fontColor.a * alpha);
-        //gl_FragColor = fontColor * alpha; // premultiplied alpha  
+        fragColor = vec4(fontColor.rgb, fontColor.a * alpha);
+        //fragColor = fontColor * alpha; // premultiplied alpha
 
     }
 );
 
-static const char* SINGLE_COLOR_SDF_OUTLINE_PIXEL_SHADER_SOURCE = PS_CODE(
-    varying vec2 texCoord;
-    
+static const char* SINGLE_COLOR_SDF_OUTLINE_PIXEL_SHADER_SOURCE = PS_CODE_3(
+    in vec2 texCoord;
+
+    out vec4 fragColor;
+                                                                            
     uniform sampler2D fontTex;
     uniform float uSoftness;
     uniform float uEdge;
@@ -175,7 +221,7 @@ static const char* SINGLE_COLOR_SDF_OUTLINE_PIXEL_SHADER_SOURCE = PS_CODE(
 
     void main()
     {
-        float val = texture2D(fontTex, texCoord.xy).x;
+        float val = texture(fontTex, texCoord.xy).x;
 
         float w = fwidth(val) + uSoftness;
 
@@ -187,8 +233,8 @@ static const char* SINGLE_COLOR_SDF_OUTLINE_PIXEL_SHADER_SOURCE = PS_CODE(
         vec4 finalColor = mix(uOutlineColor, fontColor, fillAlpha);
         float alpha = max(fillAlpha, outlineAlpha) * fontColor.a;
 
-        gl_FragColor = vec4(finalColor.rgb, finalColor.a * alpha);
-        //gl_FragColor = finalColor * alpha; // premultiplied alpha           
+        fragColor = vec4(finalColor.rgb, finalColor.a * alpha);
+        //fragColor = finalColor * alpha; // premultiplied alpha
     }
 );
 

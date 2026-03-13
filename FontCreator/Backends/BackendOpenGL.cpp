@@ -31,18 +31,29 @@ BackendOpenGL::BackendOpenGL(const RenderSettings& r, int glVersion,
 	background(nullptr)
 {	
 	this->shader.program = 0;
-	this->shader.pSource = (pSource) ? pSource : sm->GetPixelShaderSource();
-	this->shader.vSource = (vSource) ? vSource : sm->GetVertexShaderSource();
-
-	if ((vSource == sm->GetVertexShaderSource()) && (pSource == sm->GetPixelShaderSource()))
-	{
-		this->shader.isDefault = true;
-	}
-	else
-	{
-		this->shader.isDefault = false;
-	}
-
+    
+    if (vSource)
+    {
+        this->shader.vSource = vSource;
+        this->shader.isDefault = false;
+    }
+    else
+    {
+        this->shader.vSource = sm->GetVertexShaderSource();
+        this->shader.isDefault = true;
+    }
+    
+    if (pSource)
+    {
+        this->shader.pSource = pSource;
+        this->shader.isDefault &= false;
+    }
+    else
+    {
+        this->shader.pSource = sm->GetPixelShaderSource();
+        this->shader.isDefault &= true;
+    }
+    
 		
 	this->InitGL();
 	

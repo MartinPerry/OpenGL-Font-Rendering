@@ -16,7 +16,7 @@ DefaultFontShaderManager::DefaultFontShaderManager(std::optional<SDF> sdf) :
 
 const char* DefaultFontShaderManager::GetVertexShaderSource() const
 {
-    return DEFAULT_VERTEX_SHADER_SOURCE;
+    return (sdf.has_value()) ? DEFAULT_SDF_VERTEX_SHADER_SOURCE : DEFAULT_VERTEX_SHADER_SOURCE;
 }
 
 const char* DefaultFontShaderManager::GetPixelShaderSource() const

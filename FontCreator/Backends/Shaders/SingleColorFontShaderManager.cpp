@@ -20,7 +20,7 @@ SingleColorFontShaderManager::SingleColorFontShaderManager(std::optional<SDF> sd
 
 const char* SingleColorFontShaderManager::GetVertexShaderSource() const
 {
-	return SINGLE_COLOR_VERTEX_SHADER_SOURCE;
+	return (sdf.has_value()) ? SINGLE_COLOR_SDF_VERTEX_SHADER_SOURCE : SINGLE_COLOR_VERTEX_SHADER_SOURCE;
 }
 
 const char* SingleColorFontShaderManager::GetPixelShaderSource() const
