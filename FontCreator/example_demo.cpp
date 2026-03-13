@@ -20,10 +20,6 @@
 #include <iostream>
 
 
-#if __has_include(<vld.h>)
-#	include <vld.h>
-#endif
-
 #ifdef _WIN32
 #	include <windows.h>
 #endif
@@ -560,10 +556,6 @@ void Normalize()
 
 int main(int argc, char ** argv)
 {
-
-#if __has_include(<vld.h>)
-	VLDSetReportOptions(VLD_OPT_REPORT_TO_DEBUGGER | VLD_OPT_REPORT_TO_FILE, L"leaks.txt");
-#endif
 		
 	//Normalize();
 	/*

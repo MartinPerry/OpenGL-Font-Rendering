@@ -487,23 +487,7 @@ float FontBuilder::GetScreenScale() const
 /// </summary>
 /// <returns></returns>
 uint16_t FontBuilder::GetMaxEmSize() const
-{
-	int sdfSpread = 8;
-
-	/*
-	const double scaleX = static_cast<double>(face->size->metrics.x_ppem) / face->units_per_EM;
-			const double scaleY = static_cast<double>(face->size->metrics.y_ppem) / face->units_per_EM;
-
-			const double w = (face->bbox.xMax - face->bbox.xMin) * scaleX;
-			const double h = (face->bbox.yMax - face->bbox.yMin) * scaleY;
-
-			const uint32_t estimated = static_cast<uint32_t>(
-				std::ceil(std::max(w, h)) + 2.0 * sdfSpread + extraPadding
-				);
-	*/
-
-
-
+{	
 	uint16_t maxSize = std::numeric_limits<uint16_t>::min();
 	for (auto & fi : this->fis)
 	{		
@@ -514,7 +498,7 @@ uint16_t FontBuilder::GetMaxEmSize() const
 		maxSize = std::max(maxSize, (uint16_t)fi.fontFace->size->metrics.y_ppem);
 		maxSize = std::max(maxSize, (uint16_t)fi.fontFace->size->metrics.x_ppem);
 	}
-	return maxSize + 2.0 * sdfSpread;
+	return maxSize + 2 * sdfSpread;
 }
 
 int16_t FontBuilder::GetMaxNewLineOffset() const
@@ -776,7 +760,7 @@ bool FontBuilder::CreateFontAtlas()
 	}
 
 #if defined(_WIN32) && defined(_DEBUG)
-	this->texPacker->SaveToFile("D://packed_tex.png");
+	//this->texPacker->SaveToFile("D://packed_tex.png");
 #endif
 	
 	this->texPacker->RemoveErasedGlyphsFromFontInfo();
