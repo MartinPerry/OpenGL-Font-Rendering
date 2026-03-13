@@ -18,8 +18,8 @@
 #   define VS_CODE_3(x) "#version 300 es\nprecision highp float; " #x
 #   define PS_CODE_3(x) "#version 300 es\nprecision highp float; " #x
 #else
-#   define VS_CODE_3(x) #x
-#   define PS_CODE_3(x) #x
+#   define VS_CODE_3(x) "#version 300 es\nprecision highp float; " #x
+#   define PS_CODE_3(x) "#version 300 es\nprecision highp float; " #x
 #endif
 
 //============================================================
