@@ -101,7 +101,7 @@ void BackgroundShaderManager::Render(int quadsCount)
 		GL_CHECK(glDrawArrays(type, startingElements[i], counts[i]));
 	}
 #else
-	GL_CHECK(glMultiDrawArrays(type, startingElements.data(), counts.data(), counts.size()));
+	GL_CHECK(glMultiDrawArrays(type, startingElements.data(), counts.data(), (GLsizei)counts.size()));
 #endif
 }
 
