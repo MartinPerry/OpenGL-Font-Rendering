@@ -193,10 +193,21 @@ struct RenderSettings
 	bool useTextureLinearFilter = false;
 };
 
+/// <summary>
+/// SDF settings
+/// 
+/// The output values are calculated as follows, 
+/// ‘128 * ( SDF / spread + 1 )’, with the result clamped to the 8-bit range [0..255]. 
+/// Therefore, ‘spread’ is also the maximum euclidean distance from the edge 
+/// after which the values are clamped. 
+/// The spread is specified in pixels with the default value of 8.
+/// </summary>
 struct SDF
 {
+	int spread = 8;
+
 	float edgeValue = 0.5f;
-	float softness = 0.1f;
+	float softness = 0.03f;
 	
 	float outlineWidth = 0.0f;
 	std::optional<Color> outlineColor = std::nullopt;

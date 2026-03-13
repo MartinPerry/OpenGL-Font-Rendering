@@ -68,13 +68,13 @@ protected:
 
 	float screenScale;
 	uint16_t screenDpi;
+	int sdfSpread; //if SDF is used, value > 0
 
 	FT_Library library;
 	FT_Stroker stroker;
 	
 	std::vector<FontInfo> fis;
-	
-	bool sdfEnabled;
+		
 
 	std::unordered_set<CHAR_CODE> reused; //codes that were already added and are also in current string
 	std::unordered_set<CHAR_CODE> newCodes; //newly added codes

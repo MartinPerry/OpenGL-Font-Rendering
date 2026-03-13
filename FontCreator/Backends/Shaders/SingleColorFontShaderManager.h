@@ -2,6 +2,7 @@
 #define SINGLE_COLOR_FONT_SHADER_MANAGER_H
 
 #include <vector>
+#include <optional>
 
 #include "../../Externalncludes.h"
 #include "../../Renderers/AbstractRenderer.h"
@@ -11,7 +12,7 @@
 class SingleColorFontShaderManager : public IShaderManager
 {
 public:
-	SingleColorFontShaderManager();
+	SingleColorFontShaderManager(std::optional<SDF> sdf);
 	virtual ~SingleColorFontShaderManager() = default;
 
 	const char* GetVertexShaderSource() const override;
@@ -33,9 +34,17 @@ public:
 	void PreRender() override;
 
 protected:
+	std::optional<SDF> sdf;
+
 	GLint positionLocation;
 	GLint texCoordLocation;	
 	GLint colorUniform;
+
+	GLint sdfEdgeLocation;
+	GLint sdfSoftnessLocation;
+
+	GLint sdfOutlineColorLocation;
+	GLint sdfOutlineWidthLocation;
 
 	float r, g, b, a;
 };

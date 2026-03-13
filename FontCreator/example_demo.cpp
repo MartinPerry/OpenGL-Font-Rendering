@@ -223,8 +223,7 @@ void display() {
 	
 	frWithBg->AddStringCaption(
 		CreateRandomString(10),
-		//UTF8_TEXT("Ahoj\nsvete\nsvetg kuk"),
-		//UTF8_TEXT("H\n1023hPa"),
+		//u8"\U0001F300Pøíliš malý p\n(žluouèký)\nkùyòy",
 		0.5f, 0.85f,
 		AbstractRenderer::RenderParams({ 1,1,0,1 }, { 0, 1, 0, 1 }, 1.0)
 	);
@@ -445,9 +444,9 @@ void initGL() {
 	fs.screenScale = 1.0;
 	fs.fonts = fonts;
 	fs.sdf = SDF();
-	//fs.sdf->outlineColor = { 0, 0, 0, 1 };
-	//fs.sdf->outlineWidth = 0.3;
-	fs.sdf->softness = 0.0f;
+	fs.sdf->outlineColor = { 0, 0, 0, 1 };
+	fs.sdf->outlineWidth = 0.1;
+	fs.sdf->softness = 0.05f;
 	
 	//======================================================================
 
@@ -474,7 +473,8 @@ void initGL() {
 
 	//======================================================================
 
-	frWithBg = StringRenderer::CreateDefault(fs, r);
+	//frWithBg = StringRenderer::CreateDefault(fs, r);
+	frWithBg = StringRenderer::CreateSingleColor({ 1,0,1,1 }, fs, r);
 	frWithBg->SetCaption(u8"\U0001F300", 10);
 	frWithBg->SetCaption(u8"\U00002b55", 0);
 	frWithBg->SetCaption(u8"*", 0);

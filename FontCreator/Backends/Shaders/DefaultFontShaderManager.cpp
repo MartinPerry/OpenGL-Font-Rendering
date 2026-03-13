@@ -4,9 +4,13 @@
 
 DefaultFontShaderManager::DefaultFontShaderManager(std::optional<SDF> sdf) :
     sdf(sdf),
-	positionLocation(0), 
-	texCoordLocation(0), 
-	colorLocation(0)
+    positionLocation(0),
+    texCoordLocation(0),
+    colorLocation(0),
+    sdfEdgeLocation(0),
+    sdfSoftnessLocation(0),
+    sdfOutlineColorLocation(0),
+    sdfOutlineWidthLocation(0)	
 {
 }
 

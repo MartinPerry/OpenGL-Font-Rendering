@@ -3,6 +3,7 @@
 
 #include <algorithm>
 
+#include <freetype/ftmodapi.h>
 
 #include "./TextureAtlasPack.h"
 
@@ -26,7 +27,7 @@
 /// <param name="r"></param>
 FontBuilder::FontBuilder(const FontBuilderSettings& r) : 
 	stroker(nullptr),
-	sdfEnabled(r.sdf.has_value()),
+	sdfSpread(r.sdf.has_value() ? r.sdf->spread : 0),
 	screenScale(r.screenScale),
 	screenDpi(r.screenDpi)
 {
@@ -42,6 +43,10 @@ FontBuilder::FontBuilder(const FontBuilderSettings& r) :
 		//return;
 	}
 
+	if (sdfSpread > 0)
+	{
+		FT_Property_Set(library, "sdf", "spread", &sdfSpread);
+	}
 			
 	for (const auto & f : r.fonts)
 	{
@@ -101,8 +106,10 @@ void FontBuilder::Release()
 		f.fontFace = nullptr;
 	}
 
-	FT_Stroker_Done(stroker);
+	FT_Stroker_Done(this->stroker);
 	FT_Done_FreeType(this->library);
+	
+	this->stroker = nullptr;
 	this->library = nullptr;	
 }
 
@@ -232,7 +239,7 @@ bool FontBuilder::SetFontSizePts(FontInfo & f, uint16_t size, uint16_t dpi)
 /// <param name="f"></param>
 /// <param name="size"></param>
 /// <returns></returns>
-bool FontBuilder::SetFontSizePixels(FontInfo & f, uint16_t size)
+bool FontBuilder::SetFontSizePixels(FontInfo& f, uint16_t size)
 {	
 	//https://www.freetype.org/freetype2/docs/tutorial/step1.html
 	
@@ -270,7 +277,7 @@ bool FontBuilder::SetFontSizePixels(FontInfo & f, uint16_t size)
 /// <param name="f"></param>
 /// <param name="size"></param>
 /// <returns></returns>
-bool FontBuilder::SetClosestFontSizeForBitmaps(FontInfo & f, uint16_t size)
+bool FontBuilder::SetClosestFontSizeForBitmaps(FontInfo& f, uint16_t size)
 {
 	FT_Pos minDif = std::numeric_limits<FT_Pos>::max();
 	int minDifIndex = 0;
@@ -481,6 +488,22 @@ float FontBuilder::GetScreenScale() const
 /// <returns></returns>
 uint16_t FontBuilder::GetMaxEmSize() const
 {
+	int sdfSpread = 8;
+
+	/*
+	const double scaleX = static_cast<double>(face->size->metrics.x_ppem) / face->units_per_EM;
+			const double scaleY = static_cast<double>(face->size->metrics.y_ppem) / face->units_per_EM;
+
+			const double w = (face->bbox.xMax - face->bbox.xMin) * scaleX;
+			const double h = (face->bbox.yMax - face->bbox.yMin) * scaleY;
+
+			const uint32_t estimated = static_cast<uint32_t>(
+				std::ceil(std::max(w, h)) + 2.0 * sdfSpread + extraPadding
+				);
+	*/
+
+
+
 	uint16_t maxSize = std::numeric_limits<uint16_t>::min();
 	for (auto & fi : this->fis)
 	{		
@@ -491,7 +514,7 @@ uint16_t FontBuilder::GetMaxEmSize() const
 		maxSize = std::max(maxSize, (uint16_t)fi.fontFace->size->metrics.y_ppem);
 		maxSize = std::max(maxSize, (uint16_t)fi.fontFace->size->metrics.x_ppem);
 	}
-	return maxSize;
+	return maxSize + 2.0 * sdfSpread;
 }
 
 int16_t FontBuilder::GetMaxNewLineOffset() const
@@ -909,7 +932,7 @@ bool FontBuilder::FillGlyphGraphics(FontInfo& fi, FT_UInt ci,
 				
 		FT_GlyphSlot glyphSlot = fi.fontFace->glyph;
 
-		if (this->sdfEnabled)
+		if (this->sdfSpread > 0)
 		{
 			FT_Render_Glyph(glyphSlot, FT_RENDER_MODE_SDF);
 		}
@@ -935,7 +958,7 @@ bool FontBuilder::FillGlyphGraphics(FontInfo& fi, FT_UInt ci,
 		FT_Get_Glyph(fi.fontFace->glyph, &glyph);
 		FT_Glyph_StrokeBorder(&glyph, stroker, false, true);
 		
-		if (this->sdfEnabled)
+		if (this->sdfSpread > 0)
 		{
 			FT_Glyph_To_Bitmap(&glyph, FT_RENDER_MODE_SDF, nullptr, true);
 		}
