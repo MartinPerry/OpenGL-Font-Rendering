@@ -20,10 +20,10 @@ class BackendBase;
 class AbstractRenderer
 {
 public:
-	enum class TextAlign { ALIGN_LEFT, ALIGN_CENTER };
-	enum class TextAnchor { LEFT_TOP, CENTER, LEFT_DOWN };
-	enum class TextType { TEXT, CAPTION_TEXT, CAPTION_SYMBOL };
-	enum class AxisYOrigin { TOP, DOWN };
+	enum class TextAlign : uint8_t { ALIGN_LEFT, ALIGN_CENTER };
+	enum class TextAnchor : uint8_t { LEFT_TOP, CENTER, LEFT_DOWN };
+	enum class TextType : uint8_t { TEXT, CAPTION_TEXT, CAPTION_SYMBOL };
+	enum class AxisYOrigin : uint8_t { TOP, DOWN };
 
 	struct Vertex
 	{

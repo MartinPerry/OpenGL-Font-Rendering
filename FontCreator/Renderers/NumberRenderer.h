@@ -82,21 +82,22 @@ protected:
 	
 	struct NumberInfo
 	{
-		double val;
-		bool negative;
+		double val;		
 		uint64_t intPartOrder;
 		uint32_t intPart;		
 		uint32_t fractPartReverse;
-					
-		RenderParams renderParams;
-		bool isDefaultColor;
-		TextAnchor anchor;		
+		bool negative;
+		
+		TextAnchor anchor;
 		TextType type;
-			
+
 		int x;
 		int y;
 		int w;
-		int h;	
+		int h;
+
+		RenderParams renderParams;		
+		
 
 		NumberInfo() noexcept :
 			NumberInfo(0.0)
@@ -110,19 +111,18 @@ protected:
 
 		NumberInfo(double value, const RenderParams& renderParams, 
 			TextAnchor anchor, TextType type) noexcept :
-			val((value < 0) ? -value : value),
-			negative(value < 0),
+			val((value < 0) ? -value : value),			
 			intPart(static_cast<uint32_t>(val)),
 			intPartOrder(0),
 			fractPartReverse(0),
-			renderParams(renderParams),
-			isDefaultColor(true),
+			negative(value < 0),			
 			anchor(anchor),
 			type(type),
 			x(0),
 			y(0),
 			w(0),
-			h(0)
+			h(0),
+			renderParams(renderParams)
 		{}
 
 	};

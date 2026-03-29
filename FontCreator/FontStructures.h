@@ -67,14 +67,14 @@ struct FontInfo
 
 	
 	int16_t newLineOffset;
+	bool onlyBitmapGlyphs;
 
 	HashMap<CHAR_CODE, GlyphInfo> glyphs;
 		
 
 	FT_Face fontFace;
 	int index;
-	
-	bool onlyBitmapGlyphs;
+		
 	float scaleFactor;
 	
 
