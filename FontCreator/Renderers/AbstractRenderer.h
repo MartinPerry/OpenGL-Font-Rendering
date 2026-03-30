@@ -104,7 +104,6 @@ protected:
 	{
 		StringUtf8 mark;
 		int offset;
-
 	};
 	
 	std::shared_ptr<FontBuilder> fb;
@@ -112,12 +111,12 @@ protected:
 
 	CaptionInfo ci;
 
-	AxisYOrigin axisYOrigin;
-	int extraGlyphSpacingSize;
-			
 	bool checkVisibility;
 	bool strChanged;
 
+	AxisYOrigin axisYOrigin;
+	int extraGlyphSpacingSize;
+				
 #ifdef THREAD_SAFETY
 	std::shared_timed_mutex m;
 #endif
