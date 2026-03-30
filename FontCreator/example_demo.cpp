@@ -1,9 +1,11 @@
 
-#include "./TextureAtlasPack.h"
 
 #include "./Backends/Shaders/BackgroundShaderManager.h"
 
-#include "./FontBuilder.h"
+
+#include "../TextureBuilders/FontBuilder.h"
+#include "../TextureBuilders/TextureAtlasPack.h"
+
 #include "./Renderers/StringRenderer.h"
 #include "./Renderers/NumberRenderer.h"
 

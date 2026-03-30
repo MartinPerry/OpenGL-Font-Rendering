@@ -1,5 +1,5 @@
-#ifndef FONT_RENDERER_H
-#define FONT_RENDERER_H
+#ifndef FONT_BUILDER_H
+#define FONT_BUILDER_H
 
 class TextureAtlasPack;
 
@@ -13,27 +13,27 @@ class TextureAtlasPack;
 #include <freetype/ftstroke.h>
 #include FT_FREETYPE_H
 
+#include "../FontStructures.h"
+#include "../Externalncludes.h"
 
-#include "./FontStructures.h"
+#include "./IFontBuilder.h"
 #include "./TextureAtlasPack.h"
 
-#include "./Externalncludes.h"
-
-class FontBuilder
+class FontBuilder : public IFontBuilder
 {
 public:
 	FontBuilder(const FontBuilderSettings& fs);
 	~FontBuilder();
 
-	void Release();
+	void Release() override;
 	bool IsInited() const;
 	
 	void SetStrokeSize(int strokeSize);
 	void SetFontSize(const std::string & fontName, const FontSize & fs, uint16_t defaultFontSizeInPx = 0);
 	void SetAllFontSize(const FontSize & fs, uint16_t defaultFontSizeInPx = 0);
 
-	bool AddString(const StringUtf8& str);
-	bool AddCharacter(CHAR_CODE c);
+	bool AddString(const StringUtf8& str) override;
+	bool AddCharacter(CHAR_CODE c) override;
 	void AddAllAsciiLetters();
 	void AddAllAsciiNumbers();
 	
@@ -56,7 +56,7 @@ public:
 	uint16_t GetTextureHeight() const;
 	const uint8_t * GetTextureData() const;
 
-	bool CreateFontAtlas();
+	bool CreateFontAtlas() override;
 		
 	void Save(const std::string & fileName);
 	

@@ -2,7 +2,8 @@
 
 #include <limits>
 
-#include "../FontBuilder.h"
+#include "../TextureBuilders/FontBuilder.h"
+
 #include "../Backends/Shaders/DefaultFontShaderManager.h"
 #include "../Backends/Shaders/SingleColorFontShaderManager.h"
 

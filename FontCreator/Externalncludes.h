@@ -21,7 +21,7 @@
 
 #include <string>
 
-#include "./lodepng.h"
+#include "./TextureBuilders/lodepng.h"
 
 
 #include "./freeglut/include/GL/wgl/glew.h"

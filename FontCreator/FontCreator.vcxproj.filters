@@ -52,17 +52,14 @@
     <Filter Include="Source Files\Utils\utf8">
       <UniqueIdentifier>{707b15aa-9a2d-4031-aeb6-e70a7c9f446a}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source Files\TextureBuilders">
+      <UniqueIdentifier>{3e40567c-4cf1-4088-ae4f-eb690a78703a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\TextureBuilders">
+      <UniqueIdentifier>{de4c0b35-5d46-4f88-9339-f00503eec2cb}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="TextureAtlasPack.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="lodepng.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="FontBuilder.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="example_demo.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -117,17 +114,20 @@
     <ClCompile Include="Unicode\BidiHelper.cpp">
       <Filter>Source Files\Unicode</Filter>
     </ClCompile>
+    <ClCompile Include="TextureBuilders\FontBuilder.cpp">
+      <Filter>Source Files\TextureBuilders</Filter>
+    </ClCompile>
+    <ClCompile Include="TextureBuilders\lodepng.cpp">
+      <Filter>Source Files\TextureBuilders</Filter>
+    </ClCompile>
+    <ClCompile Include="TextureBuilders\TextureAtlasPack.cpp">
+      <Filter>Source Files\TextureBuilders</Filter>
+    </ClCompile>
+    <ClCompile Include="TextureBuilders\CustomImagesFontBuilder.cpp">
+      <Filter>Source Files\TextureBuilders</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="TextureAtlasPack.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="lodepng.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="FontBuilder.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="FontStructures.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -223,6 +223,21 @@
     </ClInclude>
     <ClInclude Include="Unicode\BidiHelper.h">
       <Filter>Header Files\Unicode</Filter>
+    </ClInclude>
+    <ClInclude Include="TextureBuilders\FontBuilder.h">
+      <Filter>Header Files\TextureBuilders</Filter>
+    </ClInclude>
+    <ClInclude Include="TextureBuilders\lodepng.h">
+      <Filter>Header Files\TextureBuilders</Filter>
+    </ClInclude>
+    <ClInclude Include="TextureBuilders\TextureAtlasPack.h">
+      <Filter>Header Files\TextureBuilders</Filter>
+    </ClInclude>
+    <ClInclude Include="TextureBuilders\CustomImagesFontBuilder.h">
+      <Filter>Header Files\TextureBuilders</Filter>
+    </ClInclude>
+    <ClInclude Include="TextureBuilders\IFontBuilder.h">
+      <Filter>Header Files\TextureBuilders</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

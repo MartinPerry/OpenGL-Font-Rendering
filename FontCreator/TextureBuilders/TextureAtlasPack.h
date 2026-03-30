@@ -6,9 +6,10 @@
 #include <string.h>
 #include <random>
 
-#include "./Externalncludes.h"
+#include "../Externalncludes.h"
+#include "../FontStructures.h"
+
 #include "./FontBuilder.h"
-#include "./FontStructures.h"
 
 class TextureAtlasPack
 {

@@ -5,7 +5,8 @@
 #include <filesystem>
 
 #include "../Backends/Shaders/Shaders.h"
-#include "../FontBuilder.h"
+
+#include "../TextureBuilders/FontBuilder.h"
 
 #include "../Backends/BackendBase.h"
 

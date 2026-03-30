@@ -8,9 +8,9 @@
 #include "./TextureAtlasPack.h"
 
 
-#include "./Externalncludes.h"
+#include "../Externalncludes.h"
 
-#include "./FontCache.h"
+#include "../FontCache.h"
 
 #ifdef USE_VFS
 #	include "../../Utils/VFS/VFS.h"
