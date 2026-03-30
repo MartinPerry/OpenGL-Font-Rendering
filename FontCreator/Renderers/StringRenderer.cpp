@@ -2,7 +2,7 @@
 
 #include <limits>
 
-#include "../TextureBuilders/FontBuilder.h"
+#include "../TextureBuilders/IFontBuilder.h"
 
 #include "../Backends/Shaders/DefaultFontShaderManager.h"
 #include "../Backends/Shaders/SingleColorFontShaderManager.h"
@@ -871,9 +871,8 @@ bool StringRenderer::GenerateGeometry()
 					continue;
 				}
 
-				bool exist;
-				FontInfo * fi = nullptr;
-				auto it = this->fb->GetGlyph(c, exist, &fi);
+				bool exist;				
+				auto it = this->fb->GetGlyph(c, exist);
 				if (!exist)
 				{
 					continue;

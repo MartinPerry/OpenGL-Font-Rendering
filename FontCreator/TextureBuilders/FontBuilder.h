@@ -30,7 +30,7 @@ public:
 	
 	void SetStrokeSize(int strokeSize);
 	void SetFontSize(const std::string & fontName, const FontSize & fs, uint16_t defaultFontSizeInPx = 0);
-	void SetAllFontSize(const FontSize & fs, uint16_t defaultFontSizeInPx = 0);
+	void SetAllFontSize(const FontSize & fs, uint16_t defaultFontSizeInPx = 0) override;
 
 	bool AddString(const StringUtf8& str) override;
 	bool AddCharacter(CHAR_CODE c) override;
@@ -42,19 +42,19 @@ public:
 
 	
 	const std::vector<FontInfo> & GetFontInfos() const;
-	uint16_t GetMaxFontPixelHeight() const;
+	uint16_t GetMaxFontPixelHeight() const override;
 	uint16_t GetMaxFontPixelWidth() const;
 	uint16_t GetMaxEmSize() const;
 	float GetScreenScale() const;
 
-	int16_t GetMaxNewLineOffset() const;
+	int16_t GetMaxNewLineOffset() const override;
 	int16_t GetNewLineOffsetBasedOnGlyph(CHAR_CODE c);
-	FontInfo::GlyphIterator GetGlyph(CHAR_CODE c, bool & exist);
-	FontInfo::GlyphIterator GetGlyph(CHAR_CODE c, bool & exist, FontInfo ** usedFi);
+	FontInfo::GlyphIterator GetGlyph(CHAR_CODE c, bool & exist) override;
+	FontInfo::GlyphIterator GetGlyph(CHAR_CODE c, bool & exist, FontInfo ** usedFi) override;
 
-	uint16_t GetTextureWidth() const;
-	uint16_t GetTextureHeight() const;
-	const uint8_t * GetTextureData() const;
+	uint16_t GetTextureWidth() const override;
+	uint16_t GetTextureHeight() const override;
+	const uint8_t * GetTextureData() const override;
 
 	bool CreateFontAtlas() override;
 		

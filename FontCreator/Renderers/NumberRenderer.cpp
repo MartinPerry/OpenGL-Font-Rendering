@@ -3,7 +3,7 @@
 #include <limits>
 #include <algorithm>
 
-#include "../TextureBuilders/FontBuilder.h"
+#include "../TextureBuilders/IFontBuilder.h"
 
 #include "../Backends/Shaders/DefaultFontShaderManager.h"
 #include "../Backends/Shaders/SingleColorFontShaderManager.h"
@@ -62,7 +62,7 @@ NumberRenderer::NumberRenderer(const FontBuilderSettings& fs, std::unique_ptr<Ba
 	this->Init();
 }
 
-NumberRenderer::NumberRenderer(std::shared_ptr<FontBuilder> fb, std::unique_ptr<BackendBase>&& backend) :
+NumberRenderer::NumberRenderer(std::shared_ptr<IFontBuilder> fb, std::unique_ptr<BackendBase>&& backend) :
 	AbstractRenderer(fb, std::move(backend)),
 	decimalPlaces(0),
 	decimalMult(1),
@@ -201,7 +201,7 @@ void NumberRenderer::SetFontSize(const FontSize& fs, int defaultFontSizeInPx)
 {
 #ifdef THREAD_SAFETY
 	std::lock_guard<std::shared_timed_mutex> lk(m);
-#endif
+#endif	
 	this->fb->SetAllFontSize(fs, defaultFontSizeInPx);
 
 	this->Init();

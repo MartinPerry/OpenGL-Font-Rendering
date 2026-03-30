@@ -7,6 +7,7 @@
 #include "../Backends/Shaders/Shaders.h"
 
 #include "../TextureBuilders/FontBuilder.h"
+#include "../TextureBuilders/IFontBuilder.h"
 
 #include "../Backends/BackendBase.h"
 
@@ -39,7 +40,7 @@ AbstractRenderer::AbstractRenderer(const FontBuilderSettings& fs,
 {
 }
 
-AbstractRenderer::AbstractRenderer(std::shared_ptr<FontBuilder> fb,
+AbstractRenderer::AbstractRenderer(std::shared_ptr<IFontBuilder> fb,
 	std::unique_ptr<BackendBase>&& backend) :
 	fb(fb),
 	backend(std::move(backend)),
@@ -127,7 +128,7 @@ void AbstractRenderer::SetAxisYOrigin(AxisYOrigin axisY)
 }
 
 
-std::shared_ptr<FontBuilder> AbstractRenderer::GetFontBuilder()
+std::shared_ptr<IFontBuilder> AbstractRenderer::GetFontBuilder()
 {
 	return this->fb;
 }

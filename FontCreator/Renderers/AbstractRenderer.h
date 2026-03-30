@@ -1,7 +1,7 @@
 #ifndef ABSTRACT_RENDERER_H
 #define ABSTRACT_RENDERER_H
 
-class FontBuilder;
+class IFontBuilder;
 class BackendBase;
 
 #include <vector>
@@ -71,7 +71,7 @@ public:
 
 	BackendBase* GetBackend() const;
 
-	std::shared_ptr<FontBuilder> GetFontBuilder();
+	std::shared_ptr<IFontBuilder> GetFontBuilder();
 	void SetCanvasSize(int w, int h);
 		
 	void SetAxisYOrigin(AxisYOrigin axisY);
@@ -106,7 +106,7 @@ protected:
 		int offset;
 	};
 	
-	std::shared_ptr<FontBuilder> fb;
+	std::shared_ptr<IFontBuilder> fb;
 	std::unique_ptr<BackendBase> backend;	
 
 	CaptionInfo ci;
@@ -121,7 +121,7 @@ protected:
 	std::shared_timed_mutex m;
 #endif
 		
-	AbstractRenderer(std::shared_ptr<FontBuilder> fb, std::unique_ptr<BackendBase>&& backend);
+	AbstractRenderer(std::shared_ptr<IFontBuilder> fb, std::unique_ptr<BackendBase>&& backend);
 
 	virtual bool GenerateGeometry() = 0;
 

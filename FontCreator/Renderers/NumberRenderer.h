@@ -1,6 +1,7 @@
 #ifndef NUMBER_RENDERER_H
 #define NUMBER_RENDERER_H
 
+class IFontBuilder;
 class BackendBase;
 
 #include <type_traits>
@@ -24,7 +25,7 @@ public:
 	static NumberRenderer* CreateDefault(const FontBuilderSettings& fs, const RenderSettings& r, int glVersion = 3);
 
 	NumberRenderer(const FontBuilderSettings& fs, std::unique_ptr<BackendBase>&& backend);
-	NumberRenderer(std::shared_ptr<FontBuilder> fb, std::unique_ptr<BackendBase>&& backend);
+	NumberRenderer(std::shared_ptr<IFontBuilder> fb, std::unique_ptr<BackendBase>&& backend);
 	
 	~NumberRenderer();
 

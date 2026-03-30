@@ -2,15 +2,19 @@
 
 #include "../Externalncludes.h"
 
+#include "./TextureAtlasPack.h"
+
 #include "./lodepng.h"
 
 CustomImageFontBuilder::CustomImageFontBuilder(const std::vector<CustomGlyph>& glyphsData)
 {
-
 	for (const auto& g : glyphsData)
 	{
 		this->glyphsData.try_emplace(g.c, g);
 	}
+
+	//todo
+	this->texPacker = new TextureAtlasPack(256, 256, LETTER_BORDER_SIZE);
 
 }
 
@@ -25,6 +29,10 @@ void CustomImageFontBuilder::Release()
 	{
 		SAFE_DELETE_ARRAY(gi.rawData);
 	}
+}
+
+void CustomImageFontBuilder::SetAllFontSize(const FontSize& fs, uint16_t defaultFontSizeInPx)
+{
 }
 
 bool CustomImageFontBuilder::AddString(const StringUtf8& str)
@@ -61,6 +69,72 @@ bool CustomImageFontBuilder::AddCharacter(CHAR_CODE c)
 	return true;
 }
 
+uint16_t CustomImageFontBuilder::GetMaxFontPixelHeight() const
+{
+	return 0;
+}
+
+int16_t CustomImageFontBuilder::GetMaxNewLineOffset() const
+{
+	return 0;
+}
+
+/// <summary>
+/// Get single Glyph for char with given unicode.
+/// Output true/false if exist
+/// If not exist, return iterator is end() from first font
+/// </summary>
+/// <param name="c"></param>
+/// <param name="exist"></param>
+/// <returns></returns>
+FontInfo::GlyphIterator CustomImageFontBuilder::GetGlyph(CHAR_CODE c, bool& exist)
+{
+	FontInfo* f = nullptr;
+	return this->GetGlyph(c, exist, &f);
+}
+
+FontInfo::GlyphIterator CustomImageFontBuilder::GetGlyph(CHAR_CODE c, bool& exist, FontInfo** usedFi)
+{
+	exist = false;
+
+	auto it = glyphs.find(c);
+	if (it != glyphs.end())
+	{
+		*usedFi = nullptr;
+		exist = true;
+		return it;
+	}
+
+	*usedFi = nullptr;
+	return glyphs.end();
+}
+
+/// <summary>
+/// Get font texture width
+/// </summary>
+/// <returns></returns>
+uint16_t CustomImageFontBuilder::GetTextureWidth() const
+{
+	return this->texPacker->GetTextureWidth();
+}
+
+/// <summary>
+/// Get font texture height
+/// </summary>
+/// <returns></returns>
+uint16_t CustomImageFontBuilder::GetTextureHeight() const
+{
+	return this->texPacker->GetTextureHeight();
+}
+
+/// <summary>
+/// Get font texture raw data
+/// </summary>
+/// <returns></returns>
+const uint8_t* CustomImageFontBuilder::GetTextureData() const
+{
+	return this->texPacker->GetTextureData();
+}
 
 bool CustomImageFontBuilder::CreateFontAtlas()
 {
