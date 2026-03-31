@@ -5,12 +5,14 @@
 
 #include "../TextureBuilders/FontBuilder.h"
 #include "../TextureBuilders/TextureAtlasPack.h"
+#include "../TextureBuilders/CustomImagesFontBuilder.h"
 
 #include "./Renderers/StringRenderer.h"
 #include "./Renderers/NumberRenderer.h"
 
 #include "./Backends/BackendOpenGL.h"
 #include "./Backends/BackendImage.h"
+#include "./Backends/Shaders/DefaultFontShaderManager.h"
 
 #include "./Unicode/utf8.h"
 #include "./Unicode/uninorms.h"
@@ -45,6 +47,7 @@ int g_height = 600;
 
 StringRenderer * fr;
 StringRenderer* frWithBg;
+StringRenderer* srCustom;
 NumberRenderer * fn;
 
 
@@ -277,7 +280,7 @@ void display() {
 	fr->AddString(u8"Hello World", 200, 300);
 	*/
 	fr->Render();
-	frWithBg->Render();
+	//frWithBg->Render();
 
 	/*
 	fr->Clear();
@@ -315,6 +318,12 @@ void display() {
 	//fn->Render();
 	
 	
+	srCustom->Clear();
+	srCustom->AddString("a", 0.5f, 0.5f, 
+		AbstractRenderer::DEFAULT_PARAMS, 
+		AbstractRenderer::TextAnchor::CENTER, 
+		AbstractRenderer::TextAlign::ALIGN_CENTER);
+	srCustom->Render();
 
 	glutSwapBuffers();	
 	//glutPostRedisplay();
@@ -516,6 +525,21 @@ void initGL() {
 	fs.fonts = { fArial };
 	fn = NumberRenderer::CreateDefault(fs, r);
 
+	//======================================================================
+
+	std::vector<CustomGlyph> gd;	
+	CustomGlyph g;
+	g.c = 'a';
+	g.fileName = "D://mario_256_gray.png";
+	gd.push_back(g);
+
+	auto cfb = std::make_shared<CustomImageFontBuilder>(gd);
+
+
+	auto sm = std::make_shared<DefaultFontShaderManager>(std::nullopt);
+	auto backend = std::make_unique<BackendOpenGL>(r, 3, nullptr, nullptr, sm);
+
+	srCustom = new StringRenderer(cfb, std::move(backend));
 }
 
 #ifdef USE_ICU_LIBRARY 

@@ -99,6 +99,8 @@ public:
 		const RenderSettings& r, int glVersion = 3);
 	
 	StringRenderer(const FontBuilderSettings& fs, std::unique_ptr<BackendBase>&& backend);
+	StringRenderer(std::shared_ptr<IFontBuilder> fb, std::unique_ptr<BackendBase>&& backend);
+	
 	~StringRenderer();
 		
 	void Clear();

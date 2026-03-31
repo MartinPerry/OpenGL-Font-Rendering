@@ -55,6 +55,18 @@ StringRenderer::StringRenderer(const FontBuilderSettings& fs,
 {
 }
 
+StringRenderer::StringRenderer(std::shared_ptr<IFontBuilder> fb,
+	std::unique_ptr<BackendBase>&& backend) :
+	AbstractRenderer(fb, std::move(backend)),
+	isBidiEnabled(true),
+	deadzoneRadius2(0),
+	nlOffsetPx(0),
+	spaceSizeExist(false),
+	spaceSize(10)
+{
+}
+
+
 
 StringRenderer::~StringRenderer()
 {
@@ -537,7 +549,7 @@ AABB StringRenderer::EstimateStringAABB(const StringUtf8& str,
 		}
 
 		newLineOffset = std::max(newLineOffset, fi->newLineOffset * scale);
-
+		
 		float fx = x + w;
 		float fy = y - h;
 		aabb.Update(fx, fy, w, h);

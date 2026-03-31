@@ -4,6 +4,7 @@
 class TextureAtlasPack;
 
 #include <unordered_set>
+#include <vector>
 #include <string>
 
 #include "../FontStructures.h"
@@ -48,15 +49,20 @@ protected:
 	static const int LETTER_BORDER_SIZE = 0;
 
 	HashMap<CHAR_CODE, CustomGlyph> glyphsData;
-	HashMap<CHAR_CODE, GlyphInfo> glyphs;
+	std::vector<FontInfo> customFi;
 
 	std::unordered_set<CHAR_CODE> reused; //codes that were already added and are also in current string
 	std::unordered_set<CHAR_CODE> newCodes; //newly added codes
 
 	TextureAtlasPack* texPacker;
 
+	void InitializeFont();
+
 	GlyphInfo* LoadGlyphInfo(CHAR_CODE c);
 	GlyphInfo* FillGlyphInfo(CHAR_CODE c, CustomGlyph& g);
+
+	uint8_t* ResizeBitmap(const std::vector<uint8_t>& buffer, uint16_t w, uint16_t h) const;
+	uint8_t* ResizeBitmapHermite(const std::vector<uint8_t>& buffer, uint16_t w, uint16_t h) const;
 };
 
 #endif
