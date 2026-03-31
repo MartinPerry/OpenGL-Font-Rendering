@@ -531,15 +531,13 @@ AABB StringRenderer::EstimateStringAABB(const StringUtf8& str,
 			continue;
 		}
 
-		bool exist;
 		FontInfo * fi = nullptr;
-		auto it = this->fb->GetGlyph(c, exist, &fi);
-		if (exist)
-		{					
-			const GlyphInfo & gi = it->second;
-			w = gi.bmpW * scale;
-			h = gi.bmpH * scale;
-			adv = (gi.adv) * scale;
+		auto gi = this->fb->GetGlyph(c, &fi);
+		if (gi)
+		{								
+			w = gi->bmpW * scale;
+			h = gi->bmpH * scale;
+			adv = (gi->adv) * scale;
 		}
 		else
 		{
@@ -628,17 +626,15 @@ void StringRenderer::CalcStringAABB(StringInfo & si, const UsedGlyphCache * gc) 
 			{
 				continue;
 			}
-			FontInfo::GlyphIterator it = std::get<0>(r);
-			newLineOffset = std::max(newLineOffset, static_cast<float>(std::get<2>(r)->newLineOffset + this->nlOffsetPx));
+			GlyphInfo* gi = std::get<0>(r);
+			newLineOffset = std::max(newLineOffset, static_cast<float>(std::get<1>(r)->newLineOffset + this->nlOffsetPx));
 			
+			
+			float fx = x + gi->bmpX;
+			float fy = y - gi->bmpY;
+			li.aabb.Update(fx, fy, static_cast<float>(gi->bmpW), static_cast<float>(gi->bmpH));
 
-			const GlyphInfo & gi = it->second;
-
-			float fx = x + gi.bmpX;
-			float fy = y - gi.bmpY;
-			li.aabb.Update(fx, fy, static_cast<float>(gi.bmpW), static_cast<float>(gi.bmpH));
-
-			x += (gi.adv);
+			x += (gi->adv);
 			x += this->extraGlyphSpacingSize;
 		}
 											
@@ -764,10 +760,9 @@ StringRenderer::UsedGlyphCache StringRenderer::ExtractGlyphs(const StringUtf8& s
 			continue;
 		}
 
-		bool exist;
 		FontInfo * fi = nullptr;
-		auto it = this->fb->GetGlyph(c, exist, &fi);		
-		g.emplace_back(it, exist, fi);
+		auto gi = this->fb->GetGlyph(c, &fi);		
+		g.emplace_back(gi, fi);
 	}
 
 	return g;
@@ -786,21 +781,19 @@ long StringRenderer::CalcSpaceSize()
 	}
 
 	//calc space size	
-	auto it = this->fb->GetGlyph(' ', spaceSizeExist);
-	if (spaceSizeExist)
-	{
-		const GlyphInfo & gi = it->second;
-		spaceSize = gi.adv;
+	auto gi = this->fb->GetGlyph(' ');
+	if (gi)
+	{		
+		spaceSizeExist = true;
+		spaceSize = gi->adv;
 	}
 	else
 	{
-		//we want to store only real space if it exist
-		bool tmpExist = false;
-		auto tmp = this->fb->GetGlyph('a', tmpExist);
-		if (tmpExist)
-		{
-			const GlyphInfo & gi = tmp->second;
-			spaceSize = gi.adv;
+		//we want to store only real space if it exist		
+		auto tmp = this->fb->GetGlyph('a');
+		if (tmp)
+		{			
+			spaceSize = tmp->adv;
 		}
 		else
 		{
@@ -882,19 +875,17 @@ bool StringRenderer::GenerateGeometry()
 					x += spaceSize * scale;
 					continue;
 				}
-
-				bool exist;				
-				auto it = this->fb->GetGlyph(c, exist);
-				if (!exist)
+			
+				auto gi = this->fb->GetGlyph(c);
+				if (gi == nullptr)
 				{
 					continue;
 				}
 
-				const GlyphInfo & gi = it->second;
-								
-				this->AddQuad(gi, x, y, li.renderParams ? *li.renderParams : si.renderParams);
+												
+				this->AddQuad(*gi, x, y, li.renderParams ? *li.renderParams : si.renderParams);
 
-				x += gi.adv * scale;
+				x += gi->adv * scale;
 				x += this->extraGlyphSpacingSize * scale;
 			}
 			

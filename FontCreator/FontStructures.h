@@ -193,6 +193,19 @@ struct RenderSettings
 	bool useTextureLinearFilter = false;
 };
 
+
+struct IFontBuilderSettings
+{
+	uint16_t textureW;
+	uint16_t textureH;
+
+	uint16_t screenDpi = 0;
+
+	//how many times is resolution bigger than display pts units
+	//used on iPhones
+	float screenScale = 1.0f;
+};
+
 /// <summary>
 /// SDF settings
 /// 
@@ -213,19 +226,10 @@ struct SDF
 	std::optional<Color> outlineColor = std::nullopt;
 };
 
-struct FontBuilderSettings
+struct FontBuilderSettings : public IFontBuilderSettings
 {
 	std::vector<Font> fonts;
-
-	uint16_t textureW;
-	uint16_t textureH;
-
-	uint16_t screenDpi = 0;
-
-	//how many times is resolution bigger than display pts units
-	//used on iPhones
-	float screenScale = 1.0f;
-
+	
 	std::optional<SDF> sdf = std::nullopt;
 };
 

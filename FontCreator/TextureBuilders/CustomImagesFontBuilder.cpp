@@ -6,14 +6,18 @@
 
 #include "./lodepng.h"
 
-CustomImageFontBuilder::CustomImageFontBuilder(const std::vector<CustomGlyph>& glyphsData)
+#include "./FontBuilder.h"
+
+CustomImageFontBuilder::CustomImageFontBuilder(const std::vector<CustomGlyph>& glyphsData,
+	const IFontBuilderSettings& fs)
 {
 	for (const auto& g : glyphsData)
 	{
 		this->glyphsData.try_emplace(g.c, g);
 	}
 
-	this->InitializeFont();
+	this->InitializeFont(fs);
+	this->BuildSizes(fs);
 }
 
 CustomImageFontBuilder::~CustomImageFontBuilder()
@@ -29,7 +33,7 @@ void CustomImageFontBuilder::Release()
 	}
 }
 
-void CustomImageFontBuilder::InitializeFont()
+void CustomImageFontBuilder::InitializeFont(const IFontBuilderSettings& fs)
 {
 	FontInfo fi;
 	fi.faceName = "";
@@ -43,12 +47,43 @@ void CustomImageFontBuilder::InitializeFont()
 
 	this->customFi.push_back(fi);
 
-	//todo
-	this->texPacker = new TextureAtlasPack(256, 256, LETTER_BORDER_SIZE);
+	this->texPacker = new TextureAtlasPack(fs.textureW, fs.textureH, LETTER_BORDER_SIZE);
 
 
 	//after each change, reset font infos in texture packer	
 	this->texPacker->SetAllFontInfos(&this->customFi);
+}
+
+
+void CustomImageFontBuilder::BuildSizes(const IFontBuilderSettings& fs)
+{
+	std::unordered_map<std::string, Font> tmp;
+	for (const auto& g : glyphsData)
+	{
+		if (g.second.referenceFont.has_value())
+		{
+			tmp.try_emplace(g.second.referenceFont->name, *g.second.referenceFont);
+		}
+	}
+
+	for (const auto& [fn, f] : tmp)
+	{
+		FontBuilderSettings fbs;
+		fbs.fonts.push_back(f);
+		fbs.screenDpi = fs.screenDpi;
+		fbs.screenScale = fs.screenScale;
+		fbs.textureW = 1;
+		fbs.textureH = 1;
+
+		FontBuilder fb(fbs);
+		fb.AddCharacter('m');
+		fb.CreateFontAtlas();
+
+		auto g = fb.GetGlyph('m');
+
+		printf("x");
+	}
+
 }
 
 void CustomImageFontBuilder::SetAllFontSize(const FontSize& fs, uint16_t defaultFontSizeInPx)
@@ -107,26 +142,24 @@ int16_t CustomImageFontBuilder::GetMaxNewLineOffset() const
 /// <param name="c"></param>
 /// <param name="exist"></param>
 /// <returns></returns>
-FontInfo::GlyphIterator CustomImageFontBuilder::GetGlyph(CHAR_CODE c, bool& exist)
+GlyphInfo* CustomImageFontBuilder::GetGlyph(CHAR_CODE c)
 {
 	FontInfo* f = nullptr;
-	return this->GetGlyph(c, exist, &f);
+	return this->GetGlyph(c, &f);
 }
 
-FontInfo::GlyphIterator CustomImageFontBuilder::GetGlyph(CHAR_CODE c, bool& exist, FontInfo** usedFi)
+GlyphInfo* CustomImageFontBuilder::GetGlyph(CHAR_CODE c, FontInfo** usedFi)
 {
-	exist = false;
 
 	auto it = this->customFi[0].glyphs.find(c);
 	if (it != this->customFi[0].glyphs.end())
 	{
 		*usedFi = &this->customFi[0];
-		exist = true;
-		return it;
+		return &it->second;
 	}
 
 	*usedFi = &this->customFi[0];
-	return this->customFi[0].glyphs.end();
+	return nullptr;
 }
 
 /// <summary>
@@ -276,6 +309,7 @@ GlyphInfo* CustomImageFontBuilder::FillGlyphInfo(CHAR_CODE c, CustomGlyph& g)
 		return &it->second;
 	}
 
+	auto gt = this->glyphsData.find(c);
 
 	std::vector<uint8_t> png;
 	std::vector<uint8_t> buffer; //the raw pixels
@@ -293,8 +327,15 @@ GlyphInfo* CustomImageFontBuilder::FillGlyphInfo(CHAR_CODE c, CustomGlyph& g)
 		return nullptr;
 	}
 
-	this->customFi[0].maxPixelsWidth = std::max<uint16_t>(this->customFi[0].maxPixelsWidth, width);
-	this->customFi[0].maxPixelsHeight = std::max<uint16_t>(this->customFi[0].maxPixelsHeight, height);
+	if (this->customFi[0].maxPixelsWidth == 0)
+	{
+		this->customFi[0].maxPixelsWidth = std::max<uint16_t>(this->customFi[0].maxPixelsWidth, width);
+	}
+
+	if (this->customFi[0].maxPixelsHeight == 0)
+	{
+		this->customFi[0].maxPixelsHeight = std::max<uint16_t>(this->customFi[0].maxPixelsHeight, height);
+	}
 	
 	//glyphLeft is the horizontal distance from the current pen position 
 	//to the left - most border of the glyph bitmap, 
@@ -307,21 +348,23 @@ GlyphInfo* CustomImageFontBuilder::FillGlyphInfo(CHAR_CODE c, CustomGlyph& g)
 	gInfo.fontIndex = 0;
 	gInfo.bmpX = 0;
 	gInfo.bmpY = 0;
-	gInfo.bmpW = width;
-	gInfo.bmpH = height;
+	gInfo.bmpW = (gt->second.w > 0) ? gt->second.w : static_cast<uint16_t>(width);
+	gInfo.bmpH = (gt->second.h > 0) ? gt->second.h : static_cast<uint16_t>(height);
 	gInfo.adv = 0;
 	gInfo.rawData = nullptr;
 
 	if (c > 32)
 	{
-		//add texture for only "non whitespace chars"		
-		if (this->customFi[0].scaleFactor != 1.0)
+		//add texture for only "non whitespace chars"	
+		
+		if ((gInfo.bmpW != width) || (gInfo.bmpH != height))
 		{
-			gInfo.rawData = this->ResizeBitmapHermite(buffer, width, height);
-		}
+			gInfo.rawData = this->ResizeBitmapHermite(buffer, width, height,
+				gInfo.bmpW, gInfo.bmpH);
+		}		
 		else		
 		{
-			int bitmapSize = width * height;
+			int bitmapSize = gInfo.bmpW * gInfo.bmpH;
 			uint8_t* textureData = new uint8_t[bitmapSize];
 
 			std::copy(buffer.data(),
@@ -345,15 +388,16 @@ GlyphInfo* CustomImageFontBuilder::FillGlyphInfo(CHAR_CODE c, CustomGlyph& g)
 /// <param name="glyph"></param>
 /// <param name="fi"></param>
 /// <returns></returns>
-uint8_t* CustomImageFontBuilder::ResizeBitmap(const std::vector<uint8_t>& buffer, uint16_t w, uint16_t h) const
+uint8_t* CustomImageFontBuilder::ResizeBitmap(const std::vector<uint8_t>& buffer, uint16_t bufW, uint16_t bufH,
+	uint16_t finalW, uint16_t finalH) const
 {
-	size_t width = static_cast<size_t>(w * this->customFi[0].scaleFactor);
-	size_t height = static_cast<size_t>(h * this->customFi[0].scaleFactor);
+	size_t width = finalW;
+	size_t height = finalH;
 
 	uint8_t* textureData = new uint8_t[width * height];
 
-	double x_ratio = w / (double)width;
-	double y_ratio = h / (double)height;
+	double x_ratio = bufW / (double)width;
+	double y_ratio = bufH / (double)height;
 	double px, py;
 	for (size_t i = 0; i < height; i++)
 	{
@@ -378,16 +422,17 @@ uint8_t* CustomImageFontBuilder::ResizeBitmap(const std::vector<uint8_t>& buffer
 /// <param name="glyph"></param>
 /// <param name="fi"></param>
 /// <returns></returns>
-uint8_t* CustomImageFontBuilder::ResizeBitmapHermite(const std::vector<uint8_t>& buffer, uint16_t w, uint16_t h) const
+uint8_t* CustomImageFontBuilder::ResizeBitmapHermite(const std::vector<uint8_t>& buffer, uint16_t bufW, uint16_t bufH,
+	uint16_t finalW, uint16_t finalH) const
 {
 
-	size_t width = static_cast<size_t>(w * this->customFi[0].scaleFactor);
-	size_t height = static_cast<size_t>(h * this->customFi[0].scaleFactor);
+	size_t width = finalW; 
+	size_t height = finalH;
 
 	uint8_t* textureData = new uint8_t[width * height];
 
-	double ratio_w = static_cast<double>(w) / width;
-	double ratio_h = static_cast<double>(h) / height;
+	double ratio_w = static_cast<double>(bufW) / width;
+	double ratio_h = static_cast<double>(bufH) / height;
 	double ratio_w_half = std::ceil(ratio_w / 2.0);
 	double ratio_h_half = std::ceil(ratio_h / 2.0);
 
@@ -398,7 +443,7 @@ uint8_t* CustomImageFontBuilder::ResizeBitmapHermite(const std::vector<uint8_t>&
 
 		size_t yy_start = static_cast<size_t>(std::floor(j * ratio_h));
 		size_t yy_stop = static_cast<size_t>(std::ceil((j + 1) * ratio_h));
-		yy_stop = std::min(yy_stop, static_cast<size_t>(h));
+		yy_stop = std::min(yy_stop, static_cast<size_t>(bufH));
 
 		for (size_t i = 0; i < width; i++)
 		{
@@ -415,7 +460,7 @@ uint8_t* CustomImageFontBuilder::ResizeBitmapHermite(const std::vector<uint8_t>&
 
 			size_t xx_start = static_cast<size_t>(std::floor(i * ratio_w));
 			size_t xx_stop = static_cast<size_t>(std::ceil((i + 1) * ratio_w));
-			xx_stop = std::min(xx_stop, static_cast<size_t>(w));
+			xx_stop = std::min(xx_stop, static_cast<size_t>(bufW));
 
 			for (size_t yy = yy_start; yy < yy_stop; yy++)
 			{
@@ -435,7 +480,7 @@ uint8_t* CustomImageFontBuilder::ResizeBitmapHermite(const std::vector<uint8_t>&
 
 					//hermite filter
 					double weight = 2 * w2 * w - 3 * w2 + 1;
-					size_t pos_x = (xx + yy * w); //* 4;
+					size_t pos_x = (xx + yy * bufW); //* 4;
 					//alpha
 					//gx_a += weight * glyphBmp.buffer[pos_x + 3];
 					//weights_alpha += weight;

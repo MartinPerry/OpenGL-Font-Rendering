@@ -49,8 +49,8 @@ public:
 
 	int16_t GetMaxNewLineOffset() const override;
 	int16_t GetNewLineOffsetBasedOnGlyph(CHAR_CODE c);
-	FontInfo::GlyphIterator GetGlyph(CHAR_CODE c, bool & exist) override;
-	FontInfo::GlyphIterator GetGlyph(CHAR_CODE c, bool & exist, FontInfo ** usedFi) override;
+	GlyphInfo* GetGlyph(CHAR_CODE c) override;
+	GlyphInfo* GetGlyph(CHAR_CODE c, FontInfo ** usedFi) override;
 
 	uint16_t GetTextureWidth() const override;
 	uint16_t GetTextureHeight() const override;

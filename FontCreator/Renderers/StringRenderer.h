@@ -161,7 +161,7 @@ public:
 
 protected:
 
-	typedef std::vector<std::tuple<FontInfo::GlyphIterator, bool, FontInfo *>> UsedGlyphCache;
+	typedef std::vector<std::tuple<GlyphInfo*, FontInfo *>> UsedGlyphCache;
 	
 	
 	std::vector<StringInfo> strs;

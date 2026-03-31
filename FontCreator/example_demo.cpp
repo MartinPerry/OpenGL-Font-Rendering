@@ -452,7 +452,7 @@ void initGL() {
 	fs.fonts = fonts;
 	fs.sdf = SDF();
 	fs.sdf->outlineColor = { 0, 0, 0, 1 };
-	fs.sdf->outlineWidth = 0.1;
+	fs.sdf->outlineWidth = 0.1f;
 	fs.sdf->softness = 0.05f;
 	
 	//======================================================================
@@ -531,9 +531,16 @@ void initGL() {
 	CustomGlyph g;
 	g.c = 'a';
 	g.fileName = "D://mario_256_gray.png";
+	g.referenceFont = fArial;
 	gd.push_back(g);
 
-	auto cfb = std::make_shared<CustomImageFontBuilder>(gd);
+	IFontBuilderSettings ifs;
+	ifs.textureW = 256;
+	ifs.textureH = 256;
+	ifs.screenDpi = 260;
+	ifs.screenScale = 1;
+
+	auto cfb = std::make_shared<CustomImageFontBuilder>(gd, ifs);
 
 
 	auto sm = std::make_shared<DefaultFontShaderManager>(std::nullopt);

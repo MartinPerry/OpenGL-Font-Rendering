@@ -116,36 +116,34 @@ void NumberRenderer::Init()
 
 	for (const auto& c : NUMBERS_STRING)
 	{
-		bool exist;
-		auto it = this->fb->GetGlyph(c, exist);
-		if (!exist)
+		auto g = this->fb->GetGlyph(c);
+		if (g == nullptr)
 		{
 			throw std::invalid_argument("Unknown number character");
 		}
 
 		
-		this->gi[it->first] = it->second;
+		this->gi[c] = *g;
 	}
 
 
-	bool exist;
-	auto it = this->fb->GetGlyph(this->ci.mark[0], exist);
-	if (!exist)
+	auto g = this->fb->GetGlyph(this->ci.mark[0]);
+	if (g == nullptr)
 	{
-		it = this->fb->GetGlyph('.', exist);
-		if (!exist)
+		g = this->fb->GetGlyph('.');
+		if (g == nullptr)
 		{
 			throw std::invalid_argument("Unknown mark character");
 		}
 		else
 		{
 			this->SetCaption(u8".", 10);
-			this->captionMark = it->second;
+			this->captionMark = *g;
 		}
 	}
 	else
 	{
-		this->captionMark = it->second;
+		this->captionMark = *g;
 	}
 			
 	this->SetDecimalPrecission(2);

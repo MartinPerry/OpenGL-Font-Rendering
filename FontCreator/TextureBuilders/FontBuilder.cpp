@@ -536,30 +536,27 @@ int16_t FontBuilder::GetNewLineOffsetBasedOnGlyph(CHAR_CODE c)
 /// <param name="c"></param>
 /// <param name="exist"></param>
 /// <returns></returns>
-FontInfo::GlyphIterator FontBuilder::GetGlyph(CHAR_CODE c, bool & exist)
+GlyphInfo* FontBuilder::GetGlyph(CHAR_CODE c)
 {
 	FontInfo * f = nullptr;
-	return this->GetGlyph(c, exist, &f);
+	return this->GetGlyph(c, &f);
 }
 
-FontInfo::GlyphIterator FontBuilder::GetGlyph(CHAR_CODE c, bool & exist, FontInfo ** usedFi)
-{
-	exist = false;
-
+GlyphInfo* FontBuilder::GetGlyph(CHAR_CODE c, FontInfo ** usedFi)
+{	
 	for (FontInfo & fi : this->fis)
 	{
 
 		auto it = fi.glyphs.find(c);
 		if (it != fi.glyphs.end())
 		{	
-			*usedFi = &fi;			
-			exist = true;
-			return it;
+			*usedFi = &fi;						
+			return &it->second;
 		}		
 	}
 
-	*usedFi = &this->fis[0];	
-	return this->fis[0].glyphs.end();
+	*usedFi = &this->fis[0];
+	return nullptr;
 }
 
 /// <summary>
