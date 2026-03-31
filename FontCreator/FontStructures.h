@@ -158,6 +158,12 @@ struct Font
 		defaultFontSizeInPx(0)
 	{}
 
+	bool operator==(const Font& b) const
+	{
+		return (b.name == name) && (b.size.size == size.size) &&
+			(b.size.sizeType == size.sizeType) && (b.defaultFontSizeInPx == defaultFontSizeInPx);
+	}
+
 };
 
 /// <summary>

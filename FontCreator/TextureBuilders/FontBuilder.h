@@ -51,6 +51,7 @@ public:
 	int16_t GetNewLineOffsetBasedOnGlyph(CHAR_CODE c);
 	GlyphInfo* GetGlyph(CHAR_CODE c) override;
 	GlyphInfo* GetGlyph(CHAR_CODE c, FontInfo ** usedFi) override;
+	GlyphInfo* LoadGlyphInfo(CHAR_CODE c);
 
 	uint16_t GetTextureWidth() const override;
 	uint16_t GetTextureHeight() const override;
@@ -86,8 +87,7 @@ protected:
 	bool SetFontSizePts(FontInfo & f, uint16_t size, uint16_t dpi);
 	bool SetClosestFontSizeForBitmaps(FontInfo & f, uint16_t size);
 	void UpdateBitmapFontsSizes(uint16_t maxEmSize);
-
-	GlyphInfo* LoadGlyphInfo(CHAR_CODE c);
+	
 	GlyphInfo* FillGlyphInfo(CHAR_CODE c, FontInfo & fi) const;
 
 	bool FillGlyphGraphics(FontInfo& fi, FT_UInt ci,

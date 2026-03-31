@@ -57,31 +57,68 @@ void CustomImageFontBuilder::InitializeFont(const IFontBuilderSettings& fs)
 
 void CustomImageFontBuilder::BuildSizes(const IFontBuilderSettings& fs)
 {
-	std::unordered_map<std::string, Font> tmp;
-	for (const auto& g : glyphsData)
+	//some hasher for Font
+	struct FontHash
 	{
-		if (g.second.referenceFont.has_value())
+		size_t operator()(const Font& f) const noexcept
 		{
-			tmp.try_emplace(g.second.referenceFont->name, *g.second.referenceFont);
+			size_t h = std::hash<std::string>{}(f.name);
+
+			h ^= std::hash<int>{}(static_cast<int>(f.size.size * 100)) + 0x9e3779b9 + (h << 6) + (h >> 2);
+			h ^= std::hash<int>{}(static_cast<int>(f.size.sizeType)) + 0x9e3779b9 + (h << 6) + (h >> 2);
+			h ^= std::hash<int>{}(f.defaultFontSizeInPx) + 0x9e3779b9 + (h << 6) + (h >> 2);
+
+			return h;
+		}
+	};
+
+	
+	//load all unique fonts from all cusotm glyphs	
+	std::unordered_set<Font, FontHash> tmp;
+	for (const auto& gd : glyphsData)
+	{
+		if (((gd.second.w == 0) || (gd.second.h == 0)) && 
+			(gd.second.referenceFont.has_value()))
+		{
+			tmp.emplace(*gd.second.referenceFont);
 		}
 	}
 
-	for (const auto& [fn, f] : tmp)
+
+	//for each unique font, create FontBuilder
+	for (const auto& f : tmp)
 	{
 		FontBuilderSettings fbs;
 		fbs.fonts.push_back(f);
 		fbs.screenDpi = fs.screenDpi;
 		fbs.screenScale = fs.screenScale;
+
+		//we dont need texture atlas - set minimal dummy size
 		fbs.textureW = 1;
 		fbs.textureH = 1;
 
 		FontBuilder fb(fbs);
-		fb.AddCharacter('m');
-		fb.CreateFontAtlas();
+				
+		//iterate all custom glyphs and calc the texture size
+		//based on its reference char code
+		for (auto& gd : glyphsData)
+		{
+			if (((gd.second.w == 0) || (gd.second.h == 0)) &&				
+				(gd.second.referenceFont == f))
+			{
+				CHAR_CODE c = 'm';
+				if (gd.second.referenceCharCode.has_value())
+				{
+					c = *gd.second.referenceCharCode;
+				}
 
-		auto g = fb.GetGlyph('m');
+				auto g = fb.LoadGlyphInfo(c);
 
-		printf("x");
+				gd.second.w = g->bmpW;
+				gd.second.h = g->bmpH;
+				gd.second.adv = g->adv;
+			}
+		}
 	}
 
 }
@@ -350,7 +387,7 @@ GlyphInfo* CustomImageFontBuilder::FillGlyphInfo(CHAR_CODE c, CustomGlyph& g)
 	gInfo.bmpY = 0;
 	gInfo.bmpW = (gt->second.w > 0) ? gt->second.w : static_cast<uint16_t>(width);
 	gInfo.bmpH = (gt->second.h > 0) ? gt->second.h : static_cast<uint16_t>(height);
-	gInfo.adv = 0;
+	gInfo.adv = (gt->second.adv > 0) ? gt->second.adv : static_cast<uint16_t>(width);
 	gInfo.rawData = nullptr;
 
 	if (c > 32)

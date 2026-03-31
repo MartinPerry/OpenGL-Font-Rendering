@@ -15,12 +15,19 @@ class TextureAtlasPack;
 
 struct CustomGlyph
 {	
-	CHAR_CODE c;
-	std::string fileName;	
+	CHAR_CODE c; //char code used for this custom Glyph
+	std::string fileName;//image filename used for this custom Glyph
 
-	uint16_t w = 0;
-	uint16_t h = 0;
-	std::optional<Font> referenceFont = std::nullopt;
+	uint16_t w = 0; //size of final glyph (0 = auto calculated)
+	uint16_t h = 0; //size of final glyph (0 = auto calculated)
+	long adv = 0;
+
+	//if provided, reference font is used to calculate [w, h]
+	//of glyph size - it will use standard FreeType FontBuilder
+	//and use size of "referenceCharCode" (or letter m if none provided)
+	//to update w and h of custom glyph
+	std::optional<Font> referenceFont = std::nullopt; 
+	std::optional<CHAR_CODE> referenceCharCode = std::nullopt;
 };
 
 class CustomImageFontBuilder : public IFontBuilder

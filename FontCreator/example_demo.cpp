@@ -319,7 +319,7 @@ void display() {
 	
 	
 	srCustom->Clear();
-	srCustom->AddString("a", 0.5f, 0.5f, 
+	srCustom->AddString("ab", 0.5f, 0.5f, 
 		AbstractRenderer::DEFAULT_PARAMS, 
 		AbstractRenderer::TextAnchor::CENTER, 
 		AbstractRenderer::TextAlign::ALIGN_CENTER);
@@ -531,6 +531,13 @@ void initGL() {
 	CustomGlyph g;
 	g.c = 'a';
 	g.fileName = "D://mario_256_gray.png";
+	g.referenceCharCode = 'x';
+	g.referenceFont = fArial;
+	gd.push_back(g);
+	
+	g.c = 'b';
+	g.fileName = "D://user-3296_64.png";
+	g.referenceCharCode = 'o';
 	g.referenceFont = fArial;
 	gd.push_back(g);
 

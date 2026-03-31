@@ -33,6 +33,7 @@ FontBuilder::FontBuilder(const FontBuilderSettings& r) :
 {
 	
 	this->texPacker = new TextureAtlasPack(r.textureW, r.textureH, LETTER_BORDER_SIZE);
+	
 	//this->texPacker->SetTightPacking();
 	//this->texPacker->SetGridPacking(fontSize, fontSize);
 
@@ -546,7 +547,6 @@ GlyphInfo* FontBuilder::GetGlyph(CHAR_CODE c, FontInfo ** usedFi)
 {	
 	for (FontInfo & fi : this->fis)
 	{
-
 		auto it = fi.glyphs.find(c);
 		if (it != fi.glyphs.end())
 		{	
