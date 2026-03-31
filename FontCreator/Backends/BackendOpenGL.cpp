@@ -132,9 +132,24 @@ void BackendOpenGL::InitTexture(const char* uniformName)
 	GL_CHECK(glGenTextures(1, &this->texture));
 	FONT_BIND_TEXTURE_2D(this->texture);
 	
-	GL_CHECK(glTexImage2D(GL_TEXTURE_2D, 0, TEXTURE_SINGLE_CHANNEL,
-		w, h, 0,
-		TEXTURE_SINGLE_CHANNEL, GL_UNSIGNED_BYTE, nullptr));
+	if (sm->GetTextureChannels() == 1)
+	{
+		GL_CHECK(glTexImage2D(GL_TEXTURE_2D, 0, TEXTURE_SINGLE_CHANNEL,
+			w, h, 0,
+			TEXTURE_SINGLE_CHANNEL, GL_UNSIGNED_BYTE, nullptr));
+	}
+	else if (sm->GetTextureChannels() == 3)
+	{
+		GL_CHECK(glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB,
+			w, h, 0,
+			GL_RGB, GL_UNSIGNED_BYTE, nullptr));
+	}
+	else if (sm->GetTextureChannels() == 4)	
+	{
+		GL_CHECK(glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA,
+			w, h, 0,
+			GL_RGBA, GL_UNSIGNED_BYTE, nullptr));
+	}
 
 	if (this->rs.useTextureLinearFilter)
 	{
@@ -344,10 +359,27 @@ void BackendOpenGL::FillFontTexture()
 
 	FONT_BIND_TEXTURE_2D(this->texture);
 
-	GL_CHECK(glTexSubImage2D(GL_TEXTURE_2D, 0,
-		0, 0,
-		fb->GetTextureWidth(), fb->GetTextureHeight(),
-		TEXTURE_SINGLE_CHANNEL, GL_UNSIGNED_BYTE, fb->GetTextureData()));
+	if (sm->GetTextureChannels() == 1)
+	{
+		GL_CHECK(glTexSubImage2D(GL_TEXTURE_2D, 0,
+			0, 0,
+			fb->GetTextureWidth(), fb->GetTextureHeight(),
+			TEXTURE_SINGLE_CHANNEL, GL_UNSIGNED_BYTE, fb->GetTextureData()));
+	}
+	else if (sm->GetTextureChannels() == 3)
+	{
+		GL_CHECK(glTexSubImage2D(GL_TEXTURE_2D, 0,
+			0, 0,
+			fb->GetTextureWidth(), fb->GetTextureHeight(),
+			GL_RGB, GL_UNSIGNED_BYTE, fb->GetTextureData()));
+	}
+	else if (sm->GetTextureChannels() == 4)
+	{
+		GL_CHECK(glTexSubImage2D(GL_TEXTURE_2D, 0,
+			0, 0,
+			fb->GetTextureWidth(), fb->GetTextureHeight(),
+			GL_RGBA, GL_UNSIGNED_BYTE, fb->GetTextureData()));
+	}
 
 	FONT_UNBIND_TEXTURE_2D;
 }

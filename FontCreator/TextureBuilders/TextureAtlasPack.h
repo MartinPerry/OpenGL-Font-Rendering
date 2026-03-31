@@ -14,7 +14,7 @@
 class TextureAtlasPack
 {
 public:
-	enum class PACKING_METHOD { TIGHT, GRID };
+	enum class PACKING_METHOD : uint8_t { TIGHT, GRID };
 
 	struct PackedInfo
 	{
@@ -27,7 +27,7 @@ public:
 	};
 
 	
-	TextureAtlasPack(uint16_t w, uint16_t h, uint16_t border);
+	TextureAtlasPack(uint16_t w, uint16_t h, uint16_t border, uint8_t channelsCount = 1);	
 	~TextureAtlasPack();
 
 
@@ -95,10 +95,11 @@ private:
 	uint16_t w;
 	uint16_t h;
 	uint16_t border;
+	uint8_t channelsCount;
 	float averageGlyphSize;
 
 	int freePixels;
-	uint8_t * rawPackedData;
+	uint8_t * rawPackedData;	
 	HashMap<CHAR_CODE, PackedInfo> packedInfo;
 	
 	void Clear();

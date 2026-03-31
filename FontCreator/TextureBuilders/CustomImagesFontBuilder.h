@@ -30,15 +30,20 @@ struct CustomGlyph
 	std::optional<CHAR_CODE> referenceCharCode = std::nullopt;
 };
 
+struct CustomFontBuilderSettings : public IFontBuilderSettings
+{
+	uint8_t channelsCount = 1;
+};
+
 class CustomImageFontBuilder : public IFontBuilder
 {
 public:
 	CustomImageFontBuilder(const std::vector<CustomGlyph>& glyphsData, 
-		const IFontBuilderSettings& fs);
+		const CustomFontBuilderSettings& fs);
 	~CustomImageFontBuilder();
 
 	void Release() override;
-
+	
 	void SetAllFontSize(const FontSize& fs, uint16_t defaultFontSizeInPx = 0) override;
 
 	bool AddString(const StringUtf8& str) override;
@@ -69,6 +74,8 @@ protected:
 
 	TextureAtlasPack* texPacker;
 
+	uint8_t channelsCount;
+
 	void InitializeFont(const IFontBuilderSettings& fs);
 	void BuildSizes(const IFontBuilderSettings& fs);
 
@@ -77,7 +84,9 @@ protected:
 
 	uint8_t* ResizeBitmap(const std::vector<uint8_t>& buffer, uint16_t bufW, uint16_t bufH,
 		uint16_t finalW, uint16_t finalH) const;
-	uint8_t* ResizeBitmapHermite(const std::vector<uint8_t>& buffer, uint16_t bufW, uint16_t bufH,
+	uint8_t* ResizeBitmapHermiteGray(const std::vector<uint8_t>& buffer, uint16_t bufW, uint16_t bufH,
+		uint16_t finalW, uint16_t finalH) const;
+	uint8_t* ResizeBitmapHermiteRGBA(const std::vector<uint8_t>& buffer, uint16_t bufW, uint16_t bufH,
 		uint16_t finalW, uint16_t finalH) const;
 };
 

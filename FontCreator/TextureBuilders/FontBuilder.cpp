@@ -12,10 +12,6 @@
 
 #include "../FontCache.h"
 
-#ifdef USE_VFS
-#	include "../../Utils/VFS/VFS.h"
-#endif
-
 //http://www.freetype.org/freetype2/documentation.html
 //http://en.wikibooks.org/wiki/OpenGL_Programming/Modern_OpenGL_Tutorial_Text_Rendering_01
 

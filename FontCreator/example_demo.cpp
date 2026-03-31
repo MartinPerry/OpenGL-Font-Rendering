@@ -13,6 +13,7 @@
 #include "./Backends/BackendOpenGL.h"
 #include "./Backends/BackendImage.h"
 #include "./Backends/Shaders/DefaultFontShaderManager.h"
+#include "./Backends/Shaders/ColoredFontShaderManager.h"
 
 #include "./Unicode/utf8.h"
 #include "./Unicode/uninorms.h"
@@ -530,27 +531,29 @@ void initGL() {
 	std::vector<CustomGlyph> gd;	
 	CustomGlyph g;
 	g.c = 'a';
-	g.fileName = "D://mario_256_gray.png";
+	//g.fileName = "D://mario_256_gray.png";
+	g.fileName = "D://mario_256.png";
 	g.referenceCharCode = 'x';
 	g.referenceFont = fArial;
 	gd.push_back(g);
 	
 	g.c = 'b';
-	g.fileName = "D://user-3296_64.png";
+	//g.fileName = "D://user-3296_64.png";
+	g.fileName = "D://mario_256.png";
 	g.referenceCharCode = 'o';
 	g.referenceFont = fArial;
 	gd.push_back(g);
 
-	IFontBuilderSettings ifs;
+	CustomFontBuilderSettings ifs;
 	ifs.textureW = 256;
 	ifs.textureH = 256;
 	ifs.screenDpi = 260;
-	ifs.screenScale = 1;
+	ifs.screenScale = 1;	
+	ifs.channelsCount = 4;
 
 	auto cfb = std::make_shared<CustomImageFontBuilder>(gd, ifs);
-
-
-	auto sm = std::make_shared<DefaultFontShaderManager>(std::nullopt);
+	
+	auto sm = std::make_shared<ColoredFontShaderManager>();
 	auto backend = std::make_unique<BackendOpenGL>(r, 3, nullptr, nullptr, sm);
 
 	srCustom = new StringRenderer(cfb, std::move(backend));

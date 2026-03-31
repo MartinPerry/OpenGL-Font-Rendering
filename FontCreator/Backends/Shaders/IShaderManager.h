@@ -18,6 +18,11 @@ public:
         this->shaderProgram = program;
     };
 
+    virtual uint8_t GetTextureChannels() const 
+    {
+        return 1;
+    }
+
     virtual const char* GetVertexShaderSource() const = 0;
     virtual const char* GetPixelShaderSource() const = 0;
 

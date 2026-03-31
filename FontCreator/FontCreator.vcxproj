@@ -163,6 +163,7 @@
     <ClCompile Include="Backends\BackendOpenGL.cpp" />
     <ClCompile Include="Backends\BackendBackgroundOpenGL.cpp" />
     <ClCompile Include="Backends\Shaders\BackgroundShaderManager.cpp" />
+    <ClCompile Include="Backends\Shaders\ColoredFontShaderManager.cpp" />
     <ClCompile Include="Backends\Shaders\DefaultFontShaderManager.cpp" />
     <ClCompile Include="Backends\Shaders\IShaderManager.cpp" />
     <ClCompile Include="Backends\Shaders\SingleColorBackgroundShaderManager.cpp" />
@@ -187,6 +188,7 @@
     <ClInclude Include="Backends\BackendOpenGL.h" />
     <ClInclude Include="Backends\BackendBackgroundOpenGL.h" />
     <ClInclude Include="Backends\Shaders\BackgroundShaderManager.h" />
+    <ClInclude Include="Backends\Shaders\ColoredFontShaderManager.h" />
     <ClInclude Include="Backends\Shaders\DefaultFontShaderManager.h" />
     <ClInclude Include="Backends\Shaders\IShaderManager.h" />
     <ClInclude Include="Backends\Shaders\Shaders.h" />

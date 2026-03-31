@@ -9,7 +9,8 @@
 #include "./FontBuilder.h"
 
 CustomImageFontBuilder::CustomImageFontBuilder(const std::vector<CustomGlyph>& glyphsData,
-	const IFontBuilderSettings& fs)
+	const CustomFontBuilderSettings& fs) :
+	channelsCount(fs.channelsCount)
 {
 	for (const auto& g : glyphsData)
 	{
@@ -47,7 +48,7 @@ void CustomImageFontBuilder::InitializeFont(const IFontBuilderSettings& fs)
 
 	this->customFi.push_back(fi);
 
-	this->texPacker = new TextureAtlasPack(fs.textureW, fs.textureH, LETTER_BORDER_SIZE);
+	this->texPacker = new TextureAtlasPack(fs.textureW, fs.textureH, LETTER_BORDER_SIZE, this->channelsCount);
 
 
 	//after each change, reset font infos in texture packer	
@@ -352,7 +353,7 @@ GlyphInfo* CustomImageFontBuilder::FillGlyphInfo(CHAR_CODE c, CustomGlyph& g)
 	std::vector<uint8_t> buffer; //the raw pixels
 	unsigned width, height;
 	lodepng::State state; //optionally customize this one
-	state.decoder.color_convert = 0; //keep input data channels count
+	//state.decoder.color_convert = 0; //keep input data channels count
 
 	lodepng::load_file(png, g.fileName); //load the image file with given filename
 	auto error = lodepng::decode(buffer, width, height, state, png);
@@ -396,8 +397,16 @@ GlyphInfo* CustomImageFontBuilder::FillGlyphInfo(CHAR_CODE c, CustomGlyph& g)
 		
 		if ((gInfo.bmpW != width) || (gInfo.bmpH != height))
 		{
-			gInfo.rawData = this->ResizeBitmapHermite(buffer, width, height,
-				gInfo.bmpW, gInfo.bmpH);
+			if (this->channelsCount == 1)
+			{
+				gInfo.rawData = this->ResizeBitmapHermiteGray(buffer, width, height,
+					gInfo.bmpW, gInfo.bmpH);
+			}
+			else
+			{
+				gInfo.rawData = this->ResizeBitmapHermiteRGBA(buffer, width, height,
+					gInfo.bmpW, gInfo.bmpH);
+			}
 		}		
 		else		
 		{
@@ -459,7 +468,7 @@ uint8_t* CustomImageFontBuilder::ResizeBitmap(const std::vector<uint8_t>& buffer
 /// <param name="glyph"></param>
 /// <param name="fi"></param>
 /// <returns></returns>
-uint8_t* CustomImageFontBuilder::ResizeBitmapHermite(const std::vector<uint8_t>& buffer, uint16_t bufW, uint16_t bufH,
+uint8_t* CustomImageFontBuilder::ResizeBitmapHermiteGray(const std::vector<uint8_t>& buffer, uint16_t bufW, uint16_t bufH,
 	uint16_t finalW, uint16_t finalH) const
 {
 
@@ -484,15 +493,11 @@ uint8_t* CustomImageFontBuilder::ResizeBitmapHermite(const std::vector<uint8_t>&
 
 		for (size_t i = 0; i < width; i++)
 		{
-			size_t x2 = (i + j * width); // *4;
-
-			//double weight = 0;
-			double weights = 0;
-			//double weights_alpha = 0;
+			size_t x2 = (i + j * width);
+			
+			double weights = 0;			
 			double gx_r = 0;
-			//double gx_g = 0;
-			//double gx_b = 0;
-			//double gx_a = 0;			
+			
 			double center_x = (i + 0.5) * ratio_w;
 
 			size_t xx_start = static_cast<size_t>(std::floor(i * ratio_w));
@@ -517,25 +522,107 @@ uint8_t* CustomImageFontBuilder::ResizeBitmapHermite(const std::vector<uint8_t>&
 
 					//hermite filter
 					double weight = 2 * w2 * w - 3 * w2 + 1;
-					size_t pos_x = (xx + yy * bufW); //* 4;
+					size_t pos_x = (xx + yy * bufW);
+
+					gx_r += weight * buffer[pos_x];
+					
+					weights += weight;
+				}
+			}
+			textureData[x2] = static_cast<uint8_t>(gx_r / weights);			
+		}
+	}
+
+	return textureData;
+}
+
+/// <summary>
+/// Hermite resize (slower, but better quality than ResizeBitmap)
+/// Taken from:
+/// https://github.com/viliusle/Hermite-resize/blob/master/src/hermite.js
+/// </summary>
+/// <param name="glyph"></param>
+/// <param name="fi"></param>
+/// <returns></returns>
+uint8_t* CustomImageFontBuilder::ResizeBitmapHermiteRGBA(const std::vector<uint8_t>& buffer, uint16_t bufW, uint16_t bufH,
+	uint16_t finalW, uint16_t finalH) const
+{
+
+	size_t width = finalW;
+	size_t height = finalH;
+
+	uint8_t* textureData = new uint8_t[width * height * 4];
+
+	double ratio_w = static_cast<double>(bufW) / width;
+	double ratio_h = static_cast<double>(bufH) / height;
+	double ratio_w_half = std::ceil(ratio_w / 2.0);
+	double ratio_h_half = std::ceil(ratio_h / 2.0);
+
+
+	for (size_t j = 0; j < height; j++)
+	{
+		double center_y = (j + 0.5) * ratio_h;
+
+		size_t yy_start = static_cast<size_t>(std::floor(j * ratio_h));
+		size_t yy_stop = static_cast<size_t>(std::ceil((j + 1) * ratio_h));
+		yy_stop = std::min(yy_stop, static_cast<size_t>(bufH));
+
+		for (size_t i = 0; i < width; i++)
+		{
+			size_t x2 = (i + j * width) * 4;
+			
+			double weights = 0;
+			double weights_alpha = 0;
+			
+			double gx_r = 0;
+			double gx_g = 0;
+			double gx_b = 0;
+			double gx_a = 0;			
+			double center_x = (i + 0.5) * ratio_w;
+
+			size_t xx_start = static_cast<size_t>(std::floor(i * ratio_w));
+			size_t xx_stop = static_cast<size_t>(std::ceil((i + 1) * ratio_w));
+			xx_stop = std::min(xx_stop, static_cast<size_t>(bufW));
+
+			for (size_t yy = yy_start; yy < yy_stop; yy++)
+			{
+				double dy = std::abs(center_y - (yy + 0.5)) / ratio_h_half;
+				double w0 = dy * dy; //pre-calc part of w
+
+				for (size_t xx = xx_start; xx < xx_stop; xx++)
+				{
+					double dx = std::abs(center_x - (xx + 0.5)) / ratio_w_half;
+					double w = std::sqrt(w0 + dx * dx);
+					if (w >= 1)
+					{
+						//pixel too far
+						continue;
+					}
+					double w2 = w * w;
+
+					//hermite filter
+					double weight = 2 * w2 * w - 3 * w2 + 1;
+					size_t pos_x = (xx + yy * bufW) * 4;
+
 					//alpha
-					//gx_a += weight * glyphBmp.buffer[pos_x + 3];
-					//weights_alpha += weight;
+					gx_a += weight * buffer[pos_x + 3];
+					weights_alpha += weight;
+					
 					//colors
 					//if (glyphBmp.buffer[pos_x + 3] < 255)
 					//{
 					//	weight = weight * glyphBmp.buffer[pos_x + 3] / 250;
 					//}
 					gx_r += weight * buffer[pos_x];
-					//gx_g += weight * glyphBmp.buffer[pos_x + 1];
-					//gx_b += weight * glyphBmp.buffer[pos_x + 2];
+					gx_g += weight * buffer[pos_x + 1];
+					gx_b += weight * buffer[pos_x + 2];
 					weights += weight;
 				}
 			}
-			textureData[x2] = static_cast<uint8_t>(gx_r / weights);
-			//textureData[x2 + 1] = gx_g / weights;
-			//textureData[x2 + 2] = gx_b / weights;
-			//textureData[x2 + 3] = gx_a / weights_alpha;
+			textureData[x2 + 0] = static_cast<uint8_t>(gx_r / weights);
+			textureData[x2 + 1] = static_cast<uint8_t>(gx_g / weights);
+			textureData[x2 + 2] = static_cast<uint8_t>(gx_b / weights);
+			textureData[x2 + 3] = static_cast<uint8_t>(gx_a / weights_alpha);
 		}
 	}
 

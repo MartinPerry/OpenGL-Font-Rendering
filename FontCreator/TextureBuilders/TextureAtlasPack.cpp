@@ -9,12 +9,14 @@
 /// <param name="w"></param>
 /// <param name="h"></param>
 /// <param name="border"></param>
-TextureAtlasPack::TextureAtlasPack(uint16_t w, uint16_t h, uint16_t border) :
+TextureAtlasPack::TextureAtlasPack(uint16_t w, uint16_t h, 
+	uint16_t border, uint8_t channelsCount) :
 	fontInfos(nullptr), 
 	unused(nullptr), 
 	w(w), 
 	h(h), 
 	border(border), 
+	channelsCount(channelsCount),
 	method(PACKING_METHOD::TIGHT),
 	freePixels(w * h),
 	averageGlyphSize(2500),
@@ -25,8 +27,8 @@ TextureAtlasPack::TextureAtlasPack(uint16_t w, uint16_t h, uint16_t border) :
 	this->mt = std::mt19937(rd());
 	this->uniDist01 = std::uniform_int_distribution<int>(0, 1);
 
-	this->rawPackedData = new uint8_t[w * h];
-	memset(this->rawPackedData, 0, sizeof(uint8_t) * w * h);
+	this->rawPackedData = new uint8_t[w * h * channelsCount];
+	memset(this->rawPackedData, 0, sizeof(uint8_t) * w * h * channelsCount);
 
 		
 	this->freeSpace.emplace_back(0, 0, w, h);
@@ -48,8 +50,21 @@ void TextureAtlasPack::SaveToFile(const std::string & path)
 {
 	//save image as PNG
 	
-	lodepng::encode(path.c_str(), this->rawPackedData, this->w, this->h, 
-		LodePNGColorType::LCT_GREY, 8 * sizeof(uint8_t));	
+	if (channelsCount == 1)
+	{
+		lodepng::encode(path.c_str(), this->rawPackedData, this->w, this->h,
+			LodePNGColorType::LCT_GREY, 8 * sizeof(uint8_t));
+	}
+	else if (channelsCount == 3)
+	{
+		lodepng::encode(path.c_str(), this->rawPackedData, this->w, this->h,
+			LodePNGColorType::LCT_RGB, 8 * sizeof(uint8_t));
+	}
+	else if (channelsCount == 4)
+	{
+		lodepng::encode(path.c_str(), this->rawPackedData, this->w, this->h,
+			LodePNGColorType::LCT_RGBA, 8 * sizeof(uint8_t));
+	}
 }
 
 
@@ -418,12 +433,20 @@ void TextureAtlasPack::CopyDataToTexture()
 			{
 				int gyW = gy * origW;
 
-				
-				//copy line from g.rawData in range [0 - g.bmpW] to 
-				//rawPackedData to range [px - px + g.bmpW]
-				std::copy(g.rawData + gyW,
-					g.rawData + (g.bmpW + gyW),
-					this->rawPackedData + (px + y * w));
+				if (channelsCount == 1)
+				{
+					//copy line from g.rawData in range [0 - g.bmpW] to 
+					//rawPackedData to range [px - px + g.bmpW]
+					std::copy(g.rawData + gyW,
+						g.rawData + (g.bmpW + gyW),
+						this->rawPackedData + (px + y * w));
+				}
+				else if (channelsCount == 4)
+				{
+					std::copy(g.rawData + gyW * this->channelsCount,
+						g.rawData + (g.bmpW + gyW) * this->channelsCount,
+						this->rawPackedData + (px + y * w) * this->channelsCount);
+				}
 
 				this->freePixels -= g.bmpW;												
 			}
@@ -461,7 +484,11 @@ void TextureAtlasPack::DrawBorder(int px, int py, int pw, int ph, uint8_t border
 	{
 		for (int x = px; x < px + pw; x++)
 		{
-			this->rawPackedData[x + y * w] = borderVal;
+			size_t index = (x + y * w) * this->channelsCount;
+			for (uint8_t c = 0; c < this->channelsCount; c++)
+			{
+				this->rawPackedData[index + c] = borderVal;
+			}
 		}
 	}
 
@@ -470,7 +497,11 @@ void TextureAtlasPack::DrawBorder(int px, int py, int pw, int ph, uint8_t border
 	{
 		for (int x = px; x < px + pw; x++)
 		{
-			this->rawPackedData[x + y * w] = borderVal;
+			size_t index = (x + y * w) * this->channelsCount;
+			for (uint8_t c = 0; c < this->channelsCount; c++)
+			{
+				this->rawPackedData[index + c] = borderVal;
+			}
 		}
 	}
 
@@ -479,7 +510,11 @@ void TextureAtlasPack::DrawBorder(int px, int py, int pw, int ph, uint8_t border
 	{
 		for (int x = px; x < px + this->border; x++)
 		{
-			this->rawPackedData[x + y * w] = borderVal;
+			size_t index = (x + y * w) * this->channelsCount;
+			for (uint8_t c = 0; c < this->channelsCount; c++)
+			{
+				this->rawPackedData[index + c] = borderVal;
+			}
 		}
 	}
 
@@ -488,7 +523,11 @@ void TextureAtlasPack::DrawBorder(int px, int py, int pw, int ph, uint8_t border
 	{
 		for (int x = px + pw - this->border; x < px + pw; x++)
 		{
-			this->rawPackedData[x + y * w] = borderVal;
+			size_t index = (x + y * w) * this->channelsCount;
+			for (uint8_t c = 0; c < this->channelsCount; c++)
+			{
+				this->rawPackedData[index + c] = borderVal;
+			}
 		}
 	}
 }

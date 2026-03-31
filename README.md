@@ -31,38 +31,10 @@ This library generates texture in runtime. There is a caching, so texture is upd
 Also, the geometry of entire text is generated in runtime (for OpenGL, it is stored for example in VBO). 
 Based on this, final rendering is done with only one draw-call.
 
-This library is created with ICU (http://site.icu-project.org/) for handling bidirectional texts and Arabis shaping. 
-We are aware, that not everyone want to use ICU (building this library from source is not straightdorward).
-For this reason, ICU can be turned-off and replaced with any string library, that supports Unicode.
-We have included TinyUTF8. In `ExternalIncludes.h`, undefine `USE_ICU_LIBRARY` to turn-off ICU.
+If you want to use Bidirectional strings (eg. Arabic), you can use ICU (http://site.icu-project.org/).
+In that case `#define USE_ICU_LIBRARY` must be enabled (in `ExternalIncludes.h`).
+By default, ICU is disabled and simle `std::u8string` is used to store UTF-8 coded strings.
 
-Also, you have to change the following lines:
-
-````c++
-typedef icu::UnicodeString UnicodeString;
-
-#define FOREACH_32_CHAR_ITERATION(c, str) icu::StringCharacterIterator iter = icu::StringCharacterIterator(str); \
-										  for (UChar32 c = iter.first32(); iter.hasNext(); c = iter.next32())
-
-#define BIDI(x) BidiHelper::ConvertOneLine(x)
-#define UTF8_TEXT(x) icu::UnicodeString::fromUTF8(x)
-#define UTF8_UNESCAPE(x) icu::UnicodeString::fromUTF8(x).unescape()
-````
-
-For example, to use the library with TinyUTF8, change lines to:
-
-````c++
-typedef utf8_string UnicodeString;
-
-#define FOREACH_32_CHAR_ITERATION(c, str) for (auto c : str)
-#define BIDI(x) x
-#define UTF8_TEXT(x) x
-#define UTF8_UNESCAPE(x) utf8_string::build_from_escaped(x.c_str())
-````
-
-Any text, that is being passed to font rendering, must be wrapped inside `UTF8_TEXT(u8"....")`. 
-`UTF8_UNESCAPE` is used only in `CharacterExtractor class`. 
-If you want to use elsewhere, use library specific calls.
 
 This library supports multiple fonts to be loaded at once. If multiple fonts are used, the order at which they are added is used as their priority. 
 If letter is look for, fonts are iterated by priority. First occurrence is returned even if the same letter can be in multiple fonts.
@@ -103,21 +75,74 @@ fs.screenScale = 1.0; //usually used on iOS devices - screen scale is taken from
 fs.textureW = 512; //cache texture width
 fs.textureH = 512; //cache texture height
 
-StringRenderer* fr = StringRenderer::CreateSingleColor({ 1,0,1,1 }, fs, std::make_unique<BackendOpenGL>(r));	
+/*
+//Optionally, SDF can be used to render fonts
+fs.sdf = SDF();
+fs.sdf->outlineColor = { 0, 0, 0, 1 };
+fs.sdf->outlineWidth = 0.1f;
+fs.sdf->softness = 0.05f;
+*/
+
+//====================================================
+// Basic string renderer
+//====================================================
+
+StringRenderer* fr = StringRenderer::CreateSingleColor({ 1,0,1,1 }, fs, r);	
 fr->AddString(UTF8_TEXT(u8"Příliš\nžluťoučký\nkůň"), posX, posY, { 1,1,0,1 }, AbstractRenderer::CENTER, AbstractRenderer::ALIGN_CENTER);
 fr->AddStringCaption(UTF8_TEXT(u8"\u0633\u0644\u0627\u0645"), posX, posY, { 1,1,0,1 }); //Some Arabic text
 fr->Render();
 
+//====================================================
+// Specialized faster renderer for numbers only
+//====================================================
 
-NumberRenderer* nr = new NumberRenderer(fs, std::make_unique<BackendOpenGL>(r));
+NumberRenderer* nr = NumberRenderer::CreateDefault(fs, r);
 nr->AddNumber(-45.75, posX, posY, { 1,1,0,1 }, AbstractRenderer::CENTER);		
 nr->Render();
+
+//====================================================
+// Custom renderer for glyphs loaded from texture
+//====================================================
+
+std::vector<CustomGlyph> gd;	
+CustomGlyph g;
+g.c = 'a';
+g.fileName = "some_a_image.png";
+g.referenceCharCode = 'x';
+g.referenceFont = fArial;
+gd.push_back(g);
+	
+g.c = 'b';
+g.fileName = "some_b_image.png";
+g.referenceCharCode = 'o';
+g.referenceFont = fArial;
+gd.push_back(g);
+
+CustomFontBuilderSettings ifs;
+ifs.textureW = 256;
+ifs.textureH = 256;
+ifs.screenDpi = 260;
+ifs.screenScale = 1;	
+ifs.channelsCount = 4;
+
+auto cfb = std::make_shared<CustomImageFontBuilder>(gd, ifs);
+	
+auto sm = std::make_shared<ColoredFontShaderManager>();
+auto backend = std::make_unique<BackendOpenGL>(r, 3, nullptr, nullptr, sm);
+
+srCustom = new StringRenderer(cfb, std::move(backend));
 
 ````
 
 For OpenGL rendering, there is `BackendOpenGL` class. 
 For the offline, image-based, output, `BackendImage` class can be used.
 If user want to add another output system, it is extended from `BackendBase` class.
+
+Custom `CustomImageFontBuilder` can be used if we want to render glyphs from our own texture.
+During setup, we specify which letter (char code) is represented by our texture.
+We can also specify font and font letter (char code) that we want to 
+use as an original letter that will be replaced. From this,
+glyph sizes are obtained and used for our texture.
 
 Texture packing
 ------------------------------------------

@@ -3,7 +3,7 @@
 #include "./Shaders.h"
 
 DefaultFontShaderManager::DefaultFontShaderManager(std::optional<SDF> sdf) :
-    sdf(sdf),
+    sdf(sdf),    
     positionLocation(0),
     texCoordLocation(0),
     colorLocation(0),
@@ -20,7 +20,7 @@ const char* DefaultFontShaderManager::GetVertexShaderSource() const
 }
 
 const char* DefaultFontShaderManager::GetPixelShaderSource() const
-{
+{    
     return (sdf.has_value()) ? (
         sdf->outlineColor.has_value() ? DEFAULT_SDF_OUTLINE_PIXEL_SHADER_SOURCE : DEFAULT_SDF_PIXEL_SHADER_SOURCE
     ) : DEFAULT_PIXEL_SHADER_SOURCE;
