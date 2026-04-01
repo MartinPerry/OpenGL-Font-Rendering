@@ -3,20 +3,6 @@
 #include <memory>
 #include <mutex>
 
-#ifdef _MSC_VER
-#	ifndef my_fopen 
-#		define my_fopen(a, b, c) fopen_s(a, b, c)	
-#	endif	
-#else
-#	ifndef my_fopen 
-#		define my_fopen(a, b, c) (*a = fopen(b, c))
-#	endif	
-#endif
-
-#ifdef USE_VFS
-#	include "../../Utils/VFS/VFS.h"
-#endif
-
 
 FontCache::FontCache()
 {
@@ -82,27 +68,5 @@ FontCache::Cache FontCache::GetFontFace(const std::string& fontFacePath)
 /// <returns></returns>
 uint8_t* FontCache::LoadFontFromFile(const std::string& fontFacePath, size_t* bufSize)
 {
-#ifdef USE_VFS
-	return (uint8_t*)VFS::GetInstance()->GetFileContent(fontFacePath.c_str(), bufSize);
-#else
-
-	FILE* f = nullptr;
-	my_fopen(&f, fontFacePath.c_str(), "rb");
-
-	if (f == nullptr)
-	{
-		*bufSize = 0;
-		return nullptr;
-	}
-
-	fseek(f, 0, SEEK_END);
-	*bufSize = static_cast<size_t>(ftell(f));
-	fseek(f, 0, SEEK_SET);
-
-	uint8_t* buf = new uint8_t[*bufSize];
-	fread(buf, sizeof(uint8_t), *bufSize, f);
-
-	fclose(f);
-	return buf;
-#endif
+	return LoadDataFontFromFile(fontFacePath, bufSize);
 }

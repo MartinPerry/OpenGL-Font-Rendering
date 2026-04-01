@@ -3,6 +3,7 @@
 
 //=====================================================================================
 //additional preprocessor directives
+//=====================================================================================
 
 #ifndef USE_ICU_LIBRARY
 #	define USE_ICU_LIBRARY
@@ -18,6 +19,7 @@
 
 //=====================================================================================
 //includes
+//=====================================================================================
 
 #include <string>
 
@@ -47,6 +49,7 @@ using HashMap = ankerl::unordered_dense::map<K, V>;
 
 //=====================================================================================
 //Global macros
+//=====================================================================================
 
 #ifndef SAFE_DELETE
 #	define SAFE_DELETE(a) {if (a != nullptr) { delete   a; a = nullptr; }};
@@ -67,6 +70,7 @@ using HashMap = ankerl::unordered_dense::map<K, V>;
 
 //=====================================================================================
 //OpenGL error checks
+//=====================================================================================
 
 static void CheckOpenGLError(const char* stmt, const char* fname, int line)
 {
@@ -107,6 +111,7 @@ static void CheckOpenGLError(const char* stmt, const char* fname, int line)
 
 //=====================================================================================
 //OpenGL "overrides"
+//=====================================================================================
 
 //You can override here binding / unbinding of OpenGL things and 
 //use your own management system
@@ -128,6 +133,7 @@ static void CheckOpenGLError(const char* stmt, const char* fname, int line)
 
 //=====================================================================================
 //String manipulation
+//=====================================================================================
 
 using StringUtf8 = std::u8string;
 
@@ -139,6 +145,53 @@ static inline StringUtf8 AsStringUtf8(const char* str)
 static inline StringUtf8 AsStringUtf8(const std::string& str)
 {
 	return StringUtf8(reinterpret_cast<const char8_t*>(str.c_str()), str.length());
+}
+
+//=====================================================================================
+//File loading
+//=====================================================================================
+
+#ifdef _MSC_VER
+#	ifndef my_fopen 
+#		define my_fopen(a, b, c) fopen_s(a, b, c)	
+#	endif	
+#else
+#	ifndef my_fopen 
+#		define my_fopen(a, b, c) (*a = fopen(b, c))
+#	endif	
+#endif
+
+/// <summary>
+/// Load font from file fontFacePath to a buffer
+/// </summary>
+/// <param name="fontFacePath"></param>
+/// <param name="bufSize"></param>
+/// <returns></returns>
+static inline uint8_t* LoadDataFontFromFile(const std::string& fileName, size_t* bufSize)
+{
+#ifdef USE_VFS
+	return (uint8_t*)VFS::GetInstance()->GetFileContent(fileName.c_str(), bufSize);
+#else
+
+	FILE* f = nullptr;
+	my_fopen(&f, fileName.c_str(), "rb");
+
+	if (f == nullptr)
+	{
+		*bufSize = 0;
+		return nullptr;
+	}
+
+	fseek(f, 0, SEEK_END);
+	*bufSize = static_cast<size_t>(ftell(f));
+	fseek(f, 0, SEEK_SET);
+
+	uint8_t* buf = new uint8_t[*bufSize];
+	fread(buf, sizeof(uint8_t), *bufSize, f);
+
+	fclose(f);
+	return buf;
+#endif
 }
 
 #endif

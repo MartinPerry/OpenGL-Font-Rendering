@@ -348,15 +348,18 @@ GlyphInfo* CustomImageFontBuilder::FillGlyphInfo(CHAR_CODE c, CustomGlyph& g)
 	}
 
 	auto gt = this->glyphsData.find(c);
-
-	std::vector<uint8_t> png;
+	
 	std::vector<uint8_t> buffer; //the raw pixels
 	unsigned width, height;
-	lodepng::State state; //optionally customize this one
+	lodepng::State state; //optionally customize this one	
 	//state.decoder.color_convert = 0; //keep input data channels count
 
-	lodepng::load_file(png, g.fileName); //load the image file with given filename
-	auto error = lodepng::decode(buffer, width, height, state, png);
+	size_t fileDataSize = 0;
+	uint8_t* fileData = LoadDataFontFromFile(g.fileName, &fileDataSize);
+	
+	auto error = lodepng::decode(buffer, width, height, state, fileData, fileDataSize);
+
+	SAFE_DELETE_ARRAY(fileData);
 
 	//if there's an error, display it
 	if (error)
