@@ -318,10 +318,13 @@ void display() {
 	//fn->AddNumberCaption(60000, 0.5f, 0.4f, { 1,1,0,1 });
 	//fn->Render();
 	
+
+	auto rp = AbstractRenderer::DEFAULT_PARAMS;
+	rp.color.a = 0.5;
 	
 	srCustom->Clear();
 	srCustom->AddString("ab", 0.5f, 0.5f, 
-		AbstractRenderer::DEFAULT_PARAMS, 
+		rp, 
 		AbstractRenderer::TextAnchor::CENTER, 
 		AbstractRenderer::TextAlign::ALIGN_CENTER);
 	srCustom->Render();
@@ -528,6 +531,8 @@ void initGL() {
 
 	//======================================================================
 
+	fArial.size = 24.0_pt;
+
 	std::vector<CustomGlyph> gd;	
 	CustomGlyph g;
 	g.c = 'a';
@@ -553,7 +558,7 @@ void initGL() {
 
 	auto cfb = std::make_shared<CustomImageFontBuilder>(gd, ifs);
 	
-	auto sm = std::make_shared<ColoredFontShaderManager>();
+	auto sm = std::make_shared<ColoredFontShaderManager>(true);
 	auto backend = std::make_unique<BackendOpenGL>(r, 3, nullptr, nullptr, sm);
 
 	srCustom = new StringRenderer(cfb, std::move(backend));

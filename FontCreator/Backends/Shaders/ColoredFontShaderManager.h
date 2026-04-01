@@ -12,7 +12,7 @@
 class ColoredFontShaderManager : public IShaderManager
 {
 public:
-    ColoredFontShaderManager();
+    ColoredFontShaderManager(bool enableTransparency);
     virtual ~ColoredFontShaderManager() = default;
 
     const char* GetVertexShaderSource() const override;
@@ -32,7 +32,7 @@ public:
         std::vector<float>& vec) override;
 
 protected:
-    std::optional<SDF> sdf;
+    bool enableTransparency;
 
     GLint positionLocation;
     GLint texCoordLocation;

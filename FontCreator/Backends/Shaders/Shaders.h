@@ -242,16 +242,42 @@ static const char* SINGLE_COLOR_SDF_OUTLINE_PIXEL_SHADER_SOURCE = PS_CODE_3(
 // Colored glyphs
 //============================================================
 
+static const char* COLORED_TRANSPARENT_GLYPHS_VERTEX_SHADER_SOURCE = VS_CODE(
+    attribute vec2 POSITION;
+    attribute vec3 TEXCOORD0;
+
+    varying vec3 texCoord;    
+
+    void main()
+    {
+        gl_Position = vec4(POSITION.x, POSITION.y, 0.0, 1.0);
+        texCoord = TEXCOORD0;        
+    }
+);
+
+static const char* COLORED_TRANSPARENT_GLYPHS_PIXEL_SHADER_SOURCE = PS_CODE(
+    varying vec3 texCoord;
+    
+    uniform sampler2D fontTex;
+
+    void main()
+    {
+        gl_FragColor.rgba = texture2D(fontTex, texCoord.xy);
+        gl_FragColor.a *= texCoord.z;
+    }
+);
+
 
 static const char* COLORED_GLYPHS_PIXEL_SHADER_SOURCE = PS_CODE(
     varying vec2 texCoord;    
     uniform sampler2D fontTex;
 
-void main()
-{
-    gl_FragColor.rgba = texture2D(fontTex, texCoord.xy);
-}
+    void main()
+    {
+        gl_FragColor.rgba = texture2D(fontTex, texCoord.xy);
+    }
 );
+
 
 //============================================================
 // Backgrounds
