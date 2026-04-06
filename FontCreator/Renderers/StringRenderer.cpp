@@ -622,7 +622,7 @@ void StringRenderer::CalcStringAABB(StringInfo & si, const UsedGlyphCache * gc) 
 			index++;
 
 			auto r = (*gc)[index];
-			if (!std::get<1>(r))
+			if ((std::get<0>(r) == nullptr) || (std::get<1>(r) == nullptr))
 			{
 				continue;
 			}
