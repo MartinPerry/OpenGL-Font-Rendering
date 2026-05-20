@@ -1,7 +1,10 @@
 #ifndef SINGLE_COLOR_FONT_SHADER_MANAGER_H
 #define SINGLE_COLOR_FONT_SHADER_MANAGER_H
 
+class SdfShaderSupport;
+
 #include <vector>
+#include <memory>
 #include <optional>
 
 #include "../../Externalncludes.h"
@@ -34,18 +37,12 @@ public:
 	void PreRender() override;
 
 protected:
-	std::optional<SDF> sdf;
+	std::shared_ptr<SdfShaderSupport> sdf;
 
 	GLint positionLocation;
 	GLint texCoordLocation;	
 	GLint colorUniform;
-
-	GLint sdfEdgeLocation;
-	GLint sdfSoftnessLocation;
-
-	GLint sdfOutlineColorLocation;
-	GLint sdfOutlineWidthLocation;
-
+	
 	float r, g, b, a;
 };
 

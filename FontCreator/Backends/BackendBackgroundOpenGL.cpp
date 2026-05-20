@@ -38,11 +38,11 @@ void BackendBackgroundOpenGL::SetBackgroundSettings(const BackgroundSettings& bs
 	if (auto tmp = std::dynamic_pointer_cast<SingleColorBackgroundShaderManager>(this->sm))
 	{
 		tmp->SetColor(bs.color->r, bs.color->g, bs.color->b, bs.color->a);
-		tmp->SetCornerRadius(bs.cornerRadius * this->psW);
+		tmp->SetShape(bs.shape, bs.cornerRadius);
 	}
 	else if (auto tmp = std::dynamic_pointer_cast<BackgroundShaderManager>(this->sm))
 	{
-		tmp->SetCornerRadius(bs.cornerRadius * this->psW);		
+		tmp->SetShape(bs.shape, bs.cornerRadius);
 	}
 }
 
@@ -89,7 +89,7 @@ void BackendBackgroundOpenGL::Render(std::function<void(GLuint)> preDrawCallback
 #else
 	FONT_BIND_VAO(this->vao);
 #endif		
-
+	
 	this->sm->BindUniforms();
 	this->sm->PreRender();
 	this->sm->Render(this->quadsCount);

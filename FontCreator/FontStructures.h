@@ -247,10 +247,18 @@ struct FontBuilderSettings : public IFontBuilderSettings
 /// </summary>
 struct BackgroundSettings 
 {
+	enum class Shape
+	{
+		SQUARE,
+		ROUNDED_CORNER_SQUARE,
+		CIRCLE
+	};
+
 	std::optional<Color> color = std::nullopt;
 	float padding = 0.0f;
 	float cornerRadius = 0.0f;
 	bool shadow = false;
+	Shape shape = Shape::SQUARE;
 };
 
 /// <summary>

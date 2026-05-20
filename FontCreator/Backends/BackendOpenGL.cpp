@@ -251,6 +251,12 @@ void BackendOpenGL::SetMainRenderer(AbstractRenderer* mainRenderer)
 
 void BackendOpenGL::OnCanvasChanges()
 {
+	if (this->background)
+	{
+		this->background->SetCanvasSize(this->rs.deviceW, this->rs.deviceH);		
+	}
+
+	this->sm->SetCanvasSize(this->rs.deviceW, this->rs.deviceH);
 }
 
 std::shared_ptr<IShaderManager> BackendOpenGL::GetShaderManager() const
@@ -291,6 +297,9 @@ void BackendOpenGL::Render(std::function<void(GLuint)> preDrawCallback,
 		return;
 	}
 
+	//wireframe
+	//glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+
 	if (this->background)
 	{
 		this->background->Render(nullptr, nullptr);
@@ -319,7 +328,7 @@ void BackendOpenGL::Render(std::function<void(GLuint)> preDrawCallback,
 #else
 	FONT_BIND_VAO(this->vao);
 #endif		
-
+	
 	this->sm->BindUniforms();
 	this->sm->PreRender();
 

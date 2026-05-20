@@ -6,6 +6,8 @@ BackgroundShaderManager::BackgroundShaderManager(bool shadow) :
 	positionLocation(-1),	
 	colorLocation(-1),
 	aabbLocation(-1),
+	arWhUniform(-1),
+	shape(BackgroundSettings::Shape::SQUARE),
 	roundCornerRadius(0.0f),
 	shadow(shadow),
 	min_x(0),
@@ -26,11 +28,11 @@ const char* BackgroundShaderManager::GetPixelShaderSource() const
 	return shadow ? BACKGROUND_SHADOW_PIXEL_SHADER_SOURCE : BACKGROUND_PIXEL_SHADER_SOURCE;
 }
 
-void BackgroundShaderManager::SetCornerRadius(float radius)
-{	
+void BackgroundShaderManager::SetShape(BackgroundSettings::Shape shape, float radius)
+{
+	this->shape = shape;
 	this->roundCornerRadius = radius;
 }
-
 
 /// <summary>
 /// Get shader uniforms and attributes locations
@@ -40,6 +42,8 @@ void BackgroundShaderManager::GetAttributtesUniforms()
 	GL_CHECK(positionLocation = glGetAttribLocation(shaderProgram, "POSITION"));
 	GL_CHECK(colorLocation = glGetAttribLocation(shaderProgram, "COLOR"));
 	GL_CHECK(aabbLocation = glGetAttribLocation(shaderProgram, "AABB"));
+
+	GL_CHECK(arWhUniform = glGetUniformLocation(shaderProgram, "arWh"));
 }
 
 void BackgroundShaderManager::BindVertexAtribs()
@@ -78,6 +82,7 @@ void BackgroundShaderManager::BindVertexAtribs()
 
 void BackgroundShaderManager::BindUniforms()
 {
+	GL_CHECK(glUniform1f(arWhUniform, this->canvasW / this->canvasH));
 }
 
 void BackgroundShaderManager::Clear()
@@ -134,7 +139,7 @@ void BackgroundShaderManager::FillQuadVertexData(
 	max_x = maxX;
 	max_y = maxY;
 
-	if (roundCornerRadius == 0)
+	if (shape == BackgroundSettings::Shape::SQUARE)
 	{
 		this->AddVertex(minX, minY, rp, vec);
 		this->AddVertex(maxX, minY, rp, vec);
@@ -159,7 +164,7 @@ void BackgroundShaderManager::FillQuadVertexData(
 
 
 	}
-	else
+	else if (shape == BackgroundSettings::Shape::ROUNDED_CORNER_SQUARE)
 	{
 		//https://stackoverflow.com/questions/74960029/how-to-draw-a-rectangle-in-opengl-with-rounded-corners
 
@@ -176,6 +181,15 @@ void BackgroundShaderManager::FillQuadVertexData(
 		dy = std::max(-0.05f * r, dy);
 
 		this->FillRoundCornersQuad(cx, cy, dx, dy, r, rp, vec);
+	}
+	else if (shape == BackgroundSettings::Shape::CIRCLE)
+	{
+		float r = this->roundCornerRadius;
+
+		float cx = minX + 0.5f * (maxX - minX);
+		float cy = minY + 0.5f * (maxY - minY);
+
+		this->FillCircle(cx, cy, r, rp, vec);
 	}
 
 	counts.push_back(this->GetQuadVertices());
@@ -240,6 +254,41 @@ void BackgroundShaderManager::FillRoundCornersQuad(float cx, float cy, float dx,
 	}
 	this->AddVertex(x, cy + (0.5f * dy), rp, vec);	
 	
+
+}
+
+void BackgroundShaderManager::FillCircle(float cx, float cy, float r,
+	const AbstractRenderer::RenderParams& rp, std::vector<float>& vec) const
+{
+	int trianglesCount = 20;
+
+	
+	float pi2 = 3.14159265359f * 2.0f;
+
+	float x0, y0, x1, y1;
+
+	x0 = 0 + (r * cos(0 * pi2 / trianglesCount));
+	y0 = 0 + (r * sin(0 * pi2 / trianglesCount));
+
+	for (int i = 1; i < trianglesCount; i++)
+	{
+		x1 = 0 + (r * cos(i * pi2 / trianglesCount));
+		y1 = 0 + (r * sin(i * pi2 / trianglesCount));
+
+		this->AddVertex(cx, cy, rp, vec);
+		this->AddVertex(x0, y0, rp, vec);
+		this->AddVertex(x1, y1, rp, vec);
+		
+		x0 = x1;
+		y0 = y1;
+	}
+
+	x1 = 0 + (r * cos(0 * pi2 / trianglesCount));
+	y1 = 0 + (r * sin(0 * pi2 / trianglesCount));
+
+	this->AddVertex(cx, cy, rp, vec);
+	this->AddVertex(x0, y0, rp, vec);
+	this->AddVertex(x1, y1, rp, vec);
 
 }
 

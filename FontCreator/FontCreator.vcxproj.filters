@@ -129,6 +129,9 @@
     <ClCompile Include="Backends\Shaders\ColoredFontShaderManager.cpp">
       <Filter>Source Files\Backends\Shaders</Filter>
     </ClCompile>
+    <ClCompile Include="Backends\Shaders\SdfShaderSupport.cpp">
+      <Filter>Source Files\Backends\Shaders</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="FontStructures.h">
@@ -243,6 +246,9 @@
       <Filter>Header Files\TextureBuilders</Filter>
     </ClInclude>
     <ClInclude Include="Backends\Shaders\ColoredFontShaderManager.h">
+      <Filter>Header Files\Backends\Shaders</Filter>
+    </ClInclude>
+    <ClInclude Include="Backends\Shaders\SdfShaderSupport.h">
       <Filter>Header Files\Backends\Shaders</Filter>
     </ClInclude>
   </ItemGroup>

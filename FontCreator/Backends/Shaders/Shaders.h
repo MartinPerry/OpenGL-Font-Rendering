@@ -289,9 +289,11 @@ static const char* BACKGROUND_VERTEX_SHADER_SOURCE = VS_CODE(
     
     varying vec4 color;
 
+    uniform float arWh;
+
     void main()
     {
-        gl_Position = vec4(POSITION.x, POSITION.y, 0.0, 1.0);        
+        gl_Position = vec4(POSITION.x, arWh * POSITION.y, 0.0, 1.0);
         color = COLOR;
     }
 );
@@ -316,10 +318,15 @@ static const char* BACKGROUND_SHADOW_VERTEX_SHADER_SOURCE = VS_CODE(
     varying vec4 aabb;
     varying vec4 color; 
 
+    uniform float arWh;
+
     void main()
     {
-        gl_Position = vec4(POSITION.x, POSITION.y, 0.0, 1.0);
         pos = POSITION;
+        pos.y *= arWh;
+
+        gl_Position = vec4(pos.x, pos.y, 0.0, 1.0);
+        
         aabb = AABB;
         color = COLOR;
     }
@@ -348,9 +355,11 @@ static const char* BACKGROUND_SHADOW_PIXEL_SHADER_SOURCE = PS_CODE(
 static const char* SINGLE_COLOR_BACKGROUND_VERTEX_SHADER_SOURCE = VS_CODE(
     attribute vec2 POSITION;	
 
+    uniform float arWh;
+
     void main()
-    {
-        gl_Position = vec4(POSITION.x, POSITION.y, 0.0, 1.0);
+    {        
+        gl_Position = vec4(POSITION.x, arWh * POSITION.y, 0.0, 1.0);
     }
 );
 
@@ -358,8 +367,8 @@ static const char* SINGLE_COLOR_BACKGROUND_PIXEL_SHADER_SOURCE = PS_CODE(
     uniform vec4 bgColor;	
 
     void main()
-    {
-        gl_FragColor.rgba = bgColor;
+    {        
+        gl_FragColor.rgba = bgColor;        
     }
 );
 

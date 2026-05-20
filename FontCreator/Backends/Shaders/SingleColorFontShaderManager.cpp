@@ -2,15 +2,13 @@
 
 #include "./Shaders.h"
 
+#include "./SdfShaderSupport.h"
+
 SingleColorFontShaderManager::SingleColorFontShaderManager(std::optional<SDF> sdf) :
-	sdf(sdf),
+	sdf(sdf.has_value() ? std::make_shared<SdfShaderSupport>(*sdf) : nullptr),
 	positionLocation(0),
 	texCoordLocation(0),
-	colorUniform(0),
-	sdfEdgeLocation(0),
-	sdfSoftnessLocation(0),
-	sdfOutlineColorLocation(0),
-	sdfOutlineWidthLocation(0),
+	colorUniform(0),	
 	r(1.0f),
 	g(1.0f),
 	b(1.0f),
@@ -20,13 +18,13 @@ SingleColorFontShaderManager::SingleColorFontShaderManager(std::optional<SDF> sd
 
 const char* SingleColorFontShaderManager::GetVertexShaderSource() const
 {
-	return (sdf.has_value()) ? SINGLE_COLOR_SDF_VERTEX_SHADER_SOURCE : SINGLE_COLOR_VERTEX_SHADER_SOURCE;
+	return (sdf) ? SINGLE_COLOR_SDF_VERTEX_SHADER_SOURCE : SINGLE_COLOR_VERTEX_SHADER_SOURCE;
 }
 
 const char* SingleColorFontShaderManager::GetPixelShaderSource() const
 {
-	return (sdf.has_value()) ? (
-		sdf->outlineColor.has_value() ? SINGLE_COLOR_SDF_OUTLINE_PIXEL_SHADER_SOURCE : SINGLE_COLOR_SDF_PIXEL_SHADER_SOURCE
+	return (sdf) ? (
+		sdf->GetSettings().outlineColor.has_value() ? SINGLE_COLOR_SDF_OUTLINE_PIXEL_SHADER_SOURCE : SINGLE_COLOR_SDF_PIXEL_SHADER_SOURCE
 		) : SINGLE_COLOR_PIXEL_SHADER_SOURCE;	
 }
 
@@ -48,17 +46,9 @@ void SingleColorFontShaderManager::GetAttributtesUniforms()
 	GL_CHECK(positionLocation = glGetAttribLocation(shaderProgram, "POSITION"));
 	GL_CHECK(texCoordLocation = glGetAttribLocation(shaderProgram, "TEXCOORD0"));	
 
-	if (sdf.has_value())
+	if (sdf)
 	{
-		// Typical setup values for FreeType-generated SDF:
-		GL_CHECK(sdfEdgeLocation = glGetUniformLocation(shaderProgram, "uEdge"));
-		GL_CHECK(sdfSoftnessLocation = glGetUniformLocation(shaderProgram, "uSoftness"));
-
-		if (sdf->outlineColor.has_value())
-		{
-			GL_CHECK(sdfOutlineColorLocation = glGetUniformLocation(shaderProgram, "uOutlineColor"));
-			GL_CHECK(sdfOutlineWidthLocation = glGetUniformLocation(shaderProgram, "uOutlineWidth"));
-		}
+		sdf->LoadUniforms(shaderProgram);
 	}
 }
 
@@ -87,17 +77,9 @@ void SingleColorFontShaderManager::BindUniforms()
 {
 	GL_CHECK(glUniform4f(colorUniform, r, g, b, a));
 
-	if (sdf.has_value())
+	if (sdf)
 	{
-		glUniform1f(sdfEdgeLocation, sdf->edgeValue);
-		glUniform1f(sdfSoftnessLocation, sdf->softness);
-
-		if (sdf->outlineColor.has_value())
-		{
-			glUniform1f(sdfOutlineWidthLocation, sdf->outlineWidth);
-			glUniform4f(sdfOutlineColorLocation, sdf->outlineColor->r, sdf->outlineColor->g,
-				sdf->outlineColor->b, sdf->outlineColor->a);
-		}
+		sdf->BindUniforms();
 	}
 }
 

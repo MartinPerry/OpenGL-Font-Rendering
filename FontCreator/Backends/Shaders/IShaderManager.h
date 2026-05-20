@@ -10,7 +10,11 @@
 class IShaderManager
 {
 public:
-    IShaderManager() : shaderProgram(0) {}
+    IShaderManager() : 
+        shaderProgram(0),
+        canvasW(1),
+        canvasH(1)
+    {}
     virtual ~IShaderManager() = default;
 
     void SetShaderProgram(GLuint program)
@@ -31,6 +35,11 @@ public:
     virtual void GetAttributtesUniforms() = 0;
     virtual void BindVertexAtribs() = 0;
     virtual void BindUniforms() = 0;
+    virtual void SetCanvasSize(int w, int h)
+    {
+        canvasW = static_cast<float>(w);
+        canvasH = static_cast<float>(h);
+    }
 
     virtual int GetQuadVertices() const = 0;
 
@@ -47,6 +56,9 @@ public:
 
 protected:
     GLuint shaderProgram;
+
+    float canvasW;
+    float canvasH;
 
     GLuint CompileGLSLShader(GLenum target, const char* shader) const;
     GLuint LinkGLSLProgram(GLuint vertexShader, GLuint fragmentShader) const;

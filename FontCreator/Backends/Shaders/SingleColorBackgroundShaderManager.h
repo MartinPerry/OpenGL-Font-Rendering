@@ -20,9 +20,9 @@ public:
     void GetAttributtesUniforms() override;
     void BindVertexAtribs() override;
     void BindUniforms() override;
-
+   
     void SetColor(float r, float g, float b, float a);
-    void SetCornerRadius(float radius);
+    void SetShape(BackgroundSettings::Shape shape, float radius = 0.0);
 
     int GetQuadVertices() const override;
 
@@ -40,14 +40,19 @@ public:
 protected:
     GLint positionLocation;
     GLint colorUniform;
+    GLint arWhUniform;
 
     float r, g, b, a;
+    BackgroundSettings::Shape shape;
     float roundCornerRadius;
 
+  
     std::vector<GLint> startingElements;
     std::vector<GLint> counts;
 
     void FillRoundCornersQuad(float cx, float cy, float dx, float dy, float r, std::vector<float>& vec) const;
+    void FillCircle(float cx, float cy, float r, std::vector<float>& vec) const;
+
 };
 
 

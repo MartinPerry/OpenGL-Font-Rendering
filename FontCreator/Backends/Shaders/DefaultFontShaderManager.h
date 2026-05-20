@@ -1,7 +1,10 @@
 #ifndef DEFAULT_FONT_SHADER_MANAGER_H
 #define DEFAULT_FONT_SHADER_MANAGER_H
 
+class SdfShaderSupport;
+
 #include <vector>
+#include <memory>
 #include <optional>
 
 #include "../../Externalncludes.h"
@@ -30,17 +33,13 @@ public:
                         std::vector<float> & vec) override;
     	
 protected:
-    std::optional<SDF> sdf;
+    
+    std::shared_ptr<SdfShaderSupport> sdf;
 
     GLint positionLocation;
     GLint texCoordLocation;
     GLint colorLocation;     
-
-    GLint sdfEdgeLocation;
-    GLint sdfSoftnessLocation;
-
-    GLint sdfOutlineColorLocation;
-    GLint sdfOutlineWidthLocation;
+   
 };
 
 

@@ -21,8 +21,8 @@ public:
     void BindVertexAtribs() override;
     void BindUniforms() override;
    
-    void SetCornerRadius(float radius);
-    
+    void SetShape(BackgroundSettings::Shape shape, float radius = 0.0);
+
     int GetQuadVertices() const override;
 
     void FillQuadVertexData(const AbstractRenderer::Vertex& minVertex,
@@ -40,10 +40,13 @@ protected:
     GLint positionLocation;
     GLint colorLocation;
     GLint aabbLocation;
+
+    GLint arWhUniform;
         
+    BackgroundSettings::Shape shape;
     float roundCornerRadius;
     bool shadow;
-
+   
     float min_x;
     float min_y;
     float max_x;
@@ -53,6 +56,9 @@ protected:
     std::vector<GLint> counts;
 
     void FillRoundCornersQuad(float cx, float cy, float dx, float dy, float r, 
+        const AbstractRenderer::RenderParams& rp, std::vector<float>& vec) const;
+
+    void FillCircle(float cx, float cy, float r, 
         const AbstractRenderer::RenderParams& rp, std::vector<float>& vec) const;
 
     void AddVertex(float x, float y, const AbstractRenderer::RenderParams& rp, std::vector<float>& vec) const;

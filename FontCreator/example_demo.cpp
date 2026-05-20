@@ -86,7 +86,62 @@ void reshape(int width, int height) {
 
 	g_width = width;
 	g_height = height;
+
+	fr->SetCanvasSize(g_width, g_height);
+	frWithBg->SetCanvasSize(g_width, g_height);
+	srCustom->SetCanvasSize(g_width, g_height);
+	fn->SetCanvasSize(g_width, g_height);
+}
+
+void TestCustomIcon()
+{
+	auto rp = AbstractRenderer::DEFAULT_PARAMS;
+	rp.color.a = 0.5;
+
+	srCustom->Clear();
+	srCustom->AddString("ab", 0.5f, 0.5f,
+		rp,
+		AbstractRenderer::TextAnchor::CENTER,
+		AbstractRenderer::TextAlign::ALIGN_CENTER);
+	srCustom->Render();
+}
+
+void TestNumbers()
+{
+	fn->Clear();
+	//fn->AddNumber(-45.27, 100, 100);
+	//fn->AddNumberCaption(-450.013, 100, 100, { 1, 1.0f, 1.0f, 1 });
+	//fn->AddNumberCaption(-897456, 100, 300, { 1, 1.0f, 1.0f, 1 });
+	int nmbr = rand();
+	//printf("%d\n", nmbr);
 	
+	auto rp = AbstractRenderer::DEFAULT_PARAMS;
+
+	//fn->AddNumber((double)(nmbr + nmbr / 100.0), 0.5f, 0.5f);
+	//fn->AddNumber(600010, 0.5f, 0.5f, { 1,1,0,1 }, AbstractRenderer::TextAnchor::CENTER);
+	fn->AddNumber(45, 0.5f, 0.5f, rp, AbstractRenderer::TextAnchor::CENTER);
+	//fn->AddNumberCaption(60000, 0.5f, 0.4f, { 1,1,0,1 });
+	fn->Render();
+}
+
+void TestStringBackground()
+{
+	frWithBg->Clear();
+
+	auto backendBg = frWithBg->GetBackend();
+	if (auto glBack = dynamic_cast<BackendOpenGL*>(backendBg))
+	{
+		glBack->SetFontTextureLinearFiler(true);
+	}
+
+	frWithBg->AddStringCaption(
+		CreateRandomString(10),
+		//u8"\U0001F300Pøíliš malý p\n(žluouèký)\nkùyòy",
+		0.5f, 0.85f,
+		AbstractRenderer::RenderParams({ 1,1,0,1 }, { 0, 1, 0, 1 }, 1.0)
+	);
+
+	//frWithBg->Render();
 }
 
 //------------------------------------------------------------------------------
@@ -149,8 +204,7 @@ void display() {
 	*/
 	
 	fr->Clear();
-	frWithBg->Clear();
-
+	
 
 	//fr->AddStringCaption(UTF8_TEXT(u8"Velmi"), -0.05f, 0.5f, { 1,1,0,1 });
 	//fr->AddString(UTF8_TEXT(u8"Velmi \U0001F300"), 0.5f, 0.5f, { 1,1,0,1 });
@@ -175,11 +229,7 @@ void display() {
 		glBack->SetFontTextureLinearFiler(true);
 	}
 
-	auto backendBg = frWithBg->GetBackend();
-	if (auto glBack = dynamic_cast<BackendOpenGL*>(backendBg))
-	{
-		glBack->SetFontTextureLinearFiler(true);
-	}
+	
 	
 	/*
 	FontSize f1(12_pt);
@@ -223,13 +273,7 @@ void display() {
 	fr->SetCaptionOffset(80);	
 	
 	
-	frWithBg->AddStringCaption(
-		CreateRandomString(10),
-		//u8"\U0001F300Pøíliš malý p\n(žluouèký)\nkùyòy",
-		0.5f, 0.85f,
-		AbstractRenderer::RenderParams({ 1,1,0,1 }, { 0, 1, 0, 1 }, 1.0)
-	);
-	
+		
 
 	fr->AddStringCaption(
 		//UTF8_TEXT(CreateRandomString(10).c_str()),
@@ -281,7 +325,7 @@ void display() {
 	fr->AddString(u8"Hello World", 200, 300);
 	*/
 	fr->Render();
-	//frWithBg->Render();
+	
 
 	/*
 	fr->Clear();
@@ -307,27 +351,10 @@ void display() {
 	*/
 
 	
-	fn->Clear();
-	//fn->AddNumber(-45.27, 100, 100);
-	//fn->AddNumberCaption(-450.013, 100, 100, { 1, 1.0f, 1.0f, 1 });
-	//fn->AddNumberCaption(-897456, 100, 300, { 1, 1.0f, 1.0f, 1 });
-	int nmbr = rand();
-	//printf("%d\n", nmbr);
-	fn->AddNumber((double)(nmbr + nmbr / 100.0), 0.5f, 0.5f);
-	//fn->AddNumber(600010, 0.5f, 0.5f, { 1,1,0,1 }, AbstractRenderer::TextAnchor::CENTER);
-	//fn->AddNumberCaption(60000, 0.5f, 0.4f, { 1,1,0,1 });
-	//fn->Render();
-	
+	TestStringBackground();
 
-	auto rp = AbstractRenderer::DEFAULT_PARAMS;
-	rp.color.a = 0.5;
-	
-	srCustom->Clear();
-	srCustom->AddString("ab", 0.5f, 0.5f, 
-		rp, 
-		AbstractRenderer::TextAnchor::CENTER, 
-		AbstractRenderer::TextAlign::ALIGN_CENTER);
-	srCustom->Render();
+	//TestCustomIcon();
+	TestNumbers();
 
 	glutSwapBuffers();	
 	//glutPostRedisplay();
@@ -527,7 +554,16 @@ void initGL() {
 	//======================================================================
 
 	fs.fonts = { fArial };
+	fs.sdf = std::nullopt;
 	fn = NumberRenderer::CreateDefault(fs, r);
+
+	BackgroundSettings bsn;
+	bsn.color = { 0,1, 1, 0.6f };
+	bsn.padding = 8;
+	bsn.cornerRadius = 100;// 20;
+	bsn.shape = BackgroundSettings::Shape::CIRCLE;
+	bsn.shadow = true;
+	fn->SetBackgroundSettings(bsn);
 
 	//======================================================================
 
