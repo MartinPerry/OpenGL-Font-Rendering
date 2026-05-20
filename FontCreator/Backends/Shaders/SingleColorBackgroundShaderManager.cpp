@@ -276,7 +276,7 @@ void SingleColorBackgroundShaderManager::FillCircle(float cx, float cy, float r,
 	}
 
 	x = cx + (r * 1); //cos(0) == 1
-	y = cy + (r * 0);  //sin(0) == 0
+	y = cy + (r * 0); //sin(0) == 0
 
 	vec.push_back(x); vec.push_back(y);
 }

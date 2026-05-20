@@ -657,12 +657,12 @@ void NumberRenderer::GetAnchoredPosition(const NumberRenderer::NumberInfo & si,
 	//Calculate anchored position of text	
 	if (si.anchor == TextAnchor::LEFT_TOP)
 	{		
-		y = si.y + this->newLineOffset; //y position is "line letter start" - move it to letter height
+		y = si.y + si.h; // this->newLineOffset; //y position is "line letter start" - move it to letter height
 	}
 	else if (si.anchor == TextAnchor::CENTER)
 	{			
 		x = si.x - si.w / 2;
-		y = si.y + (this->newLineOffset / 2); //move top position to TOP_LEFT
+		y = si.y + si.h / 2; // (this->newLineOffset / 2); //move top position to TOP_LEFT
 											//and calc center from all lines and move TOP_LEFT down
 	}
 	

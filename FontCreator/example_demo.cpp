@@ -116,6 +116,7 @@ void TestNumbers()
 	//printf("%d\n", nmbr);
 	
 	auto rp = AbstractRenderer::DEFAULT_PARAMS;
+	rp.bgColor = { 1, 0, 0, 1 };
 
 	//fn->AddNumber((double)(nmbr + nmbr / 100.0), 0.5f, 0.5f);
 	//fn->AddNumber(600010, 0.5f, 0.5f, { 1,1,0,1 }, AbstractRenderer::TextAnchor::CENTER);
@@ -558,7 +559,7 @@ void initGL() {
 	fn = NumberRenderer::CreateDefault(fs, r);
 
 	BackgroundSettings bsn;
-	bsn.color = { 0,1, 1, 0.6f };
+	//bsn.color = { 0,1, 1, 0.6f };
 	bsn.padding = 8;
 	bsn.cornerRadius = 100;// 20;
 	bsn.shape = BackgroundSettings::Shape::CIRCLE;

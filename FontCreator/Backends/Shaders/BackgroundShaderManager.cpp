@@ -168,7 +168,7 @@ void BackgroundShaderManager::FillQuadVertexData(
 	{
 		//https://stackoverflow.com/questions/74960029/how-to-draw-a-rectangle-in-opengl-with-rounded-corners
 
-		float r = this->roundCornerRadius;
+		float r = this->roundCornerRadius * (1.0 / this->canvasW);
 
 		float cx = minX + 0.5f * (maxX - minX);
 		float cy = minY + 0.5f * (maxY - minY);
@@ -184,7 +184,7 @@ void BackgroundShaderManager::FillQuadVertexData(
 	}
 	else if (shape == BackgroundSettings::Shape::CIRCLE)
 	{
-		float r = this->roundCornerRadius;
+		float r = this->roundCornerRadius * 2.0 * (1.0 / this->canvasW);
 
 		float cx = minX + 0.5f * (maxX - minX);
 		float cy = minY + 0.5f * (maxY - minY);
@@ -260,35 +260,32 @@ void BackgroundShaderManager::FillRoundCornersQuad(float cx, float cy, float dx,
 void BackgroundShaderManager::FillCircle(float cx, float cy, float r,
 	const AbstractRenderer::RenderParams& rp, std::vector<float>& vec) const
 {
-	int trianglesCount = 20;
+	int trianglesCount = 36;
 
 	
-	float pi2 = 3.14159265359f * 2.0f;
+	const float pi2 = 3.14159265359f * 2.0f;
+	const float step = pi2 / trianglesCount;
 
-	float x0, y0, x1, y1;
+	float x, y;
 
-	x0 = 0 + (r * cos(0 * pi2 / trianglesCount));
-	y0 = 0 + (r * sin(0 * pi2 / trianglesCount));
+	x = cx + (r * 1); //cos(0) == 1
+	y = cy + (r * 0); //sin(0) == 0
+
+	this->AddVertex(cx, cy, rp, vec);
+	this->AddVertex(x, y, rp, vec);
 
 	for (int i = 1; i < trianglesCount; i++)
 	{
-		x1 = 0 + (r * cos(i * pi2 / trianglesCount));
-		y1 = 0 + (r * sin(i * pi2 / trianglesCount));
+		x = cx + (r * cos(i * step));
+		y = cy + (r * sin(i * step));
 
-		this->AddVertex(cx, cy, rp, vec);
-		this->AddVertex(x0, y0, rp, vec);
-		this->AddVertex(x1, y1, rp, vec);
-		
-		x0 = x1;
-		y0 = y1;
+		this->AddVertex(x, y, rp, vec);		
 	}
 
-	x1 = 0 + (r * cos(0 * pi2 / trianglesCount));
-	y1 = 0 + (r * sin(0 * pi2 / trianglesCount));
+	x = cx + (r * 1); //cos(0) == 1
+	y = cy + (r * 0); //sin(0) == 0
 
-	this->AddVertex(cx, cy, rp, vec);
-	this->AddVertex(x0, y0, rp, vec);
-	this->AddVertex(x1, y1, rp, vec);
+	this->AddVertex(x, y, rp, vec);	
 
 }
 

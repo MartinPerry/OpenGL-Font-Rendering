@@ -321,12 +321,10 @@ static const char* BACKGROUND_SHADOW_VERTEX_SHADER_SOURCE = VS_CODE(
     uniform float arWh;
 
     void main()
-    {
-        pos = POSITION;
-        pos.y *= arWh;
-
-        gl_Position = vec4(pos.x, pos.y, 0.0, 1.0);
+    {        
+        gl_Position = vec4(POSITION.x, arWh * POSITION.y, 0.0, 1.0);
         
+        pos = POSITION;
         aabb = AABB;
         color = COLOR;
     }
@@ -345,8 +343,11 @@ static const char* BACKGROUND_SHADOW_PIXEL_SHADER_SOURCE = PS_CODE(
     {
         vec2 xy01 = mapTo01(pos, aabb.xy, aabb.zw);
         float dist = ((0.5 - xy01.x) * (0.5 - xy01.x) + (0.5 - xy01.y) * (0.5 - xy01.y));        
-        gl_FragColor.rgba = color;
-        gl_FragColor.rgb *= (1.0 - dist);
+        
+        vec4 finalColor = mix(vec4(0.0, 1.0, 1.0, 1.0), color, (1.0 - dist));
+
+        gl_FragColor.rgba = finalColor;
+       // gl_FragColor.rgb *= (1.0 - dist);
     }
 );
 
