@@ -5,7 +5,6 @@
 SingleColorBackgroundShaderManager::SingleColorBackgroundShaderManager() :
 	positionLocation(-1),	
 	colorUniform(-1),
-	arWhUniform(-1),
 	r(1.0f),
 	g(1.0f),
 	b(1.0f),
@@ -43,9 +42,7 @@ void SingleColorBackgroundShaderManager::SetShape(BackgroundSettings::Shape shap
 /// Get shader uniforms and attributes locations
 /// </summary>
 void SingleColorBackgroundShaderManager::GetAttributtesUniforms()
-{
-	GL_CHECK(arWhUniform = glGetUniformLocation(shaderProgram, "arWh"));
-
+{	
 	GL_CHECK(colorUniform = glGetUniformLocation(shaderProgram, "bgColor"));
 
 	GL_CHECK(positionLocation = glGetAttribLocation(shaderProgram, "POSITION"));
@@ -79,8 +76,6 @@ void SingleColorBackgroundShaderManager::BindVertexAtribs()
 void SingleColorBackgroundShaderManager::BindUniforms()
 {
 	GL_CHECK(glUniform4f(colorUniform, r, g, b, a));	
-
-	GL_CHECK(glUniform1f(arWhUniform, this->canvasW / this->canvasH));
 }
 
 
@@ -132,20 +127,16 @@ void SingleColorBackgroundShaderManager::FillQuadVertexData(
 
 	if (shape == BackgroundSettings::Shape::SQUARE)
 	{
-		vec.push_back(minX); vec.push_back(minY);
-
-		vec.push_back(maxX); vec.push_back(minY);
-
-		vec.push_back(minX); vec.push_back(maxY);
+		this->AddVertex(minX, minY, vec);
+		this->AddVertex(maxX, minY, vec);
+		this->AddVertex(minX, maxY, vec);
 
 		//========================================================
 		//========================================================
 
-		vec.push_back(maxX); vec.push_back(minY);
-
-		vec.push_back(maxX); vec.push_back(maxY);
-
-		vec.push_back(minX); vec.push_back(maxY);
+		this->AddVertex(maxX, minY, vec);
+		this->AddVertex(maxX, maxY, vec);
+		this->AddVertex(minX, maxY, vec);
 
 		/*
 		v[0] = a;
@@ -156,31 +147,29 @@ void SingleColorBackgroundShaderManager::FillQuadVertexData(
 		v[4] = c;
 		v[5] = d;
 		*/
-
-
 	}
 	else if (shape == BackgroundSettings::Shape::ROUNDED_CORNER_SQUARE)
 	{
 		//https://stackoverflow.com/questions/74960029/how-to-draw-a-rectangle-in-opengl-with-rounded-corners
 
-		float r = this->roundCornerRadius * (1.0 / this->canvasW);
+		float r = this->roundCornerRadius * (1.0f / this->canvasW);
 
 		float cx = minX + 0.5f * (maxX - minX);
 		float cy = minY + 0.5f * (maxY - minY);
 		float dx = std::abs(maxX - minX) - 2 * r;
 		float dy = std::abs(maxY - minY) - 2 * r;
-		
+
 		//fix overlap of triangles if rounding was too fast
 		//some experimental value
 		dx = std::max(-0.05f * r, dx);
 		dy = std::max(-0.05f * r, dy);
 
-		this->FillRoundCornersQuad(cx, cy, dx, dy, r, vec);		
+		this->FillRoundCornersQuad(cx, cy, dx, dy, r, vec);
 	}
 	else if (shape == BackgroundSettings::Shape::CIRCLE)
 	{
 		//2 * - projection space is [-1, 1] and we calculate for 0, 1
-		float r = this->roundCornerRadius * 2.0 * (1.0 / this->canvasW);
+		float r = this->roundCornerRadius * 2.0f * (1.0f / this->canvasW);
 
 		float cx = minX + 0.5f * (maxX - minX);
 		float cy = minY + 0.5f * (maxY - minY);
@@ -205,49 +194,50 @@ void SingleColorBackgroundShaderManager::FillRoundCornersQuad(float cx, float cy
 	static const float sina[45] = { 0.0f, 0.1736482f, 0.3420201f, 0.5f, 0.6427876f, 0.7660444f, 0.8660254f,
 		0.9396926f, 0.9848077f, 1.0f, 0.9848078f, 0.9396927f, 0.8660255f, 0.7660446f, 0.6427878f, 0.5000002f,
 		0.3420205f, 0.1736485f, 3.894144E-07f, -0.1736478f, -0.3420197f, -0.4999996f, -0.6427872f, -0.7660443f,
-		-0.8660252f, -0.9396925f, -0.9848077f, -1.0f, -0.9848078f, -0.9396928f, -0.8660257f, -0.7660449f, 
+		-0.8660252f, -0.9396925f, -0.9848077f, -1.0f, -0.9848078f, -0.9396928f, -0.8660257f, -0.7660449f,
 		-0.6427881f, -0.5000006f, -0.3420208f, -0.1736489f, 0.0f, 0.1736482f, 0.3420201f, 0.5f, 0.6427876f,
 		0.7660444f, 0.8660254f, 0.9396926f, 0.9848077f };
 	static const float* cosa = sina + 9;
-	
-	
+
+
 	int i;
 	float x, y;
-	
-	
-	vec.push_back(cx); vec.push_back(cy);
-	
+
+
+	this->AddVertex(cx, cy, vec);
+
 	float x0 = cx + (0.5f * dx);
 	float y0 = cy + (0.5f * dy);
 	for (i = 0; i < 9; i++)
 	{
 		x = x0 + (r * cosa[i]);
 		y = y0 + (r * sina[i]);
-		vec.push_back(x); vec.push_back(y);
+		this->AddVertex(x, y, vec);
 	}
 	x0 -= dx;
 	for (; i < 18; i++)
 	{
 		x = x0 + (r * cosa[i]);
 		y = y0 + (r * sina[i]);
-		vec.push_back(x); vec.push_back(y);
+		this->AddVertex(x, y, vec);
 	}
 	y0 -= dy;
 	for (; i < 27; i++)
 	{
 		x = x0 + (r * cosa[i]);
 		y = y0 + (r * sina[i]);
-		vec.push_back(x); vec.push_back(y);
+		this->AddVertex(x, y, vec);
 	}
 	x0 += dx;
 	for (; i < 36; i++)
 	{
 		x = x0 + (r * cosa[i]);
 		y = y0 + (r * sina[i]);
-		vec.push_back(x); vec.push_back(y);
+		this->AddVertex(x, y, vec);
 	}
-	vec.push_back(x); vec.push_back(cy + (0.5f * dy));
-	
+
+	this->AddVertex(x, cy + (0.5f * dy), vec);
+
 
 }
 
@@ -264,19 +254,25 @@ void SingleColorBackgroundShaderManager::FillCircle(float cx, float cy, float r,
 	x = cx + (r * 1); //cos(0) == 1
 	y = cy + (r * 0); //sin(0) == 0
 
-	vec.push_back(cx); vec.push_back(cy);
-	vec.push_back(x); vec.push_back(y);
+	this->AddVertex(cx, cy, vec);
+	this->AddVertex(x, y, vec);
 
 	for (int i = 1; i < trianglesCount; i++)
 	{
 		x = cx + (r * cos(i * step));
 		y = cy + (r * sin(i * step));
-		
-		vec.push_back(x); vec.push_back(y);		
+
+		this->AddVertex(x, y, vec);
 	}
 
 	x = cx + (r * 1); //cos(0) == 1
 	y = cy + (r * 0); //sin(0) == 0
 
-	vec.push_back(x); vec.push_back(y);
+	this->AddVertex(x, y, vec);
+}
+
+void SingleColorBackgroundShaderManager::AddVertex(float x, float y, std::vector<float>& vec) const
+{	
+	vec.push_back(x);
+	vec.push_back(y * (this->canvasW / this->canvasH)); //projection to compensate AR
 }

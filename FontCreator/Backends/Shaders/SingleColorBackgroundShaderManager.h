@@ -40,7 +40,6 @@ public:
 protected:
     GLint positionLocation;
     GLint colorUniform;
-    GLint arWhUniform;
 
     float r, g, b, a;
     BackgroundSettings::Shape shape;
@@ -53,6 +52,7 @@ protected:
     void FillRoundCornersQuad(float cx, float cy, float dx, float dy, float r, std::vector<float>& vec) const;
     void FillCircle(float cx, float cy, float r, std::vector<float>& vec) const;
 
+    void AddVertex(float x, float y, std::vector<float>& vec) const;
 };
 
 

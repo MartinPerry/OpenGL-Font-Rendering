@@ -168,7 +168,7 @@ void BackgroundShaderManager::FillQuadVertexData(
 	{
 		//https://stackoverflow.com/questions/74960029/how-to-draw-a-rectangle-in-opengl-with-rounded-corners
 
-		float r = this->roundCornerRadius * (1.0 / this->canvasW);
+		float r = this->roundCornerRadius * (1.0f / this->canvasW);
 
 		float cx = minX + 0.5f * (maxX - minX);
 		float cy = minY + 0.5f * (maxY - minY);
@@ -184,7 +184,7 @@ void BackgroundShaderManager::FillQuadVertexData(
 	}
 	else if (shape == BackgroundSettings::Shape::CIRCLE)
 	{
-		float r = this->roundCornerRadius * 2.0 * (1.0 / this->canvasW);
+		float r = this->roundCornerRadius * 2.0f * (1.0f / this->canvasW);
 
 		float cx = minX + 0.5f * (maxX - minX);
 		float cy = minY + 0.5f * (maxY - minY);
