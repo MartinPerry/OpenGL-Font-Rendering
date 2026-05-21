@@ -98,7 +98,7 @@ void BackgroundShaderManager::PreRender()
 
 void BackgroundShaderManager::Render(int quadsCount)
 {
-	auto type = (roundCornerRadius == 0) ? GL_TRIANGLES : GL_TRIANGLE_FAN;
+	auto type = (shape == BackgroundSettings::Shape::SQUARE) ? GL_TRIANGLES : GL_TRIANGLE_FAN;
 	
 #if (defined(__APPLE__) || defined(__ANDROID_API__))
 	for (int i = 0; i < counts.size(); ++i)
@@ -112,7 +112,7 @@ void BackgroundShaderManager::Render(int quadsCount)
 
 int BackgroundShaderManager::GetQuadVertices() const
 {
-	return (roundCornerRadius == 0) ? 6 : 38;
+	return (shape == BackgroundSettings::Shape::SQUARE) ? 6 : 38;
 }
 
 
@@ -168,39 +168,65 @@ void BackgroundShaderManager::FillQuadVertexData(
 	{
 		//https://stackoverflow.com/questions/74960029/how-to-draw-a-rectangle-in-opengl-with-rounded-corners
 
-		float r = this->roundCornerRadius * (1.0f / this->canvasW);
+		float rx = this->roundCornerRadius * (1.0f / this->canvasW);
+		float ry = this->roundCornerRadius * (1.0f / this->canvasH);
+
+		//2 * - projection space is [-1, 1] and we calculate for 0, 1
+		rx *= 2;
+		ry *= 2;
 
 		float cx = minX + 0.5f * (maxX - minX);
 		float cy = minY + 0.5f * (maxY - minY);
-		float dx = std::abs(maxX - minX) - 2 * r;
-		float dy = std::abs(maxY - minY) - 2 * r;
+		float dx = std::abs(maxX - minX) - 2 * rx;
+		float dy = std::abs(maxY - minY) - 2 * ry;
 		
 		//fix overlap of triangles if rounding was too fast
 		//some experimental value
-		dx = std::max(-0.05f * r, dx);
-		dy = std::max(-0.05f * r, dy);
+		//dx = std::max(-0.05f * rx, dx);
+		//dy = std::max(-0.05f * ry, dy);
 
-		min_x = cx - r;
-		min_y = cx - r;
-		max_x = cx + r;
-		max_y = cx + r;
+		min_x = cx - rx;
+		min_y = cy - ry;
+		max_x = cx + rx;
+		max_y = cy + ry;
 
-		this->FillRoundCornersQuad(cx, cy, dx, dy, 2.0f * r, rp, vec);
+		this->FillRoundCornersQuad(cx, cy, dx, dy, rx, ry, rp, vec);
 	}
 	else if (shape == BackgroundSettings::Shape::CIRCLE)
 	{
-		float r = this->roundCornerRadius * (1.0f / this->canvasW);
+		const float cx = minX + 0.5f * (maxX - minX);
+		const float cy = minY + 0.5f * (maxY - minY);
 
-		float cx = minX + 0.5f * (maxX - minX);
-		float cy = minY + 0.5f * (maxY - minY);
-
-		min_x = cx - r;
-		min_y = cx - r;
-		max_x = cx + r;
-		max_y = cx + r;
+		float rx, ry;
 
 		//2 * - projection space is [-1, 1] and we calculate for 0, 1
-		this->FillCircle(cx, cy, 2.0f * r, rp, vec);
+		if (this->roundCornerRadius > 0)
+		{
+			rx = this->roundCornerRadius * 2.0f * (1.0f / this->canvasW);
+			ry = this->roundCornerRadius * 2.0f * (1.0f / this->canvasH);
+		}
+		else
+		{
+			const float w = std::abs(maxX - minX);
+			const float h = std::abs(maxY - minY);
+
+
+			// circle fitting inside given rect in screen pixels
+			const float rPx = 0.5f * std::max(
+				w * 0.5f * this->canvasW,
+				h * 0.5f * this->canvasH
+			);
+
+			rx = 2.0f * rPx / this->canvasW;
+			ry = 2.0f * rPx / this->canvasH;
+		}
+
+		min_x = cx - rx;
+		min_y = cy - ry;
+		max_x = cx + rx;
+		max_y = cy + ry;
+		
+		this->FillCircle(cx, cy, rx, ry, rp, vec);
 	}
 
 	counts.push_back(this->GetQuadVertices());
@@ -214,7 +240,7 @@ void BackgroundShaderManager::FillQuadVertexData(
 	}
 }
 
-void BackgroundShaderManager::FillRoundCornersQuad(float cx, float cy, float dx, float dy, float r, 
+void BackgroundShaderManager::FillRoundCornersQuad(float cx, float cy, float dx, float dy, float rx, float ry, 
 	const AbstractRenderer::RenderParams& rp,
 	std::vector<float>& vec) const
 {
@@ -223,8 +249,9 @@ void BackgroundShaderManager::FillRoundCornersQuad(float cx, float cy, float dx,
 		0.9396926f, 0.9848077f, 1.0f, 0.9848078f, 0.9396927f, 0.8660255f, 0.7660446f, 0.6427878f, 0.5000002f,
 		0.3420205f, 0.1736485f, 3.894144E-07f, -0.1736478f, -0.3420197f, -0.4999996f, -0.6427872f, -0.7660443f,
 		-0.8660252f, -0.9396925f, -0.9848077f, -1.0f, -0.9848078f, -0.9396928f, -0.8660257f, -0.7660449f, 
-		-0.6427881f, -0.5000006f, -0.3420208f, -0.1736489f, 0.0f, 0.1736482f, 0.3420201f, 0.5f, 0.6427876f,
-		0.7660444f, 0.8660254f, 0.9396926f, 0.9848077f };
+		-0.6427881f, -0.5000006f, -0.3420208f, -0.1736489f, 
+		//this is for cosa values that are moved by +9
+		0.0f, 0.1736482f, 0.3420201f, 0.5f, 0.6427876f, 0.7660444f, 0.8660254f, 0.9396926f, 0.9848077f };
 	static const float* cosa = sina + 9;
 	
 	
@@ -238,29 +265,29 @@ void BackgroundShaderManager::FillRoundCornersQuad(float cx, float cy, float dx,
 	float y0 = cy + (0.5f * dy);
 	for (i = 0; i < 9; i++)
 	{
-		x = x0 + (r * cosa[i]);
-		y = y0 + (r * sina[i]);
+		x = x0 + (rx * cosa[i]);
+		y = y0 + (ry * sina[i]);
 		this->AddVertex(x, y, rp, vec);
 	}
 	x0 -= dx;
 	for (; i < 18; i++)
 	{
-		x = x0 + (r * cosa[i]);
-		y = y0 + (r * sina[i]);
+		x = x0 + (rx * cosa[i]);
+		y = y0 + (ry * sina[i]);
 		this->AddVertex(x, y, rp, vec);
 	}
 	y0 -= dy;
 	for (; i < 27; i++)
 	{
-		x = x0 + (r * cosa[i]);
-		y = y0 + (r * sina[i]);
+		x = x0 + (rx * cosa[i]);
+		y = y0 + (ry * sina[i]);
 		this->AddVertex(x, y, rp, vec);
 	}
 	x0 += dx;
 	for (; i < 36; i++)
 	{
-		x = x0 + (r * cosa[i]);
-		y = y0 + (r * sina[i]);
+		x = x0 + (rx * cosa[i]);
+		y = y0 + (ry * sina[i]);
 		this->AddVertex(x, y, rp, vec);
 	}
 	this->AddVertex(x, cy + (0.5f * dy), rp, vec);	
@@ -268,7 +295,7 @@ void BackgroundShaderManager::FillRoundCornersQuad(float cx, float cy, float dx,
 
 }
 
-void BackgroundShaderManager::FillCircle(float cx, float cy, float r,
+void BackgroundShaderManager::FillCircle(float cx, float cy, float rx, float ry,
 	const AbstractRenderer::RenderParams& rp, std::vector<float>& vec) const
 {
 	int trianglesCount = 36;
@@ -277,28 +304,27 @@ void BackgroundShaderManager::FillCircle(float cx, float cy, float r,
 	const float pi2 = 3.14159265359f * 2.0f;
 	const float step = pi2 / trianglesCount;
 
-	const float ar = (this->canvasW / this->canvasH);
-
+	
 	float x, y;
 
-	x = cx + (r * 1); //cos(0) == 1
-	y = cy + (r * 0); //sin(0) == 0
+	x = cx + (rx * 1); //cos(0) == 1
+	y = cy + (ry * 0); //sin(0) == 0
 
-	this->AddVertex(cx, ar * cy, rp, vec);
-	this->AddVertex(x, ar * y, rp, vec);
+	this->AddVertex(cx, cy, rp, vec);
+	this->AddVertex(x, y, rp, vec);
 
 	for (int i = 1; i < trianglesCount; i++)
 	{
-		x = cx + (r * cos(i * step));
-		y = cy + (r * sin(i * step));
+		x = cx + (rx * cos(i * step));
+		y = cy + (ry * sin(i * step));
 
-		this->AddVertex(x, ar * y, rp, vec);
+		this->AddVertex(x, y, rp, vec);
 	}
 
-	x = cx + (r * 1); //cos(0) == 1
-	y = cy + (r * 0); //sin(0) == 0
+	x = cx + (rx * 1); //cos(0) == 1
+	y = cy + (ry * 0); //sin(0) == 0
 
-	this->AddVertex(x, ar * y, rp, vec);
+	this->AddVertex(x, y, rp, vec);
 
 }
 

@@ -91,7 +91,7 @@ void SingleColorBackgroundShaderManager::PreRender()
 
 void SingleColorBackgroundShaderManager::Render(int quadsCount)
 {
-	auto type = (roundCornerRadius == 0) ? GL_TRIANGLES : GL_TRIANGLE_FAN;
+	auto type = (shape == BackgroundSettings::Shape::SQUARE) ? GL_TRIANGLES : GL_TRIANGLE_FAN;
 
 	//GL_CHECK(glDrawArrays(type, 0, quadsCount * this->GetQuadVertices()));	
 	//return;
@@ -109,7 +109,7 @@ void SingleColorBackgroundShaderManager::Render(int quadsCount)
 
 int SingleColorBackgroundShaderManager::GetQuadVertices() const
 {
-	return (roundCornerRadius == 0) ? 6 : 38;
+	return (shape == BackgroundSettings::Shape::SQUARE) ? 6 : 38;
 }
 
 void SingleColorBackgroundShaderManager::FillQuadVertexData(
@@ -120,10 +120,10 @@ void SingleColorBackgroundShaderManager::FillQuadVertexData(
 {
 	//if (vec.size() > 0) return;
 	const float minX = 2.0f * minVertex.x - 1.0f;
-	const float minY = -(2.0f * minVertex.y - 1.0f);
+	const float minY = (2.0f * minVertex.y - 1.0f);
 
 	const float maxX = 2.0f * maxVertex.x - 1.0f;
-	const float maxY = -(2.0f * maxVertex.y - 1.0f);
+	const float maxY = (2.0f * maxVertex.y - 1.0f);
 
 	if (shape == BackgroundSettings::Shape::SQUARE)
 	{
@@ -133,11 +133,11 @@ void SingleColorBackgroundShaderManager::FillQuadVertexData(
 
 		//========================================================
 		//========================================================
-
+		
 		this->AddVertex(maxX, minY, vec);
 		this->AddVertex(maxX, maxY, vec);
 		this->AddVertex(minX, maxY, vec);
-
+		
 		/*
 		v[0] = a;
 		v[1] = b;
@@ -169,13 +169,33 @@ void SingleColorBackgroundShaderManager::FillQuadVertexData(
 	}
 	else if (shape == BackgroundSettings::Shape::CIRCLE)
 	{
+		const float cx = minX + 0.5f * (maxX - minX);
+		const float cy = minY + 0.5f * (maxY - minY);
+
+		float rx, ry;
+
 		//2 * - projection space is [-1, 1] and we calculate for 0, 1
-		float rx = this->roundCornerRadius * 2.0f * (1.0f / this->canvasW);
-		float ry = this->roundCornerRadius * 2.0f * (1.0f / this->canvasH);
+		if (this->roundCornerRadius > 0)
+		{
+			rx = this->roundCornerRadius * 2.0f * (1.0f / this->canvasW);
+			ry = this->roundCornerRadius * 2.0f * (1.0f / this->canvasH);
+		}
+		else
+		{
+			const float w = std::abs(maxX - minX);
+			const float h = std::abs(maxY - minY);
 
-		float cx = minX + 0.5f * (maxX - minX);
-		float cy = minY + 0.5f * (maxY - minY);
 
+			// circle fitting inside given rect in screen pixels
+			const float rPx = 0.5f * std::max(
+				w * 0.5f * this->canvasW,
+				h * 0.5f * this->canvasH
+			);
+
+			rx = 2.0f * rPx / this->canvasW;
+			ry = 2.0f * rPx / this->canvasH;
+		}
+					
 		this->FillCircle(cx, cy, rx, ry, vec);
 	}
 
@@ -191,52 +211,14 @@ void SingleColorBackgroundShaderManager::FillQuadVertexData(
 }
 
 void SingleColorBackgroundShaderManager::FillRoundCornersQuad(float cx, float cy, float dx, float dy, float rx, float ry, std::vector<float>& vec) const
-{
-	/*
-	r = std::min(r, 0.5f * std::min(dx, dy));
-
-	constexpr int SEG = 8;
-	constexpr float PI = 3.14159265358979323846f;
-
-	const float ar = (this->canvasW / this->canvasH);
-
-	AddVertex(cx, ar * cy, vec); // triangle fan center
-
-	auto addArc = [&](float ox, float oy, float a0, float a1)
-		{
-			for (int i = 0; i <= SEG; ++i)
-			{
-				float t = float(i) / float(SEG);
-				float a = a0 + (a1 - a0) * t;
-
-				AddVertex(
-					ox + std::cos(a) * r,
-					ar * (oy + std::sin(a) * r),
-					vec
-				);
-			}
-		};
-
-	float left = cx - dx * 0.5f;
-	float right = cx + dx * 0.5f;
-	float bottom = cy - dy * 0.5f;
-	float top = cy + dy * 0.5f;
-
-	addArc(right - r, top - r, 0.0f, PI * 0.5f);
-	addArc(left + r, top - r, PI * 0.5f, PI);
-	addArc(left + r, bottom + r, PI, PI * 1.5f);
-	addArc(right - r, bottom + r, PI * 1.5f, PI * 2.0f);
-
-	// close triangle fan
-	AddVertex(right, (top - r), vec);
-	return;
-	*/
+{	
 	static const float sina[45] = { 0.0f, 0.1736482f, 0.3420201f, 0.5f, 0.6427876f, 0.7660444f, 0.8660254f,
 		0.9396926f, 0.9848077f, 1.0f, 0.9848078f, 0.9396927f, 0.8660255f, 0.7660446f, 0.6427878f, 0.5000002f,
 		0.3420205f, 0.1736485f, 3.894144E-07f, -0.1736478f, -0.3420197f, -0.4999996f, -0.6427872f, -0.7660443f,
 		-0.8660252f, -0.9396925f, -0.9848077f, -1.0f, -0.9848078f, -0.9396928f, -0.8660257f, -0.7660449f,
-		-0.6427881f, -0.5000006f, -0.3420208f, -0.1736489f, 0.0f, 0.1736482f, 0.3420201f, 0.5f, 0.6427876f,
-		0.7660444f, 0.8660254f, 0.9396926f, 0.9848077f };
+		-0.6427881f, -0.5000006f, -0.3420208f, -0.1736489f, 
+		//this is for cosa values that are moved by +9
+		0.0f, 0.1736482f, 0.3420201f, 0.5f, 0.6427876f, 0.7660444f, 0.8660254f, 0.9396926f, 0.9848077f };
 	static const float* cosa = sina + 9;
 
 

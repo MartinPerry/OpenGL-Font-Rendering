@@ -55,10 +55,10 @@ protected:
     std::vector<GLint> startingElements;
     std::vector<GLint> counts;
 
-    void FillRoundCornersQuad(float cx, float cy, float dx, float dy, float r, 
+    void FillRoundCornersQuad(float cx, float cy, float dx, float dy, float rx, float ry, 
         const AbstractRenderer::RenderParams& rp, std::vector<float>& vec) const;
 
-    void FillCircle(float cx, float cy, float r, 
+    void FillCircle(float cx, float cy, float rx, float ry, 
         const AbstractRenderer::RenderParams& rp, std::vector<float>& vec) const;
 
     void AddVertex(float x, float y, const AbstractRenderer::RenderParams& rp, std::vector<float>& vec) const;

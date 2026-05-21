@@ -256,7 +256,9 @@ struct BackgroundSettings
 
 	std::optional<Color> color = std::nullopt;
 	float padding = 0.0f;
-	float cornerRadius = 0.0f;
+	float cornerRadius = 0.0f; //if shape is CIRCLE, radius is auto-calculated if value <= 0, 
+							   //otherwise value is used as circle radius
+							   
 	bool shadow = false;
 	Shape shape = Shape::SQUARE;
 };
