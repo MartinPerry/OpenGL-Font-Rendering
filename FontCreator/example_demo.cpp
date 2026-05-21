@@ -559,10 +559,10 @@ void initGL() {
 	fn = NumberRenderer::CreateDefault(fs, r);
 
 	BackgroundSettings bsn;
-	//bsn.color = { 0,1, 1, 0.6f };
+	bsn.color = { 0, 1, 1, 0.6f };
 	bsn.padding = 8;
-	bsn.cornerRadius = 100;// 20;
-	bsn.shape = BackgroundSettings::Shape::CIRCLE;
+	bsn.cornerRadius = 10;// 20;
+	bsn.shape = BackgroundSettings::Shape::ROUNDED_CORNER_SQUARE;
 	bsn.shadow = true;
 	fn->SetBackgroundSettings(bsn);
 

@@ -49,8 +49,8 @@ protected:
     std::vector<GLint> startingElements;
     std::vector<GLint> counts;
 
-    void FillRoundCornersQuad(float cx, float cy, float dx, float dy, float r, std::vector<float>& vec) const;
-    void FillCircle(float cx, float cy, float r, std::vector<float>& vec) const;
+    void FillRoundCornersQuad(float cx, float cy, float dx, float dy, float rx, float ry, std::vector<float>& vec) const;
+    void FillCircle(float cx, float cy, float rx, float ry, std::vector<float>& vec) const;
 
     void AddVertex(float x, float y, std::vector<float>& vec) const;
 };

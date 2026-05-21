@@ -180,16 +180,27 @@ void BackgroundShaderManager::FillQuadVertexData(
 		dx = std::max(-0.05f * r, dx);
 		dy = std::max(-0.05f * r, dy);
 
-		this->FillRoundCornersQuad(cx, cy, dx, dy, r, rp, vec);
+		min_x = cx - r;
+		min_y = cx - r;
+		max_x = cx + r;
+		max_y = cx + r;
+
+		this->FillRoundCornersQuad(cx, cy, dx, dy, 2.0f * r, rp, vec);
 	}
 	else if (shape == BackgroundSettings::Shape::CIRCLE)
 	{
-		float r = this->roundCornerRadius * 2.0f * (1.0f / this->canvasW);
+		float r = this->roundCornerRadius * (1.0f / this->canvasW);
 
 		float cx = minX + 0.5f * (maxX - minX);
 		float cy = minY + 0.5f * (maxY - minY);
 
-		this->FillCircle(cx, cy, r, rp, vec);
+		min_x = cx - r;
+		min_y = cx - r;
+		max_x = cx + r;
+		max_y = cx + r;
+
+		//2 * - projection space is [-1, 1] and we calculate for 0, 1
+		this->FillCircle(cx, cy, 2.0f * r, rp, vec);
 	}
 
 	counts.push_back(this->GetQuadVertices());
@@ -266,26 +277,28 @@ void BackgroundShaderManager::FillCircle(float cx, float cy, float r,
 	const float pi2 = 3.14159265359f * 2.0f;
 	const float step = pi2 / trianglesCount;
 
+	const float ar = (this->canvasW / this->canvasH);
+
 	float x, y;
 
 	x = cx + (r * 1); //cos(0) == 1
 	y = cy + (r * 0); //sin(0) == 0
 
-	this->AddVertex(cx, cy, rp, vec);
-	this->AddVertex(x, y, rp, vec);
+	this->AddVertex(cx, ar * cy, rp, vec);
+	this->AddVertex(x, ar * y, rp, vec);
 
 	for (int i = 1; i < trianglesCount; i++)
 	{
 		x = cx + (r * cos(i * step));
 		y = cy + (r * sin(i * step));
 
-		this->AddVertex(x, y, rp, vec);		
+		this->AddVertex(x, ar * y, rp, vec);
 	}
 
 	x = cx + (r * 1); //cos(0) == 1
 	y = cy + (r * 0); //sin(0) == 0
 
-	this->AddVertex(x, y, rp, vec);	
+	this->AddVertex(x, ar * y, rp, vec);
 
 }
 
