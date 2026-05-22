@@ -1,5 +1,5 @@
-#ifndef SINGLE_COLOR_BACKGROUND_SHADER_MANAGER_H
-#define SINGLE_COLOR_BACKGROUND_SHADER_MANAGER_H
+#ifndef BACKGROUND_SHADOW_SHADER_MANAGER_H
+#define BACKGROUND_SHADOW_SHADER_MANAGER_H
 
 #include <vector>
 
@@ -8,11 +8,11 @@
 
 #include "./IShaderManager.h"
 
-class SingleColorBackgroundShaderManager : public IShaderManager
+class BackgroundShadowShaderManager : public IShaderManager
 {
 public:
-    SingleColorBackgroundShaderManager();
-    virtual ~SingleColorBackgroundShaderManager() = default;
+    BackgroundShadowShaderManager(Shadow shadow);
+    virtual ~BackgroundShadowShaderManager() = default;
 
     virtual const char* GetVertexShaderSource() const override;
     virtual const char* GetPixelShaderSource() const override;
@@ -20,9 +20,9 @@ public:
     void GetAttributtesUniforms() override;
     void BindVertexAtribs() override;
     void BindUniforms() override;
-   
-    void SetColor(float r, float g, float b, float a);
+    
     void SetShape(BackgroundSettings::Shape shape, float radius = 0.0);
+    void SetColor(float r, float g, float b, float a);
 
     int GetQuadVertices() const override;
 
@@ -39,20 +39,31 @@ public:
 
 protected:
     GLint positionLocation;
-    GLint colorUniform;
+    GLint colorLocation;
+    GLint aabbLocation;
 
-    float r, g, b, a;
+    GLint cornerRadiusUniform;
+    GLint blurRadiusUniform;
+    GLint shadowDirUniform;
+    GLint shadowColorUniform;
+
+    Shadow shadow;
+
     BackgroundSettings::Shape shape;
     float roundCornerRadius;
 
-  
+    float r, g, b, a;    
+
+    float min_x;
+    float min_y;
+    float max_x;
+    float max_y;
+
     std::vector<GLint> startingElements;
     std::vector<GLint> counts;
 
-    void FillRoundCornersQuad(float cx, float cy, float dx, float dy, float rx, float ry, std::vector<float>& vec) const;
-    void FillCircle(float cx, float cy, float rx, float ry, std::vector<float>& vec) const;
-
-    void AddVertex(float x, float y, std::vector<float>& vec) const;
+   
+    void AddVertex(float x, float y, const AbstractRenderer::RenderParams& rp, std::vector<float>& vec) const;
 };
 
 

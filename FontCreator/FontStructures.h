@@ -199,11 +199,9 @@ struct RenderSettings
 	//OpenGL related
 	bool useTextureLinearFilter = false;
 
+#ifdef __ANDROID_API__
 	int glVersion = 3;
-
-	//custom shaders
-	const char* vSource = nullptr;
-	const char* pSource = nullptr;
+#endif
 };
 
 struct IFontBuilderSettings
@@ -238,6 +236,16 @@ struct SDF
 	std::optional<Color> outlineColor = std::nullopt;
 };
 
+struct Shadow 
+{
+	float blurRadius = 0.03f;
+
+	float dirX = 0.0f;
+	float dirY = 0.05f;
+
+	Color color = Color(0, 0, 0, 0.65f);
+};
+
 struct FontBuilderSettings : public IFontBuilderSettings
 {
 	std::vector<Font> fonts;
@@ -260,12 +268,14 @@ struct BackgroundSettings
 		CIRCLE
 	};
 
-	std::optional<Color> color = std::nullopt;
+	std::optional<Color> color = std::nullopt; //if set, background is single color
+											   //all of them have the same color
+
 	float padding = 0.0f;
 	float cornerRadius = 0.0f; //if shape is CIRCLE, radius is auto-calculated if value <= 0, 
 							   //otherwise value is used as circle radius
 							   
-	bool shadow = false;
+	std::optional<Shadow> shadow = std::nullopt;
 	Shape shape = Shape::SQUARE;
 };
 

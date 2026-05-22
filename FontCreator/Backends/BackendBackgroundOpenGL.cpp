@@ -3,14 +3,18 @@
 #include "./Shaders/Shaders.h"
 #include "./Shaders/SingleColorBackgroundShaderManager.h"
 #include "./Shaders/BackgroundShaderManager.h"
+#include "./Shaders/BackgroundShadowShaderManager.h"
 
 BackendBackgroundOpenGL::BackendBackgroundOpenGL(const BackgroundSettings& bs, const RenderSettings& r) :	
 	BackendBackgroundOpenGL(bs, r,
 		nullptr, 		
 		nullptr,
-		bs.color.has_value() ? 
-			std::dynamic_pointer_cast<IShaderManager>(std::make_shared<SingleColorBackgroundShaderManager>()) :
-			std::dynamic_pointer_cast<IShaderManager>(std::make_shared<BackgroundShaderManager>(bs.shadow))
+		bs.shadow.has_value() ?
+			std::dynamic_pointer_cast<IShaderManager>(std::make_shared<BackgroundShadowShaderManager>(*bs.shadow)) : (
+			bs.color.has_value() ? 
+				std::dynamic_pointer_cast<IShaderManager>(std::make_shared<SingleColorBackgroundShaderManager>()) :
+				std::dynamic_pointer_cast<IShaderManager>(std::make_shared<BackgroundShaderManager>())
+			)
 	)
 {
 }
@@ -42,6 +46,14 @@ void BackendBackgroundOpenGL::SetBackgroundSettings(const BackgroundSettings& bs
 	}
 	else if (auto tmp = std::dynamic_pointer_cast<BackgroundShaderManager>(this->sm))
 	{
+		tmp->SetShape(bs.shape, bs.cornerRadius);
+	}
+	else if (auto tmp = std::dynamic_pointer_cast<BackgroundShadowShaderManager>(this->sm))
+	{		
+		if (bs.color.has_value())
+		{
+			tmp->SetColor(bs.color->r, bs.color->g, bs.color->b, bs.color->a);
+		}
 		tmp->SetShape(bs.shape, bs.cornerRadius);
 	}
 }
@@ -76,9 +88,9 @@ void BackendBackgroundOpenGL::Render(std::function<void(GLuint)> preDrawCallback
 
 	//render
 	FONT_BIND_ARRAY_BUFFER(this->vbo);
-
+	
 #ifdef __ANDROID_API__
-	if (glVersion == 2)
+	if (rs.glVersion == 2)
 	{
 		this->sm->BindVertexAtribs();
 	}
@@ -95,7 +107,7 @@ void BackendBackgroundOpenGL::Render(std::function<void(GLuint)> preDrawCallback
 	this->sm->Render(this->quadsCount);
 
 #ifdef __ANDROID_API__
-	if (glVersion != 2)
+	if (rs.glVersion != 2)
 	{
 		FONT_UNBIND_VAO;
 	}

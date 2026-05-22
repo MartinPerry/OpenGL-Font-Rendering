@@ -30,6 +30,7 @@ public:
 
 	const BackgroundSettings* GetBackgroundSettings() const;
 	void SetBackground(std::optional<BackgroundSettings> bs) override;
+	void SetBackground(std::optional<BackgroundSettings> bs, std::shared_ptr<IShaderManager> sm);
 	void SetMainRenderer(AbstractRenderer* mainRenderer) override;
 	
 	void SetFontTextureLinearFiler(bool val);

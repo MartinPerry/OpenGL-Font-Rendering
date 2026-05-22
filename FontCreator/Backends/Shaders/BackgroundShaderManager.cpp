@@ -2,14 +2,12 @@
 
 #include "./Shaders.h"
 
-BackgroundShaderManager::BackgroundShaderManager(bool shadow) :
+BackgroundShaderManager::BackgroundShaderManager() :
 	positionLocation(-1),	
 	colorLocation(-1),
 	aabbLocation(-1),
-	arWhUniform(-1),
 	shape(BackgroundSettings::Shape::SQUARE),
 	roundCornerRadius(0.0f),
-	shadow(shadow),
 	min_x(0),
 	min_y(0),
 	max_x(0),
@@ -20,12 +18,12 @@ BackgroundShaderManager::BackgroundShaderManager(bool shadow) :
 
 const char* BackgroundShaderManager::GetVertexShaderSource() const
 {
-	return shadow ? BACKGROUND_SHADOW_VERTEX_SHADER_SOURCE : BACKGROUND_VERTEX_SHADER_SOURCE;
+	return BACKGROUND_VERTEX_SHADER_SOURCE;
 }
 
 const char* BackgroundShaderManager::GetPixelShaderSource() const
 {
-	return shadow ? BACKGROUND_SHADOW_PIXEL_SHADER_SOURCE : BACKGROUND_PIXEL_SHADER_SOURCE;
+	return BACKGROUND_PIXEL_SHADER_SOURCE;
 }
 
 void BackgroundShaderManager::SetShape(BackgroundSettings::Shape shape, float radius)
@@ -42,8 +40,7 @@ void BackgroundShaderManager::GetAttributtesUniforms()
 	GL_CHECK(positionLocation = glGetAttribLocation(shaderProgram, "POSITION"));
 	GL_CHECK(colorLocation = glGetAttribLocation(shaderProgram, "COLOR"));
 	GL_CHECK(aabbLocation = glGetAttribLocation(shaderProgram, "AABB"));
-
-	GL_CHECK(arWhUniform = glGetUniformLocation(shaderProgram, "arWh"));
+	
 }
 
 void BackgroundShaderManager::BindVertexAtribs()
@@ -82,7 +79,7 @@ void BackgroundShaderManager::BindVertexAtribs()
 
 void BackgroundShaderManager::BindUniforms()
 {
-	GL_CHECK(glUniform1f(arWhUniform, this->canvasW / this->canvasH));
+	
 }
 
 void BackgroundShaderManager::Clear()

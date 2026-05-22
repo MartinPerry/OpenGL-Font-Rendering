@@ -11,11 +11,11 @@
 class BackgroundShaderManager : public IShaderManager
 {
 public:
-    BackgroundShaderManager(bool shadow);
+    BackgroundShaderManager();
     virtual ~BackgroundShaderManager() = default;
 
-    const char* GetVertexShaderSource() const override;
-    const char* GetPixelShaderSource() const override;
+    virtual const char* GetVertexShaderSource() const override;
+    virtual const char* GetPixelShaderSource() const override;
 
     void GetAttributtesUniforms() override;
     void BindVertexAtribs() override;
@@ -41,11 +41,9 @@ protected:
     GLint colorLocation;
     GLint aabbLocation;
 
-    GLint arWhUniform;
-        
+    
     BackgroundSettings::Shape shape;
     float roundCornerRadius;
-    bool shadow;
    
     float min_x;
     float min_y;

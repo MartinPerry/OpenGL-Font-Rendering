@@ -168,9 +168,9 @@ void BackendOpenGL::InitTexture(const char* uniformName)
 /// Create VAO
 /// </summary>
 void BackendOpenGL::InitVAO()
-{
+{	
 #ifdef __ANDROID_API__
-	if (glVersion == 2)
+	if (rs.glVersion == 2)
 	{
 		return;
 	}
@@ -223,6 +223,12 @@ const BackgroundSettings* BackendOpenGL::GetBackgroundSettings() const
 	return nullptr;
 }
 
+/// <summary>
+/// Set background settings 
+/// Will setup default shaders
+/// If nullopt is passed, backgrdound is disabled
+/// </summary>
+/// <param name="bs"></param>
 void BackendOpenGL::SetBackground(std::optional<BackgroundSettings> bs)
 {
 	if (bs)
@@ -242,12 +248,34 @@ void BackendOpenGL::SetBackground(std::optional<BackgroundSettings> bs)
 	}
 }
 
+/// <summary>
+/// Set background settings with custom shader
+/// This will override the default behaviour
+/// If nullopt or no shader is passed, backgrdound is disabled
+/// </summary>
+/// <param name="bs"></param>
+/// <param name="sm"></param>
+void BackendOpenGL::SetBackground(std::optional<BackgroundSettings> bs, std::shared_ptr<IShaderManager> sm)
+{
+	if ((bs.has_value() == false) || (sm == nullptr))
+	{
+		this->background = nullptr;
+		return;
+	}
+		
+	this->background = std::make_unique<BackendBackgroundOpenGL>(*bs, rs, nullptr, nullptr, sm);
+}
+
 void BackendOpenGL::SetMainRenderer(AbstractRenderer* mainRenderer)
 {
 	BackendBase::SetMainRenderer(mainRenderer);
 	this->InitTexture("fontText");
 }
 
+/// <summary>
+/// Callback when canvas changes settings
+/// (eg. size)
+/// </summary>
 void BackendOpenGL::OnCanvasChanges()
 {
 	if (this->background)
@@ -316,7 +344,7 @@ void BackendOpenGL::Render(std::function<void(GLuint)> preDrawCallback,
 	FONT_BIND_ARRAY_BUFFER(this->vbo);
 
 #ifdef __ANDROID_API__
-	if (glVersion == 2)
+	if (rs.glVersion == 2)
 	{
 		this->sm->BindVertexAtribs();
 	}

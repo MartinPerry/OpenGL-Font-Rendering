@@ -15,8 +15,8 @@ public:
     ColoredFontShaderManager(bool enableTransparency);
     virtual ~ColoredFontShaderManager() = default;
 
-    const char* GetVertexShaderSource() const override;
-    const char* GetPixelShaderSource() const override;
+    virtual const char* GetVertexShaderSource() const override;
+    virtual const char* GetPixelShaderSource() const override;
 
     uint8_t GetTextureChannels() const override;
 

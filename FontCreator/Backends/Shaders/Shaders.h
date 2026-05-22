@@ -307,50 +307,6 @@ static const char* BACKGROUND_PIXEL_SHADER_SOURCE = PS_CODE(
 
 //============================================================
 
-static const char* BACKGROUND_SHADOW_VERTEX_SHADER_SOURCE = VS_CODE(
-    attribute vec2 POSITION;
-    attribute vec4 COLOR;
-    attribute vec4 AABB;
-    
-    varying vec2 pos;
-    varying vec4 aabb;
-    varying vec4 color; 
-
-    uniform float arWh;
-
-    void main()
-    {        
-        gl_Position = vec4(POSITION.x, POSITION.y, 0.0, 1.0);
-        
-        pos = POSITION;
-        aabb = AABB;
-        color = COLOR;
-    }
-);
-
-static const char* BACKGROUND_SHADOW_PIXEL_SHADER_SOURCE = PS_CODE(
-    varying vec2 pos;
-    varying vec4 aabb;
-    varying vec4 color;
-	
-    vec2 mapTo01(vec2 s, vec2 from1, vec2 from2){ 
-        return (s - from1) * vec2(1.0) / (from2 - from1); 
-    }
-
-    void main()
-    {
-        vec2 xy01 = mapTo01(pos, aabb.xy, aabb.zw);
-        float dist = sqrt((0.5 - xy01.x) * (0.5 - xy01.x) + (0.5 - xy01.y) * (0.5 - xy01.y));        
-        
-        vec4 finalColor = mix(vec4(0.0, 1.0, 1.0, 1.0), color, (1.0 - dist));
-
-        gl_FragColor.rgba = finalColor;
-        //gl_FragColor.rgb *= (1.0 - dist);
-    }
-);
-
-//============================================================
-
 static const char* SINGLE_COLOR_BACKGROUND_VERTEX_SHADER_SOURCE = VS_CODE(
     attribute vec2 POSITION;	
 
@@ -366,6 +322,108 @@ static const char* SINGLE_COLOR_BACKGROUND_PIXEL_SHADER_SOURCE = PS_CODE(
     void main()
     {        
         gl_FragColor.rgba = bgColor;        
+    }
+);
+
+//============================================================
+
+static const char* SHADOW_BACKGROUND_VERTEX_SHADER_SOURCE = VS_CODE(
+    attribute vec2 POSITION;
+    attribute vec4 COLOR;
+    attribute vec4 AABB;
+
+    varying vec2 pos;
+    varying vec4 aabb;
+    varying vec4 color;
+
+    void main()
+    {
+        gl_Position = vec4(POSITION.x, POSITION.y, 0.0, 1.0);
+
+        pos = POSITION;
+        aabb = AABB;
+        color = COLOR;
+    }
+);
+
+//https://www.shadertoy.com/view/NtVSW1
+
+static const char* SHADOW_BACKGROUND_PIXEL_SHADER_SOURCE = PS_CODE(
+    varying vec2 pos;
+    varying vec4 aabb;
+    varying vec4 color;
+
+    uniform float cornerRadius;
+    uniform float blurRadius;// = 12.0 / 350.0;
+    uniform vec2 shadowDir;
+    uniform vec4 shadowColor;
+
+    float sdRoundRect(vec2 p, vec2 b, float r) {
+        vec2 q = abs(p) - b + r;
+        return min(max(q.x, q.y), 0.0) + length(max(q, 0.0)) - r;
+    }
+
+    vec4 normalBlend(vec4 src, vec4 dst) {
+        float finalAlpha = src.a + dst.a * (1.0 - src.a);
+        return vec4(
+            (src.rgb * src.a + dst.rgb * dst.a * (1.0 - src.a)) / finalAlpha,
+            finalAlpha
+        );
+    }
+
+    float sigmoid(float t) {
+        return 1.0 / (1.0 + exp(-t));
+    }
+
+    vec2 mapTo01(vec2 s, vec2 from1, vec2 from2) {
+        return (s - from1) * vec2(1.0) / (from2 - from1);
+    }
+
+    
+    
+    void main()
+    {
+        //map fragment to (0, 1) inside AABB
+        vec2 fragCoord = mapTo01(pos, aabb.xy, aabb.zw);
+
+        //put fragment to (-0.5, 0.5)
+        vec2 fc = fragCoord - vec2(0.5);
+
+        vec2 hsize = vec2(1.0 / 4.0);
+        
+        float shadowSdf = sdRoundRect(
+            fc + shadowDir,
+            hsize,
+            cornerRadius + blurRadius
+        );
+
+        float rectSdf = sdRoundRect(fc, hsize, cornerRadius);
+
+        float shadow = clamp(sigmoid(shadowSdf / blurRadius), 0.0, 1.0);
+
+
+        // rectangle mask
+        float insideRect = step(rectSdf, 0.0);
+
+        // colors
+        vec4 insideColor = color;// vec4(0.5, 0.5, 1.0, 1.0);
+
+        // outsideColor is only shadow opacity now.
+        // Everywhere else outside rect is transparent/background.
+
+        float outsideAlpha = 1.0 - insideRect;
+
+        // shadow: 0 = dark, 1 = no shadow
+        float shadowAlpha = outsideAlpha * (1.0 - shadow);
+
+        vec4 inside = insideColor * insideRect;
+
+        vec4 shadowCol = shadowColor; // vec4(0.0, 1.0, 0.0, shadowAlpha * 0.65);
+        shadowCol.a *= shadowAlpha;
+
+        vec4 col = normalBlend(inside, shadowCol);
+
+        gl_FragColor = col;
     }
 );
 

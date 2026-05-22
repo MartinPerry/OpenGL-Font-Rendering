@@ -14,6 +14,9 @@
 #include "./Backends/BackendImage.h"
 #include "./Backends/Shaders/DefaultFontShaderManager.h"
 #include "./Backends/Shaders/ColoredFontShaderManager.h"
+#include "./Backends/Shaders/SingleColorBackgroundShaderManager.h"
+#include "./Backends/Shaders/BackgroundShaderManager.h"
+#include "./Backends/Shaders/Shaders.h"
 
 #include "./Unicode/utf8.h"
 #include "./Unicode/uninorms.h"
@@ -347,6 +350,121 @@ void InitTestCustomIcon()
 //=============================================================================================
 //=============================================================================================
 
+class CustomSingleColorBackgroundShaderManager : public BackgroundShaderManager
+{
+public:
+
+	
+	const char* GetVertexShaderSource() const override
+	{
+		return VS_CODE(
+			attribute vec2 POSITION;
+			attribute vec4 COLOR;
+			attribute vec4 AABB;
+
+			varying vec2 pos;
+			varying vec4 aabb;
+			varying vec4 color;
+
+			void main()
+			{
+				gl_Position = vec4(POSITION.x, POSITION.y, 0.0, 1.0);
+
+				pos = POSITION;
+				aabb = AABB;
+				color = COLOR;
+			}
+		);
+	}
+	
+
+
+	const char* GetPixelShaderSource() const override
+	{
+		//https://www.shadertoy.com/view/NtVSW1
+
+		return PS_CODE(
+			varying vec2 pos;
+			varying vec4 aabb;
+			varying vec4 color;
+
+			
+			float sdRoundRect(in vec2 p, in vec2 b, in float r) {
+				vec2 q = abs(p) - b + r;
+				return min(max(q.x, q.y), 0.0) + length(max(q, 0.0)) - r;
+			}
+
+			vec4 normalBlend(vec4 src, vec4 dst) {
+				float finalAlpha = src.a + dst.a * (1.0 - src.a);
+				return vec4(
+					(src.rgb * src.a + dst.rgb * dst.a * (1.0 - src.a)) / finalAlpha,
+					finalAlpha
+				);
+			}
+
+			float sigmoid(float t) {
+				return 1.0 / (1.0 + exp(-t));
+			}
+
+			vec2 mapTo01(vec2 s, vec2 from1, vec2 from2) {
+				return (s - from1) * vec2(1.0) / (from2 - from1);
+			}
+
+			float cornerRadius = 0.25; 
+			float blurRadius = 12.0 / 350.0;
+
+			void main()						
+			{
+				//map fragment to (0, 1) inside AABB
+				vec2 fragCoord = mapTo01(pos, aabb.xy, aabb.zw);
+
+				//put fragment to (-0.5, 0.5)
+				vec2 fc = fragCoord - vec2(0.5);
+				
+				vec2 hsize = vec2(1.0 / 4.0);
+																			
+				vec2 shadowDir = vec2(0.0, 1.0 / 20.0);
+
+				float shadowSdf = sdRoundRect(
+					fc + shadowDir,
+					hsize,
+					cornerRadius + blurRadius
+				);
+
+				float rectSdf = sdRoundRect(fc, hsize, cornerRadius);
+				
+				float shadow = clamp(sigmoid(shadowSdf / blurRadius), 0.0, 1.0);
+
+				
+				// rectangle mask
+				float insideRect = step(rectSdf, 0.0);
+
+				// colors
+				vec4 insideColor = vec4(0.5, 0.5, 1.0, 1.0);
+
+				// outsideColor is only shadow opacity now.
+				// Everywhere else outside rect is transparent/background.
+
+				float outsideAlpha = 1.0 - insideRect;
+
+				// shadow: 0 = dark, 1 = no shadow
+				float shadowAlpha = outsideAlpha * (1.0 - shadow);
+
+				vec4 inside = insideColor * insideRect;
+
+				vec4 shadowCol = vec4(0.0, 1.0, 0.0, shadowAlpha * 0.65);
+
+				vec4 col = normalBlend(inside, shadowCol);
+
+				gl_FragColor = col;
+				//gl_FragColor.rgb += 0.001 * color.rgb;
+			}
+		);
+		//return SingleColorBackgroundShaderManager::GetPixelShaderSource();
+	}
+};
+
+
 void TestNumbers()
 {
 	fn->Clear();
@@ -387,13 +505,19 @@ void InitTestNumbers()
 	fs.sdf = std::nullopt;
 	fn = NumberRenderer::CreateDefault(fs, r);
 
+	Shadow s;
+	s.blurRadius = 12 / 350.0;
+	12.0f / 350.f;
 	BackgroundSettings bsn;
 	bsn.color = { 0, 1, 1, 0.6f };
-	bsn.padding = 28;
-	bsn.cornerRadius = 0;// 20;
-	bsn.shape = BackgroundSettings::Shape::CIRCLE;
-	bsn.shadow = true;
-	fn->SetBackgroundSettings(bsn);
+	bsn.padding = 158;
+	bsn.cornerRadius = 40;// 20;
+	bsn.shape = BackgroundSettings::Shape::ROUNDED_CORNER_SQUARE;
+	bsn.shadow = s;
+	fn->SetBackgroundSettings(bsn);	
+	
+	//auto bgl = (BackendOpenGL*)fn->GetBackend();
+	//bgl->SetBackground(bsn, std::make_shared<CustomSingleColorBackgroundShaderManager>());
 }
 
 //=============================================================================================
@@ -461,7 +585,7 @@ void InitTestStringBackground()
 	//bs.color = { 0,1, 1, 0.6f };
 	bs.padding = 8;
 	bs.cornerRadius = 40;// 20;
-	bs.shadow = true;
+	bs.shadow = std::nullopt;
 	frWithBg->SetBackgroundSettings(bs);
 }
 
@@ -560,7 +684,7 @@ void display() {
 
 	//render here
 	
-	TestBasicRender();
+	//TestBasicRender();
 		
 	TestStringBackground();
 
@@ -598,6 +722,7 @@ void initGL() {
 
 	//http://dpi.lv
 
+	/*
 	Wrapper<std::string> strA;
 	strA.str = "ahaoj";
 	CustomAsciiIterator it2 = CustomIteratorCreator::Create(strA.str);
@@ -609,6 +734,7 @@ void initGL() {
 	}
 
 	printf("\n");
+	*/
 
 	/*
 	Wrapper<icu::UnicodeString> str;

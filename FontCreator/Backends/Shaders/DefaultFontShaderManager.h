@@ -18,8 +18,8 @@ public:
     DefaultFontShaderManager(std::optional<SDF> sdf);
 	virtual ~DefaultFontShaderManager() = default;
     
-    const char* GetVertexShaderSource() const override;
-    const char* GetPixelShaderSource() const override;
+    virtual const char* GetVertexShaderSource() const override;
+    virtual const char* GetPixelShaderSource() const override;
 
     void GetAttributtesUniforms() override;
     void BindVertexAtribs() override;
