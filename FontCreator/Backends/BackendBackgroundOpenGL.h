@@ -10,8 +10,8 @@ class IShaderManager;
 class BackendBackgroundOpenGL : public BackendOpenGL
 {
 public:
-	BackendBackgroundOpenGL(const BackgroundSettings& bs, const RenderSettings& r, int glVersion = 3);
-	BackendBackgroundOpenGL(const BackgroundSettings& bs, const RenderSettings& r, int glVersion,
+	BackendBackgroundOpenGL(const BackgroundSettings& bs, const RenderSettings& r);
+	BackendBackgroundOpenGL(const BackgroundSettings& bs, const RenderSettings& r,
 		const char* vSource, const char* pSource, std::shared_ptr<IShaderManager> sm);
 	virtual ~BackendBackgroundOpenGL();
 

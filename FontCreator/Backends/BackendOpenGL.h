@@ -22,7 +22,7 @@ class BackendOpenGL : public BackendBase
 {
 public:
 		
-	BackendOpenGL(const RenderSettings& r, int glVersion,
+	BackendOpenGL(const RenderSettings& r, 
 		const char * vSource, const char * pSource, 
 		std::shared_ptr<IShaderManager> sm);
    	
@@ -68,8 +68,7 @@ protected:
 	GLuint vao;
 	GLuint texture;
 	Shader shader;
-	int glVersion;
-	
+		
 	float tW; //1.0 / pixel size in width
 	float tH; //1.0 / pixel size in height
 

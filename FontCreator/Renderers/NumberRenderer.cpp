@@ -24,23 +24,23 @@ const std::string NumberRenderer::NUMBERS_STRING = "0123456789,.-";
 /// <param name="glVersion"></param>
 /// <returns></returns>
 NumberRenderer * NumberRenderer::CreateSingleColor(Color color, const FontBuilderSettings& fs, 
-	const RenderSettings& r, int glVersion)
+	const RenderSettings& r)
 {
 	auto sm = std::make_shared<SingleColorFontShaderManager>(fs.sdf);
 	sm->SetColor(color.r, color.g, color.b, color.a);
 
-	auto backend = std::make_unique<BackendOpenGL>(r, glVersion, nullptr, nullptr, sm);
+	auto backend = std::make_unique<BackendOpenGL>(r, nullptr, nullptr, sm);
 
 	return new NumberRenderer(fs, std::move(backend));
 
 }
 
 NumberRenderer* NumberRenderer::CreateDefault(const FontBuilderSettings& fs,
-	const RenderSettings& r, int glVersion)
+	const RenderSettings& r)
 {
 	auto sm = std::make_shared<DefaultFontShaderManager>(fs.sdf);
 
-	auto backend = std::make_unique<BackendOpenGL>(r, glVersion, nullptr, nullptr, sm);
+	auto backend = std::make_unique<BackendOpenGL>(r, nullptr, nullptr, sm);
 
 	return new NumberRenderer(fs, std::move(backend));
 }

@@ -4,8 +4,8 @@
 #include "./Shaders/SingleColorBackgroundShaderManager.h"
 #include "./Shaders/BackgroundShaderManager.h"
 
-BackendBackgroundOpenGL::BackendBackgroundOpenGL(const BackgroundSettings& bs, const RenderSettings& r, int glVersion) :	
-	BackendBackgroundOpenGL(bs, r, glVersion,		
+BackendBackgroundOpenGL::BackendBackgroundOpenGL(const BackgroundSettings& bs, const RenderSettings& r) :	
+	BackendBackgroundOpenGL(bs, r,
 		nullptr, 		
 		nullptr,
 		bs.color.has_value() ? 
@@ -15,9 +15,9 @@ BackendBackgroundOpenGL::BackendBackgroundOpenGL(const BackgroundSettings& bs, c
 {
 }
 
-BackendBackgroundOpenGL::BackendBackgroundOpenGL(const BackgroundSettings& bs, const RenderSettings& r, int glVersion,
+BackendBackgroundOpenGL::BackendBackgroundOpenGL(const BackgroundSettings& bs, const RenderSettings& r,
 	const char* vSource, const char* pSource, std::shared_ptr<IShaderManager> sm) :
-	BackendOpenGL(r, glVersion, vSource, pSource, sm)	
+	BackendOpenGL(r, vSource, pSource, sm)	
 {
 	this->SetBackgroundSettings(bs);
 }

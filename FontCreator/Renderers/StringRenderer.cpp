@@ -23,23 +23,23 @@
 /// <param name="glVersion"></param>
 /// <returns></returns>
 StringRenderer * StringRenderer::CreateSingleColor(Color color, 
-	const FontBuilderSettings& fs, const RenderSettings& r, int glVersion)
+	const FontBuilderSettings& fs, const RenderSettings& r)
 {
 	auto sm = std::make_shared<SingleColorFontShaderManager>(fs.sdf);
 	sm->SetColor(color.r, color.g, color.b, color.a);
 		
-	auto backend = std::make_unique<BackendOpenGL>(r, glVersion, nullptr, nullptr, sm);
+	auto backend = std::make_unique<BackendOpenGL>(r, nullptr, nullptr, sm);
 
 	return new StringRenderer(fs, std::move(backend));
 
 }
 
 StringRenderer* StringRenderer::CreateDefault(const FontBuilderSettings& fs,
-	const RenderSettings& r, int glVersion)
+	const RenderSettings& r)
 {
 	auto sm = std::make_shared<DefaultFontShaderManager>(fs.sdf);
 	
-	auto backend = std::make_unique<BackendOpenGL>(r, glVersion, nullptr, nullptr, sm);
+	auto backend = std::make_unique<BackendOpenGL>(r, nullptr, nullptr, sm);
 
 	return new StringRenderer(fs, std::move(backend));
 }

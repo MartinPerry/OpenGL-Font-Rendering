@@ -194,11 +194,17 @@ struct Color
 struct RenderSettings
 {
 	uint16_t deviceW;
-	uint16_t deviceH;
+	uint16_t deviceH;	
 
+	//OpenGL related
 	bool useTextureLinearFilter = false;
-};
 
+	int glVersion = 3;
+
+	//custom shaders
+	const char* vSource = nullptr;
+	const char* pSource = nullptr;
+};
 
 struct IFontBuilderSettings
 {

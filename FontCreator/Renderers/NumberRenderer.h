@@ -21,8 +21,8 @@ public:
 
 	static const std::string NUMBERS_STRING;
 
-	static NumberRenderer * CreateSingleColor(Color color, const FontBuilderSettings& fs, const RenderSettings& r, int glVersion = 3);
-	static NumberRenderer* CreateDefault(const FontBuilderSettings& fs, const RenderSettings& r, int glVersion = 3);
+	static NumberRenderer * CreateSingleColor(Color color, const FontBuilderSettings& fs, const RenderSettings& r);
+	static NumberRenderer* CreateDefault(const FontBuilderSettings& fs, const RenderSettings& r);
 
 	NumberRenderer(const FontBuilderSettings& fs, std::unique_ptr<BackendBase>&& backend);
 	NumberRenderer(std::shared_ptr<IFontBuilder> fb, std::unique_ptr<BackendBase>&& backend);

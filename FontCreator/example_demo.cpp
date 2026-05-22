@@ -338,7 +338,7 @@ void InitTestCustomIcon()
 	auto cfb = std::make_shared<CustomImageFontBuilder>(gd, ifs);
 
 	auto sm = std::make_shared<ColoredFontShaderManager>(true);
-	auto backend = std::make_unique<BackendOpenGL>(r, 3, nullptr, nullptr, sm);
+	auto backend = std::make_unique<BackendOpenGL>(r, nullptr, nullptr, sm);
 
 	srCustom = new StringRenderer(cfb, std::move(backend));
 }
@@ -389,7 +389,7 @@ void InitTestNumbers()
 
 	BackgroundSettings bsn;
 	bsn.color = { 0, 1, 1, 0.6f };
-	bsn.padding = 8;
+	bsn.padding = 28;
 	bsn.cornerRadius = 0;// 20;
 	bsn.shape = BackgroundSettings::Shape::CIRCLE;
 	bsn.shadow = true;

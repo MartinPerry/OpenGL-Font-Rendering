@@ -19,11 +19,10 @@
 //=============================================================================
 
 
-BackendOpenGL::BackendOpenGL(const RenderSettings& r, int glVersion,
+BackendOpenGL::BackendOpenGL(const RenderSettings& r,
 	const char* vSource, const char* pSource, 
 	std::shared_ptr<IShaderManager> sm) :
 	BackendBase(r),
-	glVersion(glVersion),
 	sm(sm),		
 	vbo(0),
 	vao(0),
@@ -234,7 +233,7 @@ void BackendOpenGL::SetBackground(std::optional<BackgroundSettings> bs)
 		}
 		else
 		{
-			this->background = std::make_unique<BackendBackgroundOpenGL>(*bs, rs, glVersion);
+			this->background = std::make_unique<BackendBackgroundOpenGL>(*bs, rs);
 		}
 	}
 	else 	
@@ -343,9 +342,9 @@ void BackendOpenGL::Render(std::function<void(GLuint)> preDrawCallback,
 	{
 		postDrawCallback();
 	}
-
+	
 #ifdef __ANDROID_API__
-	if (glVersion != 2)
+	if (rs.glVersion != 2)
 	{
 		FONT_UNBIND_VAO;
 	}
