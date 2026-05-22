@@ -200,7 +200,7 @@ struct RenderSettings
 	bool useTextureLinearFilter = false;
 
 #ifdef __ANDROID_API__
-	int glVersion = 3;
+	int glVersion = GetDefaultGlversion();
 #endif
 };
 

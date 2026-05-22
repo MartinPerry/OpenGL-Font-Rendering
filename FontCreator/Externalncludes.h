@@ -131,6 +131,11 @@ static void CheckOpenGLError(const char* stmt, const char* fname, int line)
 #	define TEXTURE_SINGLE_CHANNEL GL_LUMINANCE
 #endif
 
+static inline int GetDefaultGlversion()
+{
+	return 3;
+}
+
 //=====================================================================================
 //String manipulation
 //=====================================================================================

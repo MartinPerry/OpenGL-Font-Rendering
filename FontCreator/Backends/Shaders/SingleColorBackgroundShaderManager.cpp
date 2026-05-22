@@ -120,10 +120,10 @@ void SingleColorBackgroundShaderManager::FillQuadVertexData(
 {
 	//if (vec.size() > 0) return;
 	const float minX = 2.0f * minVertex.x - 1.0f;
-	const float minY = (2.0f * minVertex.y - 1.0f);
+	const float minY = -(2.0f * minVertex.y - 1.0f);
 
 	const float maxX = 2.0f * maxVertex.x - 1.0f;
-	const float maxY = (2.0f * maxVertex.y - 1.0f);
+	const float maxY = -(2.0f * maxVertex.y - 1.0f);
 
 	if (shape == BackgroundSettings::Shape::SQUARE)
 	{
@@ -297,5 +297,5 @@ void SingleColorBackgroundShaderManager::FillCircle(float cx, float cy, float rx
 void SingleColorBackgroundShaderManager::AddVertex(float x, float y, std::vector<float>& vec) const
 {	
 	vec.push_back(x);
-	vec.push_back(y); //projection to compensate AR
+	vec.push_back(y);
 }

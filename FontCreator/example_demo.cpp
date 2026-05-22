@@ -365,7 +365,7 @@ void TestNumbers()
 
 	//fn->AddNumber((double)(nmbr + nmbr / 100.0), 0.5f, 0.5f);
 	//fn->AddNumber(600010, 0.5f, 0.5f, { 1,1,0,1 }, AbstractRenderer::TextAnchor::CENTER);
-	fn->AddNumber(45, 0.5f, 0.5f, rp, AbstractRenderer::TextAnchor::CENTER);
+	fn->AddNumber(45, 0.5f, 0.7f, rp, AbstractRenderer::TextAnchor::CENTER);
 	//fn->AddNumberCaption(60000, 0.5f, 0.4f, { 1,1,0,1 });
 	fn->Render();
 }
@@ -402,7 +402,7 @@ void InitTestNumbers()
 	bsn.padding = 10;
 	bsn.cornerRadius = 40;// 20;
 	bsn.shape = BackgroundSettings::Shape::ROUNDED_CORNER_SQUARE;
-	bsn.shadow = s;
+	//bsn.shadow = s;
 	fn->SetBackgroundSettings(bsn);	
 	
 	//Example to set custom shader class

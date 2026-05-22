@@ -5,7 +5,7 @@
 
 #include "../../Externalncludes.h"
 
-#include "../FontStructures.h"
+#include "../../FontStructures.h"
 
 class SdfShaderSupport 
 {
