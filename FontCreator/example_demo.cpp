@@ -93,94 +93,13 @@ void reshape(int width, int height) {
 	fn->SetCanvasSize(g_width, g_height);
 }
 
-void TestCustomIcon()
+//=============================================================================================
+//=============================================================================================
+//=============================================================================================
+
+
+void TestBasicRender()
 {
-	auto rp = AbstractRenderer::DEFAULT_PARAMS;
-	rp.color.a = 0.5;
-
-	srCustom->Clear();
-	srCustom->AddString("ab", 0.5f, 0.5f,
-		rp,
-		AbstractRenderer::TextAnchor::CENTER,
-		AbstractRenderer::TextAlign::ALIGN_CENTER);
-	srCustom->Render();
-}
-
-void TestNumbers()
-{
-	fn->Clear();
-	//fn->AddNumber(-45.27, 100, 100);
-	//fn->AddNumberCaption(-450.013, 100, 100, { 1, 1.0f, 1.0f, 1 });
-	//fn->AddNumberCaption(-897456, 100, 300, { 1, 1.0f, 1.0f, 1 });
-	int nmbr = rand();
-	//printf("%d\n", nmbr);
-	
-	auto rp = AbstractRenderer::DEFAULT_PARAMS;
-	rp.bgColor = { 1, 0, 0, 1 };
-
-	//fn->AddNumber((double)(nmbr + nmbr / 100.0), 0.5f, 0.5f);
-	//fn->AddNumber(600010, 0.5f, 0.5f, { 1,1,0,1 }, AbstractRenderer::TextAnchor::CENTER);
-	fn->AddNumber(45, 0.5f, 0.5f, rp, AbstractRenderer::TextAnchor::CENTER);
-	//fn->AddNumberCaption(60000, 0.5f, 0.4f, { 1,1,0,1 });
-	fn->Render();
-}
-
-void TestStringBackground()
-{
-	frWithBg->Clear();
-
-	auto backendBg = frWithBg->GetBackend();
-	if (auto glBack = dynamic_cast<BackendOpenGL*>(backendBg))
-	{
-		glBack->SetFontTextureLinearFiler(true);
-	}
-
-	frWithBg->AddStringCaption(
-		CreateRandomString(10),
-		//u8"\U0001F300Pøíliš malý p\n(žluouèký)\nkùyòy",
-		0.5f, 0.85f,
-		AbstractRenderer::RenderParams({ 1,1,0,1 }, { 0, 1, 0, 1 }, 1.0)
-	);
-
-	//frWithBg->Render();
-}
-
-//------------------------------------------------------------------------------
-void display() {
-
-	glClearColor(0.2f, 0.0f, 0.0f, 1.0f);
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-	glViewport(0, 0, g_width, g_height);
-	glMatrixMode(GL_PROJECTION);
-	glLoadIdentity();
-	glMatrixMode(GL_MODELVIEW);
-	glLoadIdentity();
-
-	//glDisable(GL_LIGHTING);
-	
-		
-	// fill mode always
-	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-	glDisable(GL_CULL_FACE);
-	
-	// Stencil / Depth buffer and test disabled
-	glDisable(GL_STENCIL_TEST);
-	glStencilMask(0);
-
-	glDisable(GL_DEPTH_TEST);
-	glDepthMask(GL_FALSE);
-	// Blend on for alpha
-	
-	glEnable(GL_BLEND);
-	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-	// Color active
-	//glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
-	//glPrimitiveRestartIndex(-1);
-	//glEnable(GL_PRIMITIVE_RESTART);
-	
-
-	//render here
 	/*
 	fr->AddString(u8"Pøíliš\nžluouèký\nkùò", 400, 300,
 		FontRenderer::LEFT_TOP,
@@ -203,46 +122,26 @@ void display() {
 		}
 	}
 	*/
-	
+
 	fr->Clear();
-	
 
-	//fr->AddStringCaption(UTF8_TEXT(u8"Velmi"), -0.05f, 0.5f, { 1,1,0,1 });
-	//fr->AddString(UTF8_TEXT(u8"Velmi \U0001F300"), 0.5f, 0.5f, { 1,1,0,1 });
-	//fr->AddStringCaption(UTF8_TEXT(u8"\U0001F300Pøíliš malý p\n(žluouèký)\nkùyòy"), 0.5f, 0.5f, { 1,1,0,1 });
-	//fr->AddStringCaption(UTF8_TEXT(u8"Pøíliš malýp\n(žluouèký)\nkùyòy"), 0.5f, 0.5f, { 1,1,0,1 });
-	//fr->AddStringCaption(UTF8_TEXT(u8"ahoj \u4e3d xx \u0633\u0644\u0627\u0645"), 0.5f, 0.5f, { 1,1,0,1 });
-	//fr->AddStringCaption(UTF8_TEXT(u8"\u4e3d"), 0.8f, 0.5f, { 1,1,0,1 });
-	//fr->AddStringCaption(UTF8_TEXT(u8"\u103c"), 0.2f, 0.5f, { 1,1,0,1 });
-	//fr->AddStringCaption(UTF8_TEXT(u8"Baf"), 0.8f, 0.8f, { 1,1,0,1 });
-	//fr->AddString(UTF8_TEXT(u8"[]"), 0.5f, 0.5f, { 1,1,0,1 });
-		
-	//fr->AddString(UTF8_TEXT(CreateRandomString(int(1 + rand() % 15)).c_str()), 0.5f, 0.5f, { 1,1,0,1 }, AbstractRenderer::TextAnchor::CENTER);
-	
-
-	//fr->AddString(UTF8_TEXT(u8"x \U0001F300 x"), 0.5f, 0.5f);
-	//fr->AddString(UTF8_TEXT(u8"MLQp\U0001F300x"), 0.5f, 0.5f, { 1,1,1,1 }, AbstractRenderer::TextAnchor::CENTER);
-	//fr->AddString(UTF8_TEXT(u8"\U0001F600"), 0.5f, 0.5f);
-	//fr->AddString(UTF8_TEXT(u8"x"), 0.5f, 0.5f);
 	auto backend = fr->GetBackend();
-	if (auto glBack = dynamic_cast<BackendOpenGL *>(backend))
+	if (auto glBack = dynamic_cast<BackendOpenGL*>(backend))
 	{
 		glBack->SetFontTextureLinearFiler(true);
 	}
 
-	
-	
 	/*
 	FontSize f1(12_pt);
 	fr->GetFontBuilder()->SetAllFontSize(f1);
-	fr->AddString(//UTF8_TEXT(CreateRandomString(5).c_str()), 
+	fr->AddString(//UTF8_TEXT(CreateRandomString(5).c_str()),
 		UTF8_TEXT("Ahoj\nsvete\nsvetg"),
-		0.0f, 1.0f, 
-		{ 1,1,0,1, 1.0 }, 
+		0.0f, 1.0f,
+		{ 1,1,0,1, 1.0 },
 		AbstractRenderer::TextAnchor::LEFT_DOWN);
-		
 
-	fr->AddString(//UTF8_TEXT(CreateRandomString(5).c_str()), 
+
+	fr->AddString(//UTF8_TEXT(CreateRandomString(5).c_str()),
 		UTF8_TEXT("Ahoj\nsvete\nsvetg"),
 		0.0f, 0.0f,
 		{ 1,1,0,1, 2.0 },
@@ -250,40 +149,40 @@ void display() {
 	*/
 
 	/*
-	fr->AddString(//UTF8_TEXT(CreateRandomString(5).c_str()), 
+	fr->AddString(//UTF8_TEXT(CreateRandomString(5).c_str()),
 		UTF8_TEXT("Ahoj\nsvete\nsvetg"),
 		0.5f, 0.5f,
 		{ 1,1,0,1, 1.0 },
 		AbstractRenderer::TextAnchor::CENTER,
 		AbstractRenderer::TextAlign::ALIGN_CENTER);
 	*/
-	
+
 	/*
-	fr->AddStringCaption(UTF8_TEXT(CreateRandomString(10).c_str()), 
+	fr->AddStringCaption(UTF8_TEXT(CreateRandomString(10).c_str()),
 		//UTF8_TEXT("Ahoj\nsvete\nsvetg kuk"),
 		//UTF8_TEXT("H\n1023hPa"),
 		0.5f, 0.85f,
-		{ 
-			1,1,0,1, //color 
+		{
+			1,1,0,1, //color
 			1.0 //scale
 		}
 	);
 	*/
 
-	
-	fr->SetCaptionOffset(80);	
-	
-	
-		
+
+	fr->SetCaptionOffset(80);
+
+
+
 
 	fr->AddStringCaption(
 		//UTF8_TEXT(CreateRandomString(10).c_str()),
 		u8"i i i i i",
 		//UTF8_TEXT("H\n1023hPa"),
 		0.5f, 0.35f,
-		AbstractRenderer::RenderParams({1,1,1,1 }, 1.0)
+		AbstractRenderer::RenderParams({ 1,1,1,1 }, 1.0)
 	);
-	
+
 	/*
 	fr->AddString(
 		//UTF8_TEXT(CreateRandomString(10).c_str()),
@@ -326,32 +225,343 @@ void display() {
 	fr->AddString(u8"Hello World", 200, 300);
 	*/
 	fr->Render();
-	
 
-	/*
-	fr->Clear();
-	//FontSize f2(24_pt);
-	//fr->GetFontBuilder()->SetAllFontSize(f2);
-	fr->AddString(//UTF8_TEXT(CreateRandomString(5).c_str()), 
-		UTF8_TEXT("Ahoj\nsvete"),
-		0.7f, 0.3f, 
-		{ 1,1,0,1, 2.0 }, 
-		AbstractRenderer::TextAnchor::CENTER);
-	fr->Render();
+}
 
+void InitTestBasic()
+{
+	auto ftSize = 12_pt;
 
-	fr->Clear();
-	FontSize f2(24_pt);
-	fr->GetFontBuilder()->SetAllFontSize(f2);
-	fr->AddString(//UTF8_TEXT(CreateRandomString(5).c_str()), 
-		UTF8_TEXT("Ahoj\nsvete"),
-		0.7f, 0.7f,
-		{ 1,1,0,1, 1.0 },
-		AbstractRenderer::TextAnchor::CENTER);
-	fr->Render();
-	*/
+	auto fontFiles = AbstractRenderer::GetFontsInDirectory("../fonts2/");
+
+	std::vector<Font> fonts;
+	for (auto d : fontFiles)
+	{
+		Font f(d, ftSize);
+
+		fonts.push_back(f);
+	}
 
 	
+	RenderSettings r;
+	r.deviceW = g_width;
+	r.deviceH = g_height;
+
+
+	FontBuilderSettings fs;
+	fs.screenDpi = 260;
+	fs.textureW = 512;
+	fs.textureH = 512;
+	fs.screenScale = 1.0;
+	fs.fonts = fonts;
+	fs.sdf = SDF();
+	fs.sdf->outlineColor = { 0, 0, 0, 1 };
+	fs.sdf->outlineWidth = 0.1f;
+	fs.sdf->softness = 0.05f;
+
+	//======================================================================
+
+	//fs.fonts = { f, f2, f3 };
+	//fr = new StringRenderer(fs, r);
+	fr = StringRenderer::CreateDefault(fs, r);
+	//fr = StringRenderer::CreateSingleColor({ 1,0,1,1 }, fs, r);
+	//fr = new StringRenderer({ fNum }, r);
+	//fr = new StringRenderer({ f4 }, r);
+
+	//fr->GetFontBuilder()->SetStrokeSize(2);
+
+	fr->SetCaption(u8"\U0001F300", 10);
+	fr->SetCaption(u8"\U00002b55", 0);
+	fr->SetCaption(u8"*", 0);
+
+
+	//fr->AddStringCaption(u8"Pøíliš\nžluouèký\nkùò", 0.5f, 0.5f, { 1,1,0,1 });
+	//fr->AddStringCaption(u8"AbBd", 0.5f, 0.5f, { 1,1,0,1 });
+	//fr->Render();
+	//fr->GetFontBuilder()->Save("D://88.png");
+	fr->SetNewLineOffset(0);
+}
+
+//=============================================================================================
+//=============================================================================================
+//=============================================================================================
+
+
+void TestCustomIcon()
+{
+	auto rp = AbstractRenderer::DEFAULT_PARAMS;
+	rp.color.a = 0.5;
+
+	srCustom->Clear();
+	srCustom->AddString("ab", 0.5f, 0.5f,
+		rp,
+		AbstractRenderer::TextAnchor::CENTER,
+		AbstractRenderer::TextAlign::ALIGN_CENTER);
+	srCustom->Render();
+}
+
+void InitTestCustomIcon()
+{
+	RenderSettings r;
+	r.deviceW = g_width;
+	r.deviceH = g_height;
+
+	auto ftSize = 12_pt;
+
+	Font fArial("../fonts/arial_unicode.ttf", ftSize);
+
+	fArial.size = 24.0_pt;
+
+	std::vector<CustomGlyph> gd;
+	CustomGlyph g;
+	g.c = 'a';
+	//g.fileName = "D://mario_256_gray.png";
+	g.fileName = "D://mario_256.png";
+	g.referenceCharCode = 'x';
+	g.referenceFont = fArial;
+	gd.push_back(g);
+
+	g.c = 'b';
+	//g.fileName = "D://user-3296_64.png";
+	g.fileName = "D://mario_256.png";
+	g.referenceCharCode = 'o';
+	g.referenceFont = fArial;
+	gd.push_back(g);
+
+	CustomFontBuilderSettings ifs;
+	ifs.textureW = 256;
+	ifs.textureH = 256;
+	ifs.screenDpi = 260;
+	ifs.screenScale = 1;
+	ifs.channelsCount = 4;
+
+	auto cfb = std::make_shared<CustomImageFontBuilder>(gd, ifs);
+
+	auto sm = std::make_shared<ColoredFontShaderManager>(true);
+	auto backend = std::make_unique<BackendOpenGL>(r, 3, nullptr, nullptr, sm);
+
+	srCustom = new StringRenderer(cfb, std::move(backend));
+}
+
+//=============================================================================================
+//=============================================================================================
+//=============================================================================================
+
+void TestNumbers()
+{
+	fn->Clear();
+	//fn->AddNumber(-45.27, 100, 100);
+	//fn->AddNumberCaption(-450.013, 100, 100, { 1, 1.0f, 1.0f, 1 });
+	//fn->AddNumberCaption(-897456, 100, 300, { 1, 1.0f, 1.0f, 1 });
+	int nmbr = rand();
+	//printf("%d\n", nmbr);
+	
+	auto rp = AbstractRenderer::DEFAULT_PARAMS;
+	rp.bgColor = { 1, 0, 0, 1 };
+
+	//fn->AddNumber((double)(nmbr + nmbr / 100.0), 0.5f, 0.5f);
+	//fn->AddNumber(600010, 0.5f, 0.5f, { 1,1,0,1 }, AbstractRenderer::TextAnchor::CENTER);
+	fn->AddNumber(45, 0.5f, 0.5f, rp, AbstractRenderer::TextAnchor::CENTER);
+	//fn->AddNumberCaption(60000, 0.5f, 0.4f, { 1,1,0,1 });
+	fn->Render();
+}
+
+void InitTestNumbers()
+{
+	auto ftSize = 12_pt;
+
+
+	Font fArial("../fonts/arial_unicode.ttf", ftSize);
+
+	RenderSettings r;
+	r.deviceW = g_width;
+	r.deviceH = g_height;
+
+
+	FontBuilderSettings fs;
+	fs.screenDpi = 260;
+	fs.textureW = 512;
+	fs.textureH = 512;
+	fs.screenScale = 1.0;		
+	fs.fonts = { fArial };
+	fs.sdf = std::nullopt;
+	fn = NumberRenderer::CreateDefault(fs, r);
+
+	BackgroundSettings bsn;
+	bsn.color = { 0, 1, 1, 0.6f };
+	bsn.padding = 8;
+	bsn.cornerRadius = 0;// 20;
+	bsn.shape = BackgroundSettings::Shape::CIRCLE;
+	bsn.shadow = true;
+	fn->SetBackgroundSettings(bsn);
+}
+
+//=============================================================================================
+//=============================================================================================
+//=============================================================================================
+
+void TestStringBackground()
+{
+	frWithBg->Clear();
+
+	auto backendBg = frWithBg->GetBackend();
+	if (auto glBack = dynamic_cast<BackendOpenGL*>(backendBg))
+	{
+		glBack->SetFontTextureLinearFiler(true);
+	}
+
+	frWithBg->AddStringCaption(
+		CreateRandomString(10),
+		//u8"\U0001F300Pøíliš malý p\n(žluouèký)\nkùyòy",
+		0.5f, 0.85f,
+		AbstractRenderer::RenderParams({ 1,1,0,1 }, { 0, 1, 0, 1 }, 1.0)
+	);
+
+	//frWithBg->Render();
+}
+
+void InitTestStringBackground()
+{
+	auto ftSize = 12_pt;
+
+	auto fontFiles = AbstractRenderer::GetFontsInDirectory("../fonts2/");
+
+	std::vector<Font> fonts;
+	for (auto d : fontFiles)
+	{
+		Font f(d, ftSize);
+
+		fonts.push_back(f);
+	}
+
+	RenderSettings r;
+	r.deviceW = g_width;
+	r.deviceH = g_height;
+
+
+	FontBuilderSettings fs;
+	fs.screenDpi = 260;
+	fs.textureW = 512;
+	fs.textureH = 512;
+	fs.screenScale = 1.0;
+	fs.fonts = fonts;
+	fs.sdf = SDF();
+	fs.sdf->outlineColor = { 0, 0, 0, 1 };
+	fs.sdf->outlineWidth = 0.1f;
+	fs.sdf->softness = 0.05f;
+
+	//frWithBg = StringRenderer::CreateDefault(fs, r);
+	frWithBg = StringRenderer::CreateSingleColor({ 1,0,1,1 }, fs, r);
+	frWithBg->SetCaption(u8"\U0001F300", 10);
+	frWithBg->SetCaption(u8"\U00002b55", 0);
+	frWithBg->SetCaption(u8"*", 0);
+	frWithBg->SetCaptionOffset(40);
+
+	BackgroundSettings bs;
+	//bs.color = { 0,1, 1, 0.6f };
+	bs.padding = 8;
+	bs.cornerRadius = 40;// 20;
+	bs.shadow = true;
+	frWithBg->SetBackgroundSettings(bs);
+}
+
+//=============================================================================================
+//=============================================================================================
+//=============================================================================================
+
+void InitTestToImage()
+{
+	auto ftSize = 12_pt;
+
+	auto fontFiles = AbstractRenderer::GetFontsInDirectory("../fonts2/");
+
+	std::vector<Font> fonts;
+	for (auto d : fontFiles)
+	{
+		Font f(d, ftSize);
+
+		fonts.push_back(f);
+	}
+
+	FontBuilderSettings fs;
+	fs.screenDpi = 260;
+	fs.textureW = 512;
+	fs.textureH = 512;
+	fs.screenScale = 1.0;
+	fs.fonts = fonts;
+	fs.sdf = SDF();
+	fs.sdf->outlineColor = { 0, 0, 0, 1 };
+	fs.sdf->outlineWidth = 0.1f;
+	fs.sdf->softness = 0.05f;
+
+	RenderSettings ri;
+	ri.deviceW = 512;
+
+	ri.deviceH = 256;
+
+	StringRenderer* imageSr = new StringRenderer(fs, std::make_unique<BackendImage>(ri, BackendImage::Format::RGBA));
+
+	BackendImage* image = dynamic_cast<BackendImage*>(imageSr->GetBackend());
+	image->SetTightDynamicCanvasEnabled(true);
+
+	BackgroundSettings bsi;
+	bsi.color = { 1, 0, 0, 1 };
+	image->SetBackground(bsi);
+
+	imageSr->AddString(
+		//UTF8_TEXT(CreateRandomString(10).c_str()),				
+		u8"Pøílíš málo qqq",
+		0.0f, 0.1f,
+		AbstractRenderer::RenderParams({ 1,1,0,1 }, 1.0),
+		AbstractRenderer::TextAnchor::LEFT_TOP);
+
+	imageSr->Render();
+	image->SaveToFile("D://test2.png");
+}
+
+//=============================================================================================
+//=============================================================================================
+//=============================================================================================
+
+
+void display() {
+
+	glClearColor(0.2f, 0.0f, 0.0f, 1.0f);
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+	glViewport(0, 0, g_width, g_height);
+	glMatrixMode(GL_PROJECTION);
+	glLoadIdentity();
+	glMatrixMode(GL_MODELVIEW);
+	glLoadIdentity();
+
+	//glDisable(GL_LIGHTING);
+	
+		
+	// fill mode always
+	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+	glDisable(GL_CULL_FACE);
+	
+	// Stencil / Depth buffer and test disabled
+	glDisable(GL_STENCIL_TEST);
+	glStencilMask(0);
+
+	glDisable(GL_DEPTH_TEST);
+	glDepthMask(GL_FALSE);
+	// Blend on for alpha
+	
+	glEnable(GL_BLEND);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	// Color active
+	//glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
+	//glPrimitiveRestartIndex(-1);
+	//glEnable(GL_PRIMITIVE_RESTART);
+	
+
+	//render here
+	
+	TestBasicRender();
+		
 	TestStringBackground();
 
 	//TestCustomIcon();
@@ -413,192 +623,26 @@ void initGL() {
 	*/
 
 	printf("\n");
-	/*
-	Font f;
-	//f.name = "test.ttf";
-	f.name = "f1.ttf";
-	//f.name = "NotoSansCJKtc-Regular.otf";
-	f.size = 16_pt;
-
-	Font f2;
-	//f.name = "test.ttf";
-	f2.name = "f2.otf";
-	//f.name = "NotoSansCJKtc-Regular.otf";
-	f2.size = 16_pt;
-	*/
-
-	auto ftSize = 12_pt;
-
-	auto fontFiles = AbstractRenderer::GetFontsInDirectory("../fonts2/");
-
-	std::vector<Font> fonts;
-	for (auto d : fontFiles)
-	{
-		Font f(d, ftSize);
-
-		fonts.push_back(f);
-	}
-
-	Font ft("../fonts2/merged_out_2048_94.ttf", ftSize);
-	//fonts.push_back(ft);
-
-	Font fArial("../fonts/arial_unicode.ttf", ftSize);
-	//fonts.clear();
-	//fonts.push_back(fArial);
-
-	/*
-	Font f4;
-	f4.name = "arial.ttf";
-	f4.size = 16_pt;
-
-
-
-	Font f;
-	f.name = "merged_out_1000.otf";
-	f.size = 16_pt;
-
-	Font f2;
-	f2.name = "merged_out_1000.ttf";
-	f2.size = 16_pt;
-
-
-	Font f3;
-	f3.name = "merged_out_2048.ttf";
-	f3.size = 16_pt;
-	*/
-
-	Font fNum("../fonts2/merged_out_2048_53.ttf", ftSize);
-	//fNum.name = "../fonts/arial.ttf";
-	//fNum.name = "../fonts/NotoSans-Regular.ttf";
 	
-	RenderSettings r;
-	r.deviceW = g_width;
-	r.deviceH = g_height;
-
-	
-	FontBuilderSettings fs;
-	fs.screenDpi = 260;
-	fs.textureW = 512;
-	fs.textureH = 512;
-	fs.screenScale = 1.0;
-	fs.fonts = fonts;
-	fs.sdf = SDF();
-	fs.sdf->outlineColor = { 0, 0, 0, 1 };
-	fs.sdf->outlineWidth = 0.1f;
-	fs.sdf->softness = 0.05f;
-	
-	//======================================================================
-
-	//fs.fonts = { f, f2, f3 };
-	//fr = new StringRenderer(fs, r);
-	fr = StringRenderer::CreateDefault(fs, r);
-	//fr = StringRenderer::CreateSingleColor({ 1,0,1,1 }, fs, r);
-	//fr = new StringRenderer({ fNum }, r);
-	//fr = new StringRenderer({ f4 }, r);
-		
-	//fr->GetFontBuilder()->SetStrokeSize(2);
-
-	fr->SetCaption(u8"\U0001F300", 10);
-	fr->SetCaption(u8"\U00002b55", 0);
-	fr->SetCaption(u8"*", 0);
-
-
-
-	//fr->AddStringCaption(u8"Pøíliš\nžluouèký\nkùò", 0.5f, 0.5f, { 1,1,0,1 });
-	//fr->AddStringCaption(u8"AbBd", 0.5f, 0.5f, { 1,1,0,1 });
-	//fr->Render();
-	//fr->GetFontBuilder()->Save("D://88.png");
-	fr->SetNewLineOffset(0);
+	InitTestBasic();
 
 	//======================================================================
 
-	//frWithBg = StringRenderer::CreateDefault(fs, r);
-	frWithBg = StringRenderer::CreateSingleColor({ 1,0,1,1 }, fs, r);
-	frWithBg->SetCaption(u8"\U0001F300", 10);
-	frWithBg->SetCaption(u8"\U00002b55", 0);
-	frWithBg->SetCaption(u8"*", 0);
-	frWithBg->SetCaptionOffset(40);
-
-	BackgroundSettings bs;
-	//bs.color = { 0,1, 1, 0.6f };
-	bs.padding = 8;
-	bs.cornerRadius =  40;// 20;
-	bs.shadow = true;
-	frWithBg->SetBackgroundSettings(bs);
+	InitTestStringBackground();
 
 	//======================================================================
 
-	RenderSettings ri;
-	ri.deviceW = 512;
-
-	ri.deviceH = 256;
-	
-	StringRenderer* imageSr = new StringRenderer(fs, std::make_unique<BackendImage>(ri, BackendImage::Format::RGBA));
-	
-	BackendImage* image = dynamic_cast<BackendImage*>(imageSr->GetBackend());
-	image->SetTightDynamicCanvasEnabled(true);
-
-	BackgroundSettings bsi;
-	bsi.color = { 1, 0, 0, 1 };	
-	image->SetBackground(bsi);
-
-	imageSr->AddString(
-		//UTF8_TEXT(CreateRandomString(10).c_str()),				
-		u8"Pøílíš málo qqq",
-		0.0f, 0.1f,
-		AbstractRenderer::RenderParams({ 1,1,0,1 }, 1.0),
-		AbstractRenderer::TextAnchor::LEFT_TOP);
-
-	imageSr->Render();
-	image->SaveToFile("D://test2.png");
+	InitTestNumbers();
 
 	//======================================================================
 
-	fs.fonts = { fArial };
-	fs.sdf = std::nullopt;
-	fn = NumberRenderer::CreateDefault(fs, r);
-
-	BackgroundSettings bsn;
-	bsn.color = { 0, 1, 1, 0.6f };
-	bsn.padding = 8;
-	bsn.cornerRadius = 0;// 20;
-	bsn.shape = BackgroundSettings::Shape::CIRCLE;
-	bsn.shadow = true;
-	fn->SetBackgroundSettings(bsn);
+	InitTestCustomIcon();
 
 	//======================================================================
 
-	fArial.size = 24.0_pt;
+	InitTestToImage();
 
-	std::vector<CustomGlyph> gd;	
-	CustomGlyph g;
-	g.c = 'a';
-	//g.fileName = "D://mario_256_gray.png";
-	g.fileName = "D://mario_256.png";
-	g.referenceCharCode = 'x';
-	g.referenceFont = fArial;
-	gd.push_back(g);
-	
-	g.c = 'b';
-	//g.fileName = "D://user-3296_64.png";
-	g.fileName = "D://mario_256.png";
-	g.referenceCharCode = 'o';
-	g.referenceFont = fArial;
-	gd.push_back(g);
-
-	CustomFontBuilderSettings ifs;
-	ifs.textureW = 256;
-	ifs.textureH = 256;
-	ifs.screenDpi = 260;
-	ifs.screenScale = 1;	
-	ifs.channelsCount = 4;
-
-	auto cfb = std::make_shared<CustomImageFontBuilder>(gd, ifs);
-	
-	auto sm = std::make_shared<ColoredFontShaderManager>(true);
-	auto backend = std::make_unique<BackendOpenGL>(r, 3, nullptr, nullptr, sm);
-
-	srCustom = new StringRenderer(cfb, std::move(backend));
+	//======================================================================
 }
 
 #ifdef USE_ICU_LIBRARY 
