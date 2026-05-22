@@ -101,6 +101,8 @@ void BackgroundShadowShaderManager::BindVertexAtribs()
 
 void BackgroundShadowShaderManager::BindUniforms()
 {
+	float pxBoxWidth = ((max_x - min_x) * this->canvasW);
+
 	if (this->shape == BackgroundSettings::Shape::SQUARE)
 	{
 		GL_CHECK(glUniform1f(cornerRadiusUniform, 0.0f));
@@ -111,10 +113,12 @@ void BackgroundShadowShaderManager::BindUniforms()
 	}
 	else if (this->shape == BackgroundSettings::Shape::ROUNDED_CORNER_SQUARE)
 	{
-		GL_CHECK(glUniform1f(cornerRadiusUniform, this->roundCornerRadius / this->canvasW));
+		float cornerRadius = this->roundCornerRadius / pxBoxWidth;
+		GL_CHECK(glUniform1f(cornerRadiusUniform, cornerRadius));
 	}
 
-	GL_CHECK(glUniform1f(blurRadiusUniform, this->shadow.blurRadius));
+	float blurRadius = this->shadow.blurRadius / pxBoxWidth;
+	GL_CHECK(glUniform1f(blurRadiusUniform, blurRadius));
 
 	GL_CHECK(glUniform2f(shadowDirUniform, this->shadow.dirX, this->shadow.dirY));
 
@@ -158,18 +162,16 @@ void BackgroundShadowShaderManager::FillQuadVertexData(
 	const AbstractRenderer::Vertex& maxVertex,
 	const AbstractRenderer::RenderParams& rp,
 	std::vector<float>& vec)
-{
-	if (rp.bgColor.has_value() == false)
-	{
-		return;
-	}
+{	
+	float shadowPadW = 40 / this->canvasW;
+	float shadowPadH = 40 / this->canvasH;	
 
 	//if (vec.size() > 0) return;
-	const float minX = 2.0f * minVertex.x - 1.0f;
-	const float minY = -(2.0f * minVertex.y - 1.0f);
+	const float minX = 2.0f * (minVertex.x - shadowPadW) - 1.0f;
+	const float minY = -(2.0f * (minVertex.y - shadowPadH) - 1.0f);
 
-	const float maxX = 2.0f * maxVertex.x - 1.0f;
-	const float maxY = -(2.0f * maxVertex.y - 1.0f);
+	const float maxX = 2.0f * (maxVertex.x + shadowPadW) - 1.0f;
+	const float maxY = -(2.0f * (maxVertex.y + shadowPadH) - 1.0f);
 
 	min_x = minX;
 	min_y = minY;

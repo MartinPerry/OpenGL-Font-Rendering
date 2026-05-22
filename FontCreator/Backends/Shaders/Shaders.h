@@ -390,6 +390,7 @@ static const char* SHADOW_BACKGROUND_PIXEL_SHADER_SOURCE = PS_CODE(
         //put fragment to (-0.5, 0.5)
         vec2 fc = fragCoord - vec2(0.5);
 
+        //base size is square filling 25% of original AABB
         vec2 hsize = vec2(1.0 / 4.0);
         
         float shadowSdf = sdRoundRect(
