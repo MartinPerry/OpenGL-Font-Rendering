@@ -1,7 +1,8 @@
 ﻿# OpenGL-Font-Rendering
 Rendering UNICODE fonts
 
-This library is still work-in-progress. This is a working beta version.
+This library is still kind od work-in-progress. New features are added from time to time.
+However, this is a working version.
 
 Overview
 ------------------------------------------
@@ -83,6 +84,20 @@ fs.sdf->outlineWidth = 0.1f;
 fs.sdf->softness = 0.05f;
 */
 
+/* Shadows are rendered via combination of "screen space" rendering and SDF "*/
+Shadow s;
+s.blurRadius = 12;	
+s.dirX = -0.05f;
+s.dirY = 0.05f;
+s.color = Color(0, 1, 0, 0.65f);
+
+BackgroundSettings bsn;
+bsn.color = { 0, 1, 1, 0.6f };
+bsn.padding = 10;
+bsn.cornerRadius = 40;// 20;
+bsn.shape = BackgroundSettings::Shape::ROUNDED_CORNER_SQUARE;
+//bsn.shadow = s;
+
 //====================================================
 // Basic string renderer
 //====================================================
@@ -97,6 +112,7 @@ fr->Render();
 //====================================================
 
 NumberRenderer* nr = NumberRenderer::CreateDefault(fs, r);
+//nr->SetBackgroundSettings(bsn);	
 nr->AddNumber(-45.75, posX, posY, { 1,1,0,1 }, AbstractRenderer::CENTER);		
 nr->Render();
 
@@ -128,7 +144,7 @@ ifs.channelsCount = 4;
 auto cfb = std::make_shared<CustomImageFontBuilder>(gd, ifs);
 	
 auto sm = std::make_shared<ColoredFontShaderManager>();
-auto backend = std::make_unique<BackendOpenGL>(r, 3, nullptr, nullptr, sm);
+auto backend = std::make_unique<BackendOpenGL>(r, nullptr, nullptr, sm);
 
 srCustom = new StringRenderer(cfb, std::move(backend));
 
