@@ -506,8 +506,9 @@ void InitTestNumbers()
 	fn = NumberRenderer::CreateDefault(fs, r);
 
 	Shadow s;
-	s.blurRadius = 12 / 350.0;
-	12.0f / 350.f;
+	s.blurRadius = 12 / 350.0;	
+	s.color = Color(0, 1, 0, 0.65f);
+
 	BackgroundSettings bsn;
 	bsn.color = { 0, 1, 1, 0.6f };
 	bsn.padding = 158;

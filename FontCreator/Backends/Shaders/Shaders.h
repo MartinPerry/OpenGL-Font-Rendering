@@ -347,6 +347,7 @@ static const char* SHADOW_BACKGROUND_VERTEX_SHADER_SOURCE = VS_CODE(
 );
 
 //https://www.shadertoy.com/view/NtVSW1
+//+ ChatGPT
 
 static const char* SHADOW_BACKGROUND_PIXEL_SHADER_SOURCE = PS_CODE(
     varying vec2 pos;
@@ -354,7 +355,7 @@ static const char* SHADOW_BACKGROUND_PIXEL_SHADER_SOURCE = PS_CODE(
     varying vec4 color;
 
     uniform float cornerRadius;
-    uniform float blurRadius;// = 12.0 / 350.0;
+    uniform float blurRadius;
     uniform vec2 shadowDir;
     uniform vec4 shadowColor;
 
@@ -406,8 +407,7 @@ static const char* SHADOW_BACKGROUND_PIXEL_SHADER_SOURCE = PS_CODE(
         float insideRect = step(rectSdf, 0.0);
 
         // colors
-        vec4 insideColor = color;// vec4(0.5, 0.5, 1.0, 1.0);
-
+        
         // outsideColor is only shadow opacity now.
         // Everywhere else outside rect is transparent/background.
 
@@ -416,9 +416,9 @@ static const char* SHADOW_BACKGROUND_PIXEL_SHADER_SOURCE = PS_CODE(
         // shadow: 0 = dark, 1 = no shadow
         float shadowAlpha = outsideAlpha * (1.0 - shadow);
 
-        vec4 inside = insideColor * insideRect;
+        vec4 inside = color * insideRect;
 
-        vec4 shadowCol = shadowColor; // vec4(0.0, 1.0, 0.0, shadowAlpha * 0.65);
+        vec4 shadowCol = shadowColor;
         shadowCol.a *= shadowAlpha;
 
         vec4 col = normalBlend(inside, shadowCol);
