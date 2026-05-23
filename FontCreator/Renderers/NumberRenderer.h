@@ -32,7 +32,7 @@ public:
 	void SetFontSize(const FontSize& fs, int defaultFontSizeInPx = 0);
 
 	void SetExistenceCheck(bool val) noexcept;	
-	void SetOverlapCheck(bool val) noexcept;
+	void SetOverlapCheck(bool val, float enlargePercent = 0.0f) noexcept;
 	void SetDecimalPrecission(int digits) noexcept;
 
 	int GetDecimalPrecission() const noexcept;
@@ -92,10 +92,10 @@ protected:
 		TextAnchor anchor;
 		TextType type;
 
-		int x;
-		int y;
-		int w;
-		int h;
+		int16_t x;
+		int16_t y;
+		int16_t w;
+		int16_t h;
 
 		RenderParams renderParams;		
 		
@@ -137,6 +137,7 @@ protected:
 
 	bool checkIfExist;
 	bool overlapCheck;
+	float enlargePercent;
 	int newLineOffset;
 
 	int decimalPlaces;

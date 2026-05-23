@@ -57,7 +57,8 @@ NumberRenderer::NumberRenderer(const FontBuilderSettings& fs, std::unique_ptr<Ba
 	decimalPlaces(0),
 	decimalMult(1),
 	checkIfExist(true),
-	overlapCheck(false)
+	overlapCheck(false),
+	enlargePercent(0.0f)
 {
 	this->Init();
 }
@@ -67,7 +68,8 @@ NumberRenderer::NumberRenderer(std::shared_ptr<IFontBuilder> fb, std::unique_ptr
 	decimalPlaces(0),
 	decimalMult(1),
 	checkIfExist(true),
-	overlapCheck(false)
+	overlapCheck(false),
+	enlargePercent(0.0f)
 {
 	this->Init();
 }
@@ -219,9 +221,11 @@ void NumberRenderer::SetExistenceCheck(bool val) noexcept
 /// Do not add number that overlpas already existing one
 /// </summary>
 /// <param name="val"></param>
-void NumberRenderer::SetOverlapCheck(bool val) noexcept
+/// <param name="enlargePercent"></param>
+void NumberRenderer::SetOverlapCheck(bool val, float enlargePercent) noexcept
 {
 	this->overlapCheck = val;
+	this->enlargePercent = enlargePercent;
 }
 
 /// <summary>
@@ -420,11 +424,24 @@ bool NumberRenderer::AddNumber(NumberInfo& n, int x, int y)
 
 	if (this->overlapCheck)
 	{
-		for (const auto& nmbrAABB : this->nmbrsAABB)
+		if (this->enlargePercent == 0.0f)
 		{
-			if (aabb.Intersect(nmbrAABB))
+			for (const auto& nmbrAABB : this->nmbrsAABB)
 			{
-				return false;
+				if (aabb.Intersect(nmbrAABB))
+				{
+					return false;
+				}
+			}
+		}
+		else 
+		{
+			for (const auto& nmbrAABB : this->nmbrsAABB)
+			{
+				if (aabb.IntersectEnlarged(nmbrAABB, this->enlargePercent))
+				{
+					return false;
+				}
 			}
 		}
 	}
@@ -433,10 +450,10 @@ bool NumberRenderer::AddNumber(NumberInfo& n, int x, int y)
 	
 	//fill basic structure info
 		
-	n.x = static_cast<int>(x);
-	n.y = static_cast<int>(y);
-	n.w = static_cast<int>(w);
-	n.h = static_cast<int>(h);
+	n.x = static_cast<int16_t>(x);
+	n.y = static_cast<int16_t>(y);
+	n.w = static_cast<int16_t>(w);
+	n.h = static_cast<int16_t>(h);
 
 #ifdef THREAD_SAFETY
 	std::lock_guard<std::shared_timed_mutex> lk(m);
@@ -705,9 +722,10 @@ bool NumberRenderer::GenerateGeometry()
 
 		if (si.negative)
 		{
-			this->AddQuad(this->gi['-'], x, y, si.renderParams);
-			x += (this->gi['-'].adv);
-			x += this->extraGlyphSpacingSize;
+			const GlyphInfo& gi = this->gi['-'];
+
+			this->AddQuad(gi, x, y, si.renderParams);
+			x += static_cast<int>((gi.adv + this->extraGlyphSpacingSize) * si.renderParams.scale);			
 		}				
 		
 		//==========================================================
@@ -721,8 +739,8 @@ bool NumberRenderer::GenerateGeometry()
 			//one digit number
 			const GlyphInfo & gi = this->gi[intPart + '0'];
 			this->AddQuad(gi, x, y, si.renderParams);
-			x += (gi.adv);
-			x += this->extraGlyphSpacingSize;
+
+			x += static_cast<int>((gi.adv + this->extraGlyphSpacingSize) * si.renderParams.scale);			
 		}
 		else				
 		{	
@@ -737,12 +755,10 @@ bool NumberRenderer::GenerateGeometry()
 				const GlyphInfo * const * t = precomputed[tmp].gi;
 
 				this->AddQuad(*t[1], x, y, si.renderParams);
-				x += (t[1]->adv);
-				x += this->extraGlyphSpacingSize;
-
+				x += static_cast<int>((t[1]->adv + this->extraGlyphSpacingSize) * si.renderParams.scale);
+				
 				this->AddQuad(*t[0], x, y, si.renderParams);
-				x += (t[0]->adv);
-				x += this->extraGlyphSpacingSize;
+				x += static_cast<int>((t[0]->adv + this->extraGlyphSpacingSize) * si.renderParams.scale);				
 
 				//? huh - gives 0 ?
 				intPart = intPart - tmp * divisor;
@@ -755,8 +771,7 @@ bool NumberRenderer::GenerateGeometry()
 				//one digit remaining number
 				const GlyphInfo & gi = this->gi[intPart + '0'];
 				this->AddQuad(gi, x, y, si.renderParams);
-				x += (gi.adv);
-				x += this->extraGlyphSpacingSize;
+				x += static_cast<int>((gi.adv + this->extraGlyphSpacingSize) * si.renderParams.scale);
 			}
 		}
 		
@@ -765,18 +780,18 @@ bool NumberRenderer::GenerateGeometry()
 		uint32_t fractPartReverse = si.fractPartReverse;
 		if (fractPartReverse)
 		{
-			this->AddQuad(this->gi['.'], x, y, si.renderParams);
-			x += (this->gi['.'].adv);
-			x += this->extraGlyphSpacingSize;
-			
+			const GlyphInfo& gi = this->gi['.'];
+
+			this->AddQuad(gi, x, y, si.renderParams);
+			x += static_cast<int>((gi.adv + this->extraGlyphSpacingSize) * si.renderParams.scale);
+						
 			while (fractPartReverse)
 			{
 				const int cc = (fractPartReverse % 10);				
 				const GlyphInfo & gi = this->gi[cc + '0'];
 
 				this->AddQuad(gi, x, y, si.renderParams);
-				x += (gi.adv);
-				x += this->extraGlyphSpacingSize;
+				x += static_cast<int>((gi.adv + this->extraGlyphSpacingSize) * si.renderParams.scale);
 
 				fractPartReverse /= 10;
 			}

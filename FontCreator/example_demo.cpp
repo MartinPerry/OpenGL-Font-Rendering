@@ -362,10 +362,12 @@ void TestNumbers()
 	
 	auto rp = AbstractRenderer::DEFAULT_PARAMS;
 	rp.bgColor = { 1, 0, 0, 1 };
+	rp.scale = 0.5f;
 
 	//fn->AddNumber((double)(nmbr + nmbr / 100.0), 0.5f, 0.5f);
 	//fn->AddNumber(600010, 0.5f, 0.5f, { 1,1,0,1 }, AbstractRenderer::TextAnchor::CENTER);
 	fn->AddNumber(45, 0.5f, 0.7f, rp, AbstractRenderer::TextAnchor::CENTER);
+	fn->AddNumber(145, 0.58f, 0.7f, rp, AbstractRenderer::TextAnchor::CENTER);
 	//fn->AddNumberCaption(60000, 0.5f, 0.4f, { 1,1,0,1 });
 	fn->Render();
 }
@@ -405,6 +407,10 @@ void InitTestNumbers()
 	//bsn.shadow = s;
 	fn->SetBackgroundSettings(bsn);	
 	
+	//fn->SetOverlapCheck(true, 0.1f);
+
+	
+
 	//Example to set custom shader class
 	//auto bgl = (BackendOpenGL*)fn->GetBackend();
 	//bgl->SetBackground(bsn, std::make_shared<CustomSingleColorBackgroundShaderManager>());

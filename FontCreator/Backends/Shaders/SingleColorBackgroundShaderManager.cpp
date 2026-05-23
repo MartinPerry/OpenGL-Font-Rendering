@@ -152,8 +152,8 @@ void SingleColorBackgroundShaderManager::FillQuadVertexData(
 	{
 		//https://stackoverflow.com/questions/74960029/how-to-draw-a-rectangle-in-opengl-with-rounded-corners
 
-		float rx = this->roundCornerRadius * (1.0f / this->canvasW);
-		float ry = this->roundCornerRadius * (1.0f / this->canvasH);
+		float rx = this->roundCornerRadius * rp.scale * (1.0f / this->canvasW);
+		float ry = this->roundCornerRadius * rp.scale * (1.0f / this->canvasH);
 
 		float cx = minX + 0.5f * (maxX - minX);
 		float cy = minY + 0.5f * (maxY - minY);
@@ -177,8 +177,8 @@ void SingleColorBackgroundShaderManager::FillQuadVertexData(
 		//2 * - projection space is [-1, 1] and we calculate for 0, 1
 		if (this->roundCornerRadius > 0)
 		{
-			rx = this->roundCornerRadius * 2.0f * (1.0f / this->canvasW);
-			ry = this->roundCornerRadius * 2.0f * (1.0f / this->canvasH);
+			rx = this->roundCornerRadius * 2.0f * rp.scale * (1.0f / this->canvasW);
+			ry = this->roundCornerRadius * 2.0f * rp.scale * (1.0f / this->canvasH);
 		}
 		else
 		{

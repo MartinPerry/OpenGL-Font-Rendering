@@ -354,6 +354,21 @@ struct AABB
 		return true;
 	};
 
+	bool IntersectEnlarged(const AABB& bb, float enlargePercent) const noexcept
+	{
+		float ofX = this->GetWidth() * enlargePercent;
+		float ofY = this->GetHeight() * enlargePercent;
+
+		if (bb.minX - ofX > maxX) return false;
+		if (bb.minY - ofY > maxY) return false;
+
+		if (bb.maxX + ofX < minX) return false;
+		if (bb.maxY + ofY < minY) return false;
+
+		return true;
+	};
+
+
 	bool IsInside(float x, float y) const noexcept
 	{
 		return ((x > minX) && (x < maxX) &&
