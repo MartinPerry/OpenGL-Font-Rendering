@@ -634,8 +634,7 @@ void StringRenderer::CalcStringAABB(StringInfo & si, const UsedGlyphCache * gc) 
 			float fy = y - gi->bmpY;
 			li.aabb.Update(fx, fy, static_cast<float>(gi->bmpW), static_cast<float>(gi->bmpH));
 
-			x += (gi->adv);
-			x += this->extraGlyphSpacingSize;
+			x += (gi->adv + this->extraGlyphSpacingSize);
 		}
 											
 				
@@ -857,7 +856,8 @@ bool StringRenderer::GenerateGeometry()
 
 		for (const LineInfo & li : si.lines)
 		{
-			float scale = li.renderParams ? li.renderParams->scale : si.renderParams.scale;
+			const auto& activeParams = li.renderParams ? *li.renderParams : si.renderParams;
+			float scale = activeParams.scale;
 
 			float x = si.anchorX;
 
@@ -883,10 +883,9 @@ bool StringRenderer::GenerateGeometry()
 				}
 
 												
-				this->AddQuad(*gi, x, y, li.renderParams ? *li.renderParams : si.renderParams);
+				this->AddQuad(*gi, x, y, activeParams);
 
-				x += gi->adv * scale;
-				x += this->extraGlyphSpacingSize * scale;
+				x += (gi->adv + this->extraGlyphSpacingSize) * scale;
 			}
 			
 			y += li.maxNewLineOffset;

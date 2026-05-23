@@ -83,14 +83,15 @@ protected:
 	
 	struct NumberInfo
 	{
-		double val;		
-		uint64_t intPartOrder;
+		double val;				
 		uint32_t intPart;		
 		uint32_t fractPartReverse;
 		bool negative;
 		
 		TextAnchor anchor;
 		TextType type;
+
+		uint8_t intPartOrderIndex;
 
 		int16_t x;
 		int16_t y;
@@ -114,7 +115,7 @@ protected:
 			TextAnchor anchor, TextType type) noexcept :
 			val((value < 0) ? -value : value),			
 			intPart(static_cast<uint32_t>(val)),
-			intPartOrder(0),
+			intPartOrderIndex(0),
 			fractPartReverse(0),
 			negative(value < 0),			
 			anchor(anchor),
@@ -134,6 +135,8 @@ protected:
 		AABB aabb;
 		int xOffset;
 	};
+
+	static const std::array<uint64_t, 10> INT_DIVISORS;
 
 	bool checkIfExist;
 	bool overlapCheck;
@@ -168,7 +171,8 @@ protected:
 	bool GenerateGeometry() override;
 
 	AABB CalcNumberAABB(double val, int x, int y,
-		bool negative, uint32_t intPart, uint64_t intPartOrder, uint32_t fractPartReversed);
+		bool negative, uint32_t intPart, uint8_t intPartOrderIndex, uint32_t fractPartReversed,
+		float scale);
 
 	
 	void GetAnchoredPosition(const NumberRenderer::NumberInfo & si, int & x, int & y);
@@ -176,7 +180,7 @@ protected:
 
 	uint32_t GetFractPartReversed(double val, uint32_t intPart) const noexcept;
 	uint32_t ReversDigits(uint32_t num) const noexcept;
-	uint64_t GetIntDivisor(const uint32_t x) const noexcept;
+	uint8_t GetIntDivisorIndex(const uint32_t x) const noexcept;
 };
 
 //====================================================================================

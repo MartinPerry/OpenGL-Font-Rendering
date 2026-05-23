@@ -13,6 +13,11 @@
 
 const std::string NumberRenderer::NUMBERS_STRING = "0123456789,.-";
 
+const std::array<uint64_t, 10> NumberRenderer::INT_DIVISORS = {
+	1U, 100U, 1'000U, 10'000U, 100'000U, 1'000'000U,
+	10'000'000U, 100'000'000U, 1'000'000'000U, 10'000'000'000U
+};
+
 /// <summary>
 /// Create optimized Number renderer that will use only one color for every number
 /// If we pass color parameter during AddNumber... method call,
@@ -319,7 +324,7 @@ bool NumberRenderer::AddIntegralNumberInternal(long val,
 	}
 
 	NumberInfo i(val, rp, anchor, type);				
-	i.intPartOrder = this->GetIntDivisor(i.intPart);	
+	i.intPartOrderIndex = this->GetIntDivisorIndex(i.intPart);	
 
 	return this->AddNumber(i, x, y);	
 }
@@ -372,7 +377,7 @@ bool NumberRenderer::AddFloatNumberInternal(double val,
 		val *= -1;
 	}	
 		
-	i.intPartOrder = this->GetIntDivisor(i.intPart);
+	i.intPartOrderIndex = this->GetIntDivisorIndex(i.intPart);
 	i.fractPartReverse = this->GetFractPartReversed(val, i.intPart);
 
 	//remove negative zero
@@ -396,7 +401,7 @@ bool NumberRenderer::AddFloatNumberInternal(double val,
 bool NumberRenderer::AddNumber(NumberInfo& n, int x, int y)
 {	
 	AABB aabb = this->CalcNumberAABB(n.val, x, y, n.negative,
-		n.intPart, n.intPartOrder, n.fractPartReverse);
+		n.intPart, n.intPartOrderIndex, n.fractPartReverse, n.renderParams.scale);
 
 	//test if entire string is outside visible area
 
@@ -537,28 +542,28 @@ uint32_t NumberRenderer::ReversDigits(uint32_t num) const noexcept
 /// </summary>
 /// <param name="x"></param>
 /// <returns></returns>
-uint64_t NumberRenderer::GetIntDivisor(const uint32_t x) const noexcept
+uint8_t NumberRenderer::GetIntDivisorIndex(const uint32_t x) const noexcept
 {
 	if (x >= 10000U) {
 		if (x >= 10000000U) {
 			if (x >= 100000000U) {
-				if (x >= 1000000000U) return 10000000000U;
-				return 1000000000U;
+				if (x >= 1000000000U) return 9;
+				return 8;
 			}
-			return 100000000U;
+			return 7;
 		}
 		if (x >= 100000U) {
-			if (x >= 1000000U) return 10000000U;
-			return 1000000U;
+			if (x >= 1000000U) return 6;
+			return 5;
 		}
-		return 100000U;
+		return 4;
 	}
 	if (x >= 100U) {
-		if (x >= 1000U) return 10000U;
-		return 1000U;
+		if (x >= 1000U) return 3;
+		return 2;
 	}
-	if (x >= 10U) return 100U;
-	return 1U;
+	if (x >= 10U) return 1;
+	return 0;
 }
 
 /// <summary>
@@ -572,7 +577,7 @@ uint64_t NumberRenderer::GetIntDivisor(const uint32_t x) const noexcept
 /// <param name="fractPartReversed"></param>
 /// <returns></returns>
 AABB NumberRenderer::CalcNumberAABB(double val, int x, int y,
-	bool negative, uint32_t intPart, uint64_t intPartOrder, uint32_t fractPartReversed)
+	bool negative, uint32_t intPart, uint8_t intPartOrderIndex, uint32_t fractPartReversed, float scale)
 {	
 	//store offsets
 	int xOffset = x;
@@ -589,8 +594,7 @@ AABB NumberRenderer::CalcNumberAABB(double val, int x, int y,
 		const GlyphInfo & gi = this->gi['-'];
 		
 		aabb.Update(x + gi.bmpX, -gi.bmpY, gi.bmpW, gi.bmpH);		
-		x += (gi.adv);	
-		x += this->extraGlyphSpacingSize;
+		x += static_cast<int>(gi.adv + this->extraGlyphSpacingSize);
 	}
 
 	if (intPart <= 9)
@@ -599,12 +603,19 @@ AABB NumberRenderer::CalcNumberAABB(double val, int x, int y,
 		const GlyphInfo & gi = this->gi[intPart + '0'];
 
 		aabb.Update(x + gi.bmpX, -gi.bmpY, gi.bmpW, gi.bmpH);
-		x += (gi.adv);	
-		x += this->extraGlyphSpacingSize;
+		x += static_cast<int>((gi.adv + this->extraGlyphSpacingSize) * scale);
+	}
+	else if (intPart <= 99)
+	{
+		//two digit number
+		const Precomputed& t = precomputed[intPart];		
+		
+		aabb.UnionWithOffset(t.aabb, static_cast<float>(x));
+		x += static_cast<int>((t.xOffset + this->extraGlyphSpacingSize) * scale);
 	}
 	else
 	{
-		uint64_t divisor = intPartOrder;
+		uint64_t divisor = INT_DIVISORS[intPartOrderIndex];
 		do
 		{
 			divisor /= 100;
@@ -612,9 +623,8 @@ AABB NumberRenderer::CalcNumberAABB(double val, int x, int y,
 			const Precomputed & t = precomputed[tmp];
 			
 			aabb.UnionWithOffset(t.aabb, static_cast<float>(x));
-			x += t.xOffset;
-			x += this->extraGlyphSpacingSize;
-
+			x += static_cast<int>((t.xOffset + this->extraGlyphSpacingSize) * scale);
+			
 			intPart = intPart - tmp * divisor;			
 
 		} while (divisor > 10);
@@ -625,8 +635,8 @@ AABB NumberRenderer::CalcNumberAABB(double val, int x, int y,
 			const GlyphInfo & gi = this->gi[intPart + '0'];
 			
 			aabb.Update(x + gi.bmpX, -gi.bmpY, gi.bmpW, gi.bmpH);
-			x += (gi.adv);
-			x += this->extraGlyphSpacingSize;
+			x += static_cast<int>((gi.adv + this->extraGlyphSpacingSize) * scale);
+			
 		}
 	}
 
@@ -636,8 +646,7 @@ AABB NumberRenderer::CalcNumberAABB(double val, int x, int y,
 		const GlyphInfo & gi = this->gi['.'];
 		
 		aabb.Update(x + gi.bmpX, -gi.bmpY, gi.bmpW, gi.bmpH);
-		x += (gi.adv);
-		x += this->extraGlyphSpacingSize;
+		x += static_cast<int>((gi.adv + this->extraGlyphSpacingSize) * scale);		
 		
 		while (fractPartReversed)
 		{			
@@ -645,9 +654,8 @@ AABB NumberRenderer::CalcNumberAABB(double val, int x, int y,
 			const GlyphInfo & gi = this->gi[cc + '0'];
 			
 			aabb.Update(x + gi.bmpX, -gi.bmpY, gi.bmpW, gi.bmpH);
-			x += (gi.adv);	
-			x += this->extraGlyphSpacingSize;
-
+			x += static_cast<int>((gi.adv + this->extraGlyphSpacingSize) * scale);
+			
 			fractPartReversed /= 10;
 		}
 	}
@@ -742,10 +750,22 @@ bool NumberRenderer::GenerateGeometry()
 
 			x += static_cast<int>((gi.adv + this->extraGlyphSpacingSize) * si.renderParams.scale);			
 		}
+		else if (intPart <= 99)
+		{
+			//two digit number
+			const GlyphInfo* const* t = precomputed[intPart].gi;
+
+			this->AddQuad(*t[1], x, y, si.renderParams);
+			x += static_cast<int>((t[1]->adv + this->extraGlyphSpacingSize) * si.renderParams.scale);
+
+			this->AddQuad(*t[0], x, y, si.renderParams);
+			x += static_cast<int>((t[0]->adv + this->extraGlyphSpacingSize) * si.renderParams.scale);
+
+		}
 		else				
 		{	
-			//at least two digits number
-			uint64_t divisor = si.intPartOrder;
+			//at least three digits number
+			uint64_t divisor = INT_DIVISORS[si.intPartOrderIndex];
 
 			do
 			{
@@ -759,10 +779,8 @@ bool NumberRenderer::GenerateGeometry()
 				
 				this->AddQuad(*t[0], x, y, si.renderParams);
 				x += static_cast<int>((t[0]->adv + this->extraGlyphSpacingSize) * si.renderParams.scale);				
-
-				//? huh - gives 0 ?
-				intPart = intPart - tmp * divisor;
-				//intPart = intPart - (intPart / divisor) * divisor;
+				
+				intPart = intPart - tmp * divisor;				
 				
 			} while (divisor > 10);
 
