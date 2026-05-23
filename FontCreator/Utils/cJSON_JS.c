@@ -66,7 +66,7 @@ const char *cJSON_GetErrorPtr(void)
 extern const char* cJSON_Version(void)
 {
 	static char version[15];
-	sprintf(version, "%i.%i.%i", CJSON_VERSION_MAJOR, CJSON_VERSION_MINOR, CJSON_VERSION_PATCH);
+	snprintf(version, 15, "%i.%i.%i", CJSON_VERSION_MAJOR, CJSON_VERSION_MINOR, CJSON_VERSION_PATCH);
 
 	return version;
 }
@@ -370,7 +370,7 @@ static unsigned char *print_number(const cJSON *item, printbuffer *p)
 		}
 		if (str)
 		{
-			strcpy((char*)str, "0");
+			snprintf((char*)str, 2, "0");
 		}
 	}
 	/* value is an int */
@@ -387,7 +387,7 @@ static unsigned char *print_number(const cJSON *item, printbuffer *p)
 		}
 		if (str)
 		{
-			sprintf((char*)str, "%d", item->valueint);
+			snprintf((char*)str, 21, "%d", item->valueint);
 		}
 	}
 	/* value is a floating point number */
@@ -408,19 +408,19 @@ static unsigned char *print_number(const cJSON *item, printbuffer *p)
 			/* This checks for NaN and Infinity */
 			if ((d * 0) != 0)
 			{
-				sprintf((char*)str, "null");
+				snprintf((char*)str, 64, "null");
 			}
 			else if ((fabs(floor(d) - d) <= DBL_EPSILON) && (fabs(d) < 1.0e60))
 			{
-				sprintf((char*)str, "%.0f", d);
+				snprintf((char*)str, 64, "%.0f", d);
 			}
 			else if ((fabs(d) < 1.0e-6) || (fabs(d) > 1.0e9))
 			{
-				sprintf((char*)str, "%e", d);
+				snprintf((char*)str, 64, "%e", d);
 			}
 			else
 			{
-				sprintf((char*)str, "%f", d);
+				snprintf((char*)str, 64, "%f", d);
 			}
 		}
 	}
@@ -786,7 +786,7 @@ static unsigned char *print_string_ptr(const unsigned char *str, printbuffer *p)
 		{
 			return NULL;
 		}
-		strcpy((char*)out, "\"\"");
+		snprintf((char*)out, 3, "\"\"");
 
 		return out;
 	}
@@ -1091,7 +1091,7 @@ static unsigned char *print_value(const cJSON *item, size_t depth, cjbool fmt, p
 			out = ensure(p, 5);
 			if (out)
 			{
-				strcpy((char*)out, "null");
+				snprintf((char*)out, 5, "null");
 			}
 			break;
 		case cJSON_False:
