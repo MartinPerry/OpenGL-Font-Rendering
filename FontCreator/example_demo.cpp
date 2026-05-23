@@ -362,7 +362,7 @@ void TestNumbers()
 	
 	auto rp = AbstractRenderer::DEFAULT_PARAMS;
 	rp.bgColor = { 1, 0, 0, 1 };
-	//rp.scale = 0.5f;
+	//rp.scale = 0.15f;
 
 	//fn->AddNumber((double)(nmbr + nmbr / 100.0), 0.5f, 0.5f);
 	//fn->AddNumber(600010, 0.5f, 0.5f, { 1,1,0,1 }, AbstractRenderer::TextAnchor::CENTER);
@@ -402,8 +402,8 @@ void InitTestNumbers()
 	BackgroundSettings bsn;
 	bsn.color = { 0, 1, 1, 0.6f };
 	bsn.padding = 10;
-	bsn.cornerRadius = 40;// 20;
-	bsn.shape = BackgroundSettings::Shape::ROUNDED_CORNER_SQUARE;
+	bsn.cornerRadius = 0;// 20;
+	bsn.shape = BackgroundSettings::Shape::CIRCLE;
 	//bsn.shadow = s;
 	fn->SetBackgroundSettings(bsn);	
 	

@@ -5,6 +5,7 @@ class IFontBuilder;
 class BackendBase;
 
 #include <type_traits>
+#include <array>
 
 #include "./AbstractRenderer.h"
 

@@ -136,11 +136,11 @@ void BackendBackgroundOpenGL::OnFinishQuadGroup(const AbstractRenderer::RenderPa
 	max.x = curQuadAabb.maxX;
 	max.y = curQuadAabb.maxY;
 
-	min.x -= (bs.padding * psW);
-	min.y -= (bs.padding * psH);
+	min.x -= (bs.padding * rp.scale * psW);
+	min.y -= (bs.padding * rp.scale * psH);
 
-	max.x += (bs.padding * psW);
-	max.y += (bs.padding * psH);
+	max.x += (bs.padding * rp.scale * psW);
+	max.y += (bs.padding * rp.scale * psH);
 		
 	this->sm->FillQuadVertexData(min, max, rp, this->geom);
 
