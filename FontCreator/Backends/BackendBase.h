@@ -30,6 +30,8 @@ public:
 	void SetEnabled(bool val);
 	bool IsEnabled() const;
 		
+	void SetRenderSizeThreshold(float heightPx, bool keepBackground = false);
+
 	virtual void Clear();
 	virtual void AddQuad(const GlyphInfo& gi, float x, float y, const AbstractRenderer::RenderParams& rp);
 	virtual void OnFinishQuadGroup(const AbstractRenderer::RenderParams& rp);
@@ -53,6 +55,8 @@ protected:
 
     	
 	bool enabled;
+	float heightPx;
+	bool heightThresholdKeepBackground;
 	
 	
 	float psW; //1.0 / pixel size in width

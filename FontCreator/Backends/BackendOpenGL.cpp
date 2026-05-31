@@ -319,6 +319,11 @@ void BackendOpenGL::Render(std::function<void(GLuint)> preDrawCallback,
 
 	bool vboChanged = this->mainRenderer->GenerateGeometry();
 
+	if (this->background)
+	{
+		this->background->Render(nullptr, nullptr);
+	}
+
 	if (this->geom.empty())
 	{
 		return;
@@ -327,11 +332,7 @@ void BackendOpenGL::Render(std::function<void(GLuint)> preDrawCallback,
 	//wireframe
 	//glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 
-	if (this->background)
-	{
-		this->background->Render(nullptr, nullptr);
-	}
-    
+	    
 	//activate texture
 	GL_CHECK(glActiveTexture(GL_TEXTURE0));
 	FONT_BIND_TEXTURE_2D(this->texture);
@@ -428,6 +429,22 @@ void BackendOpenGL::FillFontTexture()
 /// <param name="y"></param>
 void BackendOpenGL::AddQuad(AbstractRenderer::Vertex& vmin, AbstractRenderer::Vertex& vmax, const AbstractRenderer::RenderParams& rp)
 {
+	if ((vmax.y - vmin.y) < this->heightPx)
+	{
+		if ((this->background) && (this->heightThresholdKeepBackground))
+		{
+			//no need to recalculate u and v - they are not used in background
+			vmin.x *= psW;
+			vmin.y *= psH;
+			
+			vmax.x *= psW;
+			vmax.y *= psH;
+			
+			this->background->AddQuad(vmin, vmax, rp);
+		}
+		return;
+	}
+
 	vmin.x *= psW;
 	vmin.y *= psH;
 	vmin.u *= this->tW;
@@ -437,7 +454,7 @@ void BackendOpenGL::AddQuad(AbstractRenderer::Vertex& vmin, AbstractRenderer::Ve
 	vmax.y *= psH;
 	vmax.u *= this->tW;
 	vmax.v *= this->tH;
-
+	
     this->sm->FillQuadVertexData(vmin, vmax, rp, this->geom);
     
 	
@@ -472,6 +489,11 @@ void BackendOpenGL::OnFinishQuadGroup(const AbstractRenderer::RenderParams& rp)
 
 void BackendOpenGL::FillGeometry()
 {
+	if (this->background)
+	{
+		this->background->FillGeometry();
+	}
+
     if (this->geom.empty())
     {
         return;
@@ -483,9 +505,5 @@ void BackendOpenGL::FillGeometry()
 		this->geom.data(),
 		GL_STREAM_DRAW));
 	FONT_UNBIND_ARRAY_BUFFER;
-
-	if (this->background)
-	{
-		this->background->FillGeometry();
-	}
+	
 }

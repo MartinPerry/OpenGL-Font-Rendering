@@ -298,6 +298,11 @@ void BackendImage::Clear()
 void BackendImage::AddQuad(AbstractRenderer::Vertex& vmin, AbstractRenderer::Vertex& vmax, 
 	const AbstractRenderer::RenderParams& rp)
 {	
+	if ((vmax.y - vmin.y) < this->heightPx)
+	{		
+		return;
+	}
+
 	//=====
 	//store it 
 

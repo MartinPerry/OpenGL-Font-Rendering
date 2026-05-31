@@ -5,7 +5,9 @@ BackendBase::BackendBase(const RenderSettings& r) :
 	quadsCount(0),
 	mainRenderer(nullptr),
 	rs(r),
-	enabled(true)
+	enabled(true),
+	heightPx(std::numeric_limits<float>::lowest()),
+	heightThresholdKeepBackground(false)
 {
 	this->psW = 1.0f / static_cast<float>(rs.deviceW); //pixel size in width
 	this->psH = 1.0f / static_cast<float>(rs.deviceH); //pixel size in height	
@@ -45,6 +47,12 @@ void BackendBase::SetEnabled(bool val)
 bool BackendBase::IsEnabled() const
 {
 	return this->enabled;
+}
+
+void BackendBase::SetRenderSizeThreshold(float heightPx, bool keepBackground)
+{
+	this->heightPx = heightPx;
+	this->heightThresholdKeepBackground = keepBackground;
 }
 
 void BackendBase::SetCanvasSize(int w, int h)
@@ -101,36 +109,7 @@ void BackendBase::AddQuad(const GlyphInfo& gi, float x, float y, const AbstractR
 		max.y = (max.y - cy) * rp.scale + cy;
 	}
 	
-	/*
-	if ((rp.border > 0) && (rp.borderColor))
-	{		
-		AbstractRenderer::RenderParams borderRp(rp.borderColor.value(), rp.scale);
-		auto borderMin = min;
-		auto borderMax = max;
-
-		//borderMin.x -= rp.border;
-		//borderMin.y -= rp.border;
-
-		//borderMax.x += rp.border;
-		//borderMax.y += rp.border;
-
-		float sx = 1.5;
-		float sy = 1.5;
-
-		float cx = borderMin.x + gi.bmpW * 0.5f;
-		float cy = borderMin.y + gi.bmpH * 0.5f;
-
-		borderMin.x = (borderMin.x - cx) * sx + cx;
-		borderMin.y = (borderMin.y - cy) * sy + cy;
-
-		borderMax.x = (borderMax.x - cx) * sx + cx;
-		borderMax.y = (borderMax.y - cy) * sy + cy;
-
-		this->AddQuad(borderMin, borderMax, borderRp);
 	
-	}
-	*/
-
 	this->AddQuad(min, max, rp);
 }
 
