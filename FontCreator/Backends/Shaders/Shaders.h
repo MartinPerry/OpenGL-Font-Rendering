@@ -356,9 +356,10 @@ static const char* SHADOW_BACKGROUND_PIXEL_SHADER_SOURCE = PS_CODE(
 
     uniform float cornerRadius;
     uniform float blurRadius;
+    uniform vec2 shadowPaddingSize;
     uniform vec2 shadowDir;
     uniform vec4 shadowColor;
-
+   
     float sdRoundRect(vec2 p, vec2 b, float r) {
         vec2 q = abs(p) - b + r;
         return min(max(q.x, q.y), 0.0) + length(max(q, 0.0)) - r;
@@ -389,17 +390,14 @@ static const char* SHADOW_BACKGROUND_PIXEL_SHADER_SOURCE = PS_CODE(
 
         //put fragment to (-0.5, 0.5)
         vec2 fc = fragCoord - vec2(0.5);
-
-        //base size is square filling 25% of original AABB
-        vec2 hsize = vec2(1.0 / 4.0);
-        
+                
         float shadowSdf = sdRoundRect(
-            fc + shadowDir,
-            hsize,
+            fc - shadowDir,
+            shadowPaddingSize,
             cornerRadius + blurRadius
         );
 
-        float rectSdf = sdRoundRect(fc, hsize, cornerRadius);
+        float rectSdf = sdRoundRect(fc, shadowPaddingSize, cornerRadius);
 
         float shadow = clamp(sigmoid(shadowSdf / blurRadius), 0.0, 1.0);
 
@@ -421,6 +419,7 @@ static const char* SHADOW_BACKGROUND_PIXEL_SHADER_SOURCE = PS_CODE(
 
         vec4 shadowCol = shadowColor;
         shadowCol.a *= shadowAlpha;
+        //shadowCol.a = 1.0;
 
         vec4 col = normalBlend(inside, shadowCol);
 

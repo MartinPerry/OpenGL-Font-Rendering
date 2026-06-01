@@ -45,13 +45,16 @@ protected:
     GLint cornerRadiusUniform;
     GLint blurRadiusUniform;
     GLint shadowDirUniform;
+    GLint shadowPaddingSizeUniform;
     GLint shadowColorUniform;
 
     Shadow shadow;
 
+    float xx, yy;
+
     BackgroundSettings::Shape shape;
     float roundCornerRadius;
-
+    
     float r, g, b, a;    
 
     float min_x;

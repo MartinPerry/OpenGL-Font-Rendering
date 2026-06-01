@@ -56,8 +56,10 @@ void BackgroundShadowShaderManager::GetAttributtesUniforms()
 {
 	GL_CHECK(cornerRadiusUniform = glGetUniformLocation(shaderProgram, "cornerRadius"));
 	GL_CHECK(blurRadiusUniform = glGetUniformLocation(shaderProgram, "blurRadius"));
+	GL_CHECK(shadowPaddingSizeUniform = glGetUniformLocation(shaderProgram, "shadowPaddingSize"));
 	GL_CHECK(shadowDirUniform = glGetUniformLocation(shaderProgram, "shadowDir"));
 	GL_CHECK(shadowColorUniform = glGetUniformLocation(shaderProgram, "shadowColor"));
+
 
 	GL_CHECK(positionLocation = glGetAttribLocation(shaderProgram, "POSITION"));
 	GL_CHECK(colorLocation = glGetAttribLocation(shaderProgram, "COLOR"));
@@ -101,29 +103,52 @@ void BackgroundShadowShaderManager::BindVertexAtribs()
 
 void BackgroundShadowShaderManager::BindUniforms()
 {
+	//We are sending same value to shadowPaddingSizeUniform
+	//bacse in shader, geometry is treated as square - its mapped
+	//to 0-1 inetreval in both axes
+
+	//?? why is there -dirY needed for squares?
+	//tishout this, shadow is in oposite direction
+	//circle is correct (Y is considered up)
+
 	float pxBoxWidth = ((max_x - min_x) * this->canvasW);
 
 	if (this->shape == BackgroundSettings::Shape::SQUARE)
 	{
 		GL_CHECK(glUniform1f(cornerRadiusUniform, 0.0f));
+
+		float tmp = (1.0 - this->shadow.shadowPaddingSize) * 0.5;		
+		GL_CHECK(glUniform2f(shadowPaddingSizeUniform, tmp, tmp));	
+
+		GL_CHECK(glUniform2f(shadowDirUniform, this->shadow.dirX, -this->shadow.dirY));
 	}
 	else if (this->shape == BackgroundSettings::Shape::CIRCLE)
 	{
-		GL_CHECK(glUniform1f(cornerRadiusUniform, 0.25f));
+		float tmp = (1.0 - this->shadow.shadowPaddingSize) * 0.5;
+
+		GL_CHECK(glUniform1f(cornerRadiusUniform, tmp));		
+		GL_CHECK(glUniform2f(shadowPaddingSizeUniform, tmp, tmp));	
+
+		GL_CHECK(glUniform2f(shadowDirUniform, this->shadow.dirX, this->shadow.dirY));
 	}
 	else if (this->shape == BackgroundSettings::Shape::ROUNDED_CORNER_SQUARE)
 	{
 		float cornerRadius = this->roundCornerRadius / pxBoxWidth;
 		GL_CHECK(glUniform1f(cornerRadiusUniform, cornerRadius));
+
+		float tmp = (1.0 - this->shadow.shadowPaddingSize) * 0.5;		
+		GL_CHECK(glUniform2f(shadowPaddingSizeUniform, tmp, tmp));
+
+		GL_CHECK(glUniform2f(shadowDirUniform, this->shadow.dirX, -this->shadow.dirY));
 	}
 
 	float blurRadius = this->shadow.blurRadius / pxBoxWidth;
 	GL_CHECK(glUniform1f(blurRadiusUniform, blurRadius));
 
-	GL_CHECK(glUniform2f(shadowDirUniform, this->shadow.dirX, this->shadow.dirY));
-
+	
 	GL_CHECK(glUniform4f(shadowColorUniform, this->shadow.color.r, this->shadow.color.g,
 		this->shadow.color.b, this->shadow.color.a));
+
 }
 
 void BackgroundShadowShaderManager::Clear()
@@ -162,17 +187,58 @@ void BackgroundShadowShaderManager::FillQuadVertexData(
 	const AbstractRenderer::Vertex& maxVertex,
 	const AbstractRenderer::RenderParams& rp,
 	std::vector<float>& vec)
-{	
-	float shadowPadW = 40 / this->canvasW;
-	float shadowPadH = 40 / this->canvasH;	
-
+{		
 	//if (vec.size() > 0) return;
-	const float minX = 2.0f * (minVertex.x - shadowPadW) - 1.0f;
-	const float minY = -(2.0f * (minVertex.y - shadowPadH) - 1.0f);
+	float minX = 2.0f * (minVertex.x) - 1.0f;
+	float minY = -(2.0f * (minVertex.y ) - 1.0f);
 
-	const float maxX = 2.0f * (maxVertex.x + shadowPadW) - 1.0f;
-	const float maxY = -(2.0f * (maxVertex.y + shadowPadH) - 1.0f);
+	float maxX = 2.0f * (maxVertex.x) - 1.0f;
+	float maxY = -(2.0f * (maxVertex.y) - 1.0f);
 
+	if (shape == BackgroundSettings::Shape::CIRCLE)
+	{
+		const float cx = minX + 0.5f * (maxX - minX);
+		const float cy = minY + 0.5f * (maxY - minY);
+
+		float rx, ry;
+
+		//2 * - projection space is [-1, 1] and we calculate for 0, 1
+		if (this->roundCornerRadius > 0)
+		{
+			rx = this->roundCornerRadius * 2.0f * rp.scale * (1.0f / this->canvasW);
+			ry = this->roundCornerRadius * 2.0f * rp.scale * (1.0f / this->canvasH);
+		}
+		else
+		{
+			const float w = std::abs(maxX - minX);
+			const float h = std::abs(maxY - minY);
+
+
+			// circle fitting inside given rect in screen pixels
+			const float rPx = 0.5f * std::max(
+				w * 0.5f * this->canvasW,
+				h * 0.5f * this->canvasH
+			);
+
+			rx = 2.0f * rPx / this->canvasW;
+			ry = 2.0f * rPx / this->canvasH;
+		}
+
+		minX = cx - rx;
+		minY = cy - ry;
+
+		maxX = cx + rx;
+		maxY = cy + ry;
+	}
+
+	float padW = rp.scale * (maxX - minX) * this->shadow.shadowPaddingSize;
+	float padH = rp.scale * (maxY - minY) * this->shadow.shadowPaddingSize;
+	
+	minX -= padW;
+	minY -= padH;
+	maxX += padW;
+	maxY += padH;
+	
 	min_x = minX;
 	min_y = minY;
 	max_x = maxX;

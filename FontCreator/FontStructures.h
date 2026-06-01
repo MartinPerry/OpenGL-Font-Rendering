@@ -240,6 +240,8 @@ struct Shadow
 {
 	float blurRadius = 0.03f;
 
+	float shadowPaddingSize = 0.2f; //size of shadow padding area around the background
+
 	float dirX = 0.0f;
 	float dirY = 0.05f;
 

@@ -362,11 +362,11 @@ void TestNumbers()
 	
 	auto rp = AbstractRenderer::DEFAULT_PARAMS;
 	rp.bgColor = { 1, 0, 0, 1 };
-	rp.scale = 0.15f;
+	//rp.scale = 0.5f;
 
 	//fn->AddNumber((double)(nmbr + nmbr / 100.0), 0.5f, 0.5f);
 	//fn->AddNumber(600010, 0.5f, 0.5f, { 1,1,0,1 }, AbstractRenderer::TextAnchor::CENTER);
-	fn->AddNumber(15, 0.5f, 0.7f, rp, AbstractRenderer::TextAnchor::CENTER);
+	//fn->AddNumber(15, 0.5f, 0.7f, rp, AbstractRenderer::TextAnchor::CENTER);
 	fn->AddNumber(1457895, 0.66f, 0.7f, rp, AbstractRenderer::TextAnchor::CENTER);
 	//fn->AddNumberCaption(60000, 0.5f, 0.4f, { 1,1,0,1 });
 	fn->Render();
@@ -395,20 +395,21 @@ void InitTestNumbers()
 
 	Shadow s;
 	s.blurRadius = 12;	
-	s.dirX = -0.05f;
+	s.dirX = 0.0f;
 	s.dirY = 0.05f;
+	s.shadowPaddingSize = 0.2;// 0.2f;
 	s.color = Color(0, 1, 0, 0.65f);
 
 	BackgroundSettings bsn;
 	bsn.color = { 0, 1, 1, 0.6f };
 	bsn.padding = 10;
 	bsn.cornerRadius = 0;// 20;
-	bsn.shape = BackgroundSettings::Shape::CIRCLE;
-	//bsn.shadow = s;
+	bsn.shape = BackgroundSettings::Shape::SQUARE;
+	bsn.shadow = s;
 	fn->SetBackgroundSettings(bsn);	
 	
 	//fn->SetOverlapCheck(true, 0.2f);
-	fn->GetBackend()->SetRenderSizeThreshold(5, true);
+	//fn->GetBackend()->SetRenderSizeThreshold(5, true);
 	
 
 	//Example to set custom shader class
