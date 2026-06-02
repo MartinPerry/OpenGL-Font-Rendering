@@ -83,6 +83,9 @@ void BackendBackgroundOpenGL::Render(std::function<void(GLuint)> preDrawCallback
 		return;
 	}
 	
+	//wireframe
+	//glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+
 	//activate shader	
 	FONT_BIND_SHADER(shader.program);
 

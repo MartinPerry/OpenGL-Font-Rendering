@@ -107,10 +107,6 @@ void BackgroundShadowShaderManager::BindUniforms()
 	//bacse in shader, geometry is treated as square - its mapped
 	//to 0-1 inetreval in both axes
 
-	//?? why is there -dirY needed for squares?
-	//tishout this, shadow is in oposite direction
-	//circle is correct (Y is considered up)
-
 	float pxBoxWidth = ((max_x - min_x) * this->canvasW);
 
 	if (this->shape == BackgroundSettings::Shape::SQUARE)
@@ -118,18 +114,14 @@ void BackgroundShadowShaderManager::BindUniforms()
 		GL_CHECK(glUniform1f(cornerRadiusUniform, 0.0f));
 
 		float tmp = (1.0 - this->shadow.shadowPaddingSize) * 0.5;		
-		GL_CHECK(glUniform2f(shadowPaddingSizeUniform, tmp, tmp));	
-
-		GL_CHECK(glUniform2f(shadowDirUniform, this->shadow.dirX, -this->shadow.dirY));
+		GL_CHECK(glUniform2f(shadowPaddingSizeUniform, tmp, tmp));			
 	}
 	else if (this->shape == BackgroundSettings::Shape::CIRCLE)
 	{
 		float tmp = (1.0 - this->shadow.shadowPaddingSize) * 0.5;
 
 		GL_CHECK(glUniform1f(cornerRadiusUniform, tmp));		
-		GL_CHECK(glUniform2f(shadowPaddingSizeUniform, tmp, tmp));	
-
-		GL_CHECK(glUniform2f(shadowDirUniform, this->shadow.dirX, this->shadow.dirY));
+		GL_CHECK(glUniform2f(shadowPaddingSizeUniform, tmp, tmp));			
 	}
 	else if (this->shape == BackgroundSettings::Shape::ROUNDED_CORNER_SQUARE)
 	{
@@ -137,14 +129,14 @@ void BackgroundShadowShaderManager::BindUniforms()
 		GL_CHECK(glUniform1f(cornerRadiusUniform, cornerRadius));
 
 		float tmp = (1.0 - this->shadow.shadowPaddingSize) * 0.5;		
-		GL_CHECK(glUniform2f(shadowPaddingSizeUniform, tmp, tmp));
-
-		GL_CHECK(glUniform2f(shadowDirUniform, this->shadow.dirX, -this->shadow.dirY));
+		GL_CHECK(glUniform2f(shadowPaddingSizeUniform, tmp, tmp));		
 	}
 
 	float blurRadius = this->shadow.blurRadius / pxBoxWidth;
 	GL_CHECK(glUniform1f(blurRadiusUniform, blurRadius));
 
+	//Y is considered up
+	GL_CHECK(glUniform2f(shadowDirUniform, this->shadow.dirX, this->shadow.dirY));
 	
 	GL_CHECK(glUniform4f(shadowColorUniform, this->shadow.color.r, this->shadow.color.g,
 		this->shadow.color.b, this->shadow.color.a));
@@ -224,11 +216,12 @@ void BackgroundShadowShaderManager::FillQuadVertexData(
 			ry = 2.0f * rPx / this->canvasH;
 		}
 
+		//swap Y in circle, we want Y to face upwards
 		minX = cx - rx;
-		minY = cy - ry;
+		minY = cy + ry;
 
 		maxX = cx + rx;
-		maxY = cy + ry;
+		maxY = cy - ry;
 	}
 
 	float padW = rp.scale * (maxX - minX) * this->shadow.shadowPaddingSize;

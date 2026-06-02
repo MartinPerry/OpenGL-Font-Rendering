@@ -327,14 +327,14 @@ static const char* SINGLE_COLOR_BACKGROUND_PIXEL_SHADER_SOURCE = PS_CODE(
 
 //============================================================
 
-static const char* SHADOW_BACKGROUND_VERTEX_SHADER_SOURCE = VS_CODE(
-    attribute vec2 POSITION;
-    attribute vec4 COLOR;
-    attribute vec4 AABB;
+static const char* SHADOW_BACKGROUND_VERTEX_SHADER_SOURCE = VS_CODE_3(
+    in vec2 POSITION;
+    in vec4 COLOR;
+    in vec4 AABB;
 
-    varying vec2 pos;
-    varying vec4 aabb;
-    varying vec4 color;
+    out vec2 pos;
+    out vec4 aabb;
+    out vec4 color;
 
     void main()
     {
@@ -349,10 +349,12 @@ static const char* SHADOW_BACKGROUND_VERTEX_SHADER_SOURCE = VS_CODE(
 //https://www.shadertoy.com/view/NtVSW1
 //+ ChatGPT
 
-static const char* SHADOW_BACKGROUND_PIXEL_SHADER_SOURCE = PS_CODE(
-    varying vec2 pos;
-    varying vec4 aabb;
-    varying vec4 color;
+static const char* SHADOW_BACKGROUND_PIXEL_SHADER_SOURCE = PS_CODE_3(
+    in vec2 pos;
+    in vec4 aabb;
+    in vec4 color;
+
+    out vec4 fragColor;
 
     uniform float cornerRadius;
     uniform float blurRadius;
@@ -392,7 +394,7 @@ static const char* SHADOW_BACKGROUND_PIXEL_SHADER_SOURCE = PS_CODE(
         vec2 fc = fragCoord - vec2(0.5);
                 
         float shadowSdf = sdRoundRect(
-            fc - shadowDir,
+            fc + shadowDir,
             shadowPaddingSize,
             cornerRadius + blurRadius
         );
@@ -403,7 +405,11 @@ static const char* SHADOW_BACKGROUND_PIXEL_SHADER_SOURCE = PS_CODE(
 
 
         // rectangle mask
-        float insideRect = step(rectSdf, 0.0);
+        //float insideRect = step(rectSdf, 0.0);
+       
+        //anti-aliased
+        float aaRadius = fwidth(rectSdf);
+        float insideRect = smoothstep(aaRadius, -aaRadius, rectSdf);
 
         // colors
         
@@ -423,7 +429,7 @@ static const char* SHADOW_BACKGROUND_PIXEL_SHADER_SOURCE = PS_CODE(
 
         vec4 col = normalBlend(inside, shadowCol);
 
-        gl_FragColor = col;
+        fragColor = col;
     }
 );
 
