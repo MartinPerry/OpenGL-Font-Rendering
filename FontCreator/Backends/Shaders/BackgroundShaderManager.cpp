@@ -3,7 +3,7 @@
 #include "./Shaders.h"
 
 BackgroundShaderManager::BackgroundShaderManager() :
-	positionLocation(-1),	
+	positionLocation(-1),
 	colorLocation(-1),
 	aabbLocation(-1),
 	shape(BackgroundSettings::Shape::SQUARE),
@@ -40,7 +40,6 @@ void BackgroundShaderManager::GetAttributtesUniforms()
 	GL_CHECK(positionLocation = glGetAttribLocation(shaderProgram, "POSITION"));
 	GL_CHECK(colorLocation = glGetAttribLocation(shaderProgram, "COLOR"));
 	GL_CHECK(aabbLocation = glGetAttribLocation(shaderProgram, "AABB"));
-	
 }
 
 void BackgroundShaderManager::BindVertexAtribs()
@@ -79,7 +78,6 @@ void BackgroundShaderManager::BindVertexAtribs()
 
 void BackgroundShaderManager::BindUniforms()
 {
-	
 }
 
 void BackgroundShaderManager::Clear()

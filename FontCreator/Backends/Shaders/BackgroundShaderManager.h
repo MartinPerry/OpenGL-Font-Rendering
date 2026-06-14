@@ -17,30 +17,30 @@ public:
     virtual const char* GetVertexShaderSource() const override;
     virtual const char* GetPixelShaderSource() const override;
 
-    void GetAttributtesUniforms() override;
+    virtual void GetAttributtesUniforms() override;
     void BindVertexAtribs() override;
     void BindUniforms() override;
    
-    void SetShape(BackgroundSettings::Shape shape, float radius = 0.0);
+    void SetShape(BackgroundSettings::Shape shape, float radius = 0.0f);
 
     int GetQuadVertices() const override;
 
-    void FillQuadVertexData(const AbstractRenderer::Vertex& minVertex,
+    virtual void FillQuadVertexData(const AbstractRenderer::Vertex& minVertex,
         const AbstractRenderer::Vertex& maxVertex,
         const AbstractRenderer::RenderParams& rp,
         std::vector<float>& vec) override;
 
-    void Clear() override;
+    virtual void Clear() override;
 
     void PreRender() override;
 
-    void Render(int quadsCount) override;
+    virtual void Render(int quadsCount) override;
 
 protected:
     GLint positionLocation;
     GLint colorLocation;
     GLint aabbLocation;
-
+    
     
     BackgroundSettings::Shape shape;
     float roundCornerRadius;

@@ -4,6 +4,7 @@
 #include "./Shaders/SingleColorBackgroundShaderManager.h"
 #include "./Shaders/BackgroundShaderManager.h"
 #include "./Shaders/BackgroundShadowShaderManager.h"
+#include "./Shaders/BackgroundTextureShaderManager.h"
 
 BackendBackgroundOpenGL::BackendBackgroundOpenGL(const BackgroundSettings& bs, const RenderSettings& r) :	
 	BackendBackgroundOpenGL(bs, r,
@@ -44,6 +45,14 @@ void BackendBackgroundOpenGL::SetBackgroundSettings(const BackgroundSettings& bs
 		tmp->SetColor(bs.color->r, bs.color->g, bs.color->b, bs.color->a);
 		tmp->SetShape(bs.shape, bs.cornerRadius);
 	}
+    else if (auto tmp = std::dynamic_pointer_cast<BackgroundTextureShaderManager>(this->sm))
+    {
+        if (bs.color.has_value())
+        {
+            tmp->SetBaseColor(bs.color->r, bs.color->g, bs.color->b, bs.color->a);
+        }
+        tmp->SetShape(bs.shape, bs.cornerRadius);
+    }
 	else if (auto tmp = std::dynamic_pointer_cast<BackgroundShaderManager>(this->sm))
 	{
 		tmp->SetShape(bs.shape, bs.cornerRadius);

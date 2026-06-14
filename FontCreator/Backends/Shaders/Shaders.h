@@ -305,6 +305,41 @@ static const char* BACKGROUND_PIXEL_SHADER_SOURCE = PS_CODE(
     }
 );
 
+static const char* TEXTURE_BACKGROUND_VERTEX_SHADER_SOURCE = VS_CODE(
+    attribute vec2 POSITION;
+    attribute vec4 COLOR;
+    attribute vec4 AABB;
+    
+    varying vec4 color;
+    varying vec2 texCoord;
+
+    vec2 mapTo01(vec2 s, vec2 from1, vec2 from2) {
+        return (s - from1) * vec2(1.0) / (from2 - from1);
+    }
+                                                                     
+    void main()
+    {
+        gl_Position = vec4(POSITION.x, POSITION.y, 0.0, 1.0);
+        color = COLOR;
+        texCoord = mapTo01(POSITION.xy, AABB.xy, AABB.zw);
+        texCoord.y = 1.0 - texCoord.y;
+    }
+);
+
+static const char* TEXTURE_BACKGROUND_PIXEL_SHADER_SOURCE = PS_CODE(
+    varying vec4 color;
+    varying vec2 texCoord;
+
+    uniform sampler2D bgTex;
+                                                                    
+    void main()
+    {
+        gl_FragColor = color * texture2D( bgTex, texCoord );
+    }
+);
+
+//============================================================
+
 //============================================================
 
 static const char* SINGLE_COLOR_BACKGROUND_VERTEX_SHADER_SOURCE = VS_CODE(
