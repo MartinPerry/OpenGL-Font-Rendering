@@ -649,14 +649,7 @@ void StringRenderer::CalcStringAABB(StringInfo & si, const UsedGlyphCache * gc) 
 	}
 
 	for (auto & li : si.lines)
-	{		
-		float scale = li.renderParams ? li.renderParams->scale : si.renderParams.scale;
-
-		li.aabb.minX *= scale;
-		li.aabb.maxX *= scale;
-		li.aabb.minY *= scale;
-		li.aabb.maxY *= scale;
-
+	{						
 		si.global.UnionWithOffset(li.aabb, 0);
 	}
 	
@@ -879,7 +872,7 @@ bool StringRenderer::GenerateGeometry()
 						static_cast<float>(spaceSize), static_cast<float>(spaceHeight),
 						activeParams);
 
-					x += spaceSize * scale;					
+					x += spaceSize * scale;
 					continue;
 				}
 			

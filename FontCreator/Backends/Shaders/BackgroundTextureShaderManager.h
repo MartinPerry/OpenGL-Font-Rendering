@@ -13,7 +13,7 @@ class BackgroundTextureShaderManager : public BackgroundShaderManager
 {
 public:
     BackgroundTextureShaderManager();
-    virtual ~BackgroundTextureShaderManager() = default;
+    virtual ~BackgroundTextureShaderManager();
 
     virtual const char* GetVertexShaderSource() const override;
     virtual const char* GetPixelShaderSource() const override;

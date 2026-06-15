@@ -4,8 +4,6 @@
 
 #include "./TextureAtlasPack.h"
 
-#include "./lodepng.h"
-
 #include "./FontBuilder.h"
 
 CustomImageFontBuilder::CustomImageFontBuilder(const std::vector<CustomGlyph>& glyphsData,
@@ -24,6 +22,8 @@ CustomImageFontBuilder::CustomImageFontBuilder(const std::vector<CustomGlyph>& g
 CustomImageFontBuilder::~CustomImageFontBuilder()
 {
 	this->Release();
+
+	SAFE_DELETE(this->texPacker);
 }
 
 void CustomImageFontBuilder::Release()

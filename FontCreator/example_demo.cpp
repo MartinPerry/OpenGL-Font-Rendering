@@ -15,6 +15,7 @@
 #include "./Backends/Shaders/DefaultFontShaderManager.h"
 #include "./Backends/Shaders/ColoredFontShaderManager.h"
 #include "./Backends/Shaders/SingleColorBackgroundShaderManager.h"
+#include "./Backends/Shaders/BackgroundTextureShaderManager.h"
 #include "./Backends/Shaders/BackgroundShaderManager.h"
 #include "./Backends/Shaders/Shaders.h"
 
@@ -397,7 +398,7 @@ void InitTestNumbers()
 	s.blurRadius = 12;	
 	s.dirX = 0.0f;
 	s.dirY = 0.05f;
-	s.shadowPaddingSize = 0.2;// 0.2f;
+	s.shadowPaddingSize = 0.2f;// 0.2f;
 	s.color = Color(0, 0, 0, 0.65f);
 
 	BackgroundSettings bsn;
@@ -431,14 +432,33 @@ void TestStringBackground()
 		glBack->SetFontTextureLinearFiler(true);
 	}
 
-	frWithBg->AddStringCaption(
+	auto rp = AbstractRenderer::RenderParams({ 0,0,0,1 }, 1.0);
+
+	frWithBg->AddString(
 		//CreateRandomString(10),
 		//u8"\U0001F300Pøíliš malý p\n(žluouèký)\nkùyòy",
-		u8" x    ",
-		0.5f, 0.85f,
-		AbstractRenderer::RenderParams({ 1,1,0,1 }, { 0, 1, 0, 1 }, 1.0)
+		u8"x",
+		0.5f, 0.5f,
+		rp,
+		AbstractRenderer::TextAnchor::CENTER,
+		AbstractRenderer::TextAlign::ALIGN_CENTER
 	);
 
+	
+	rp.scale = 1.0;
+	rp.bgColor = { 1, 1, 0, 1 };
+	//rp.textureName = "D://cyclone-square.png";
+
+	frWithBg->AddString(
+		//CreateRandomString(10),
+		//u8"\U0001F300Pøíliš malý p\n(žluouèký)\nkùyòy",
+		u8" ",
+		0.5f, 0.5f,
+		rp,
+		AbstractRenderer::TextAnchor::CENTER,
+		AbstractRenderer::TextAlign::ALIGN_CENTER
+	);
+	
 	frWithBg->Render();
 }
 
@@ -472,19 +492,27 @@ void InitTestStringBackground()
 	fs.sdf->outlineWidth = 0.1f;
 	fs.sdf->softness = 0.05f;
 
-	//frWithBg = StringRenderer::CreateDefault(fs, r);
-	frWithBg = StringRenderer::CreateSingleColor({ 1,0,1,1 }, fs, r);
-	frWithBg->SetCaption(u8"\U0001F300", 10);
-	frWithBg->SetCaption(u8"\U00002b55", 0);
-	frWithBg->SetCaption(u8"*", 0);
-	frWithBg->SetCaptionOffset(40);
 
 	BackgroundSettings bs;
 	//bs.color = { 0,1, 1, 0.6f };
 	bs.padding = 8;
 	bs.cornerRadius = 40;// 20;
 	bs.shadow = std::nullopt;
-	frWithBg->SetBackgroundSettings(bs);
+
+	auto sm = std::make_shared<DefaultFontShaderManager>(std::nullopt);
+	auto backend = std::make_unique<BackendOpenGL>(r, nullptr, nullptr, sm);
+	auto bstm = std::make_shared<BackgroundTextureShaderManager>();	
+	backend->SetBackground(bs, bstm);
+	frWithBg = new StringRenderer(fs, std::move(backend));
+
+	//frWithBg = StringRenderer::CreateDefault(fs, r);
+	//frWithBg = StringRenderer::CreateSingleColor({ 1,0,1,1 }, fs, r);
+
+	frWithBg->SetCaption(u8"\U0001F300", 10);
+	frWithBg->SetCaption(u8"\U00002b55", 0);
+	frWithBg->SetCaption(u8"*", 0);
+	frWithBg->SetCaptionOffset(40);		
+	//frWithBg->SetBackgroundSettings(bs, bstm);
 }
 
 //=============================================================================================

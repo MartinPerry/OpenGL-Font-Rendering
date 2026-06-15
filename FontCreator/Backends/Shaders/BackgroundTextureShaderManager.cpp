@@ -17,6 +17,19 @@ BackgroundTextureShaderManager::BackgroundTextureShaderManager() :
 
 }
 
+BackgroundTextureShaderManager::~BackgroundTextureShaderManager()
+{    
+    for (auto& texId : this->usedTextures)
+    {
+        if (texId == emptyTextureId)
+        {
+            continue;
+        }
+        GL_CHECK(glDeleteTextures(1, &texId));
+    }
+
+    GL_CHECK(glDeleteTextures(1, &this->emptyTextureId));
+}
 
 const char* BackgroundTextureShaderManager::GetVertexShaderSource() const
 {
@@ -62,7 +75,7 @@ void BackgroundTextureShaderManager::Render(int quadsCount)
     
     GLuint lastTexId = std::numeric_limits<GLuint>::max();
     
-    for (int i = 0; i < counts.size(); ++i)
+    for (size_t i = 0; i < counts.size(); i++)
     {
         GLuint texId = this->usedTextures[i];
         if (texId != lastTexId)
@@ -106,7 +119,7 @@ void BackgroundTextureShaderManager::FillQuadVertexData(const AbstractRenderer::
 GLuint BackgroundTextureShaderManager::LoadTextureData(const std::string& fileName)
 {
     auto it = this->texturesNames.try_emplace(fileName);
-    if (it.second)
+    if (it.second == false)
     {
         return it.first->second;
     }
@@ -127,7 +140,11 @@ GLuint BackgroundTextureShaderManager::LoadTextureData(const std::string& fileNa
     if (width * height * 3 == buffer.size()) channelsCount = 3;
     else if (width * height == buffer.size()) channelsCount = 1;
     
-    return this->InitTexture(buffer, width, height, channelsCount);
+    GLuint texId = this->InitTexture(buffer, width, height, channelsCount);
+
+    it.first->second = texId;
+
+    return texId;
 }
 
 GLuint BackgroundTextureShaderManager::InitTexture(const std::vector<uint8_t>& data, int w, int h, int channelsCount)

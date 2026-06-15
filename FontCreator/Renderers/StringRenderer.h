@@ -43,6 +43,7 @@ public:
 
 	/// <summary>
 	/// Single string info
+	/// (positions are not scaled)
 	/// </summary>
 	struct StringInfo
 	{
