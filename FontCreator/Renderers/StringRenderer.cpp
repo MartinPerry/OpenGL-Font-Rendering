@@ -621,6 +621,15 @@ void StringRenderer::CalcStringAABB(StringInfo & si, const UsedGlyphCache * gc) 
 		{
 			c = it.GetCurrentAndAdvance();
 		
+			if (c <= 32)
+			{
+				li.aabb.Update(x, y - static_cast<float>(spaceHeight), 
+					static_cast<float>(spaceSize), static_cast<float>(spaceHeight));
+
+				x += (spaceSize + this->extraGlyphSpacingSize);
+				continue;
+			}
+
 			index++;
 
 			auto r = (*gc)[index];
@@ -823,17 +832,18 @@ bool StringRenderer::GenerateGeometry()
 		this->backend->FillFontTexture();
 	}
 
+	if (this->spaceSizeExist == false)
+	{
+		this->CalcSpaceSize();
+	}
+
 
 	//calculate anchored position
 	//it will be calculated only once - if it already is calculated
 	//wont be calculated again
 	this->CalcAnchoredPosition();
 
-	if (this->spaceSizeExist == false)
-	{
-		this->CalcSpaceSize();
-	}
-	
+		
 
 	//Build geometry
 	
