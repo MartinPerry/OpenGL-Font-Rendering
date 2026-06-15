@@ -421,6 +421,23 @@ void BackendOpenGL::FillFontTexture()
 	FONT_UNBIND_TEXTURE_2D;
 }
 
+void BackendOpenGL::AddEmptyQuad(float x, float y, float w, float h, const AbstractRenderer::RenderParams& rp)
+{
+	if (h < this->heightPx)
+	{
+		if ((this->background) && (this->heightThresholdKeepBackground))
+		{			
+			this->background->AddEmptyQuad(x * psW, (y - h) * psH, w * psW, h * psH, rp);
+		}
+		return;
+	}
+
+	if (this->background)
+	{
+		this->background->AddEmptyQuad(x * psW, (y - h) * psH, w * psW, h * psH, rp);
+	}
+}
+
 /// <summary>
 /// Add single "letter" quad to geom buffer
 /// </summary>

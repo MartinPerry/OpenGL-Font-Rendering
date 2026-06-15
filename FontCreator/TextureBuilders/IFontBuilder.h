@@ -15,7 +15,7 @@ public:
 
 	virtual void SetAllFontSize(const FontSize& fs, uint16_t defaultFontSizeInPx = 0) = 0;
 
-
+	virtual const std::vector<FontInfo>& GetFontInfos() const = 0;
 	virtual uint16_t GetMaxFontPixelHeight() const = 0;
 
 	virtual int16_t GetMaxNewLineOffset() const = 0;

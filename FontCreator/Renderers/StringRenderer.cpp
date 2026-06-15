@@ -51,6 +51,7 @@ StringRenderer::StringRenderer(const FontBuilderSettings& fs,
 	deadzoneRadius2(0),
 	nlOffsetPx(0),
 	spaceSizeExist(false),
+	spaceHeight(0),
 	spaceSize(10)
 {
 }
@@ -62,6 +63,7 @@ StringRenderer::StringRenderer(std::shared_ptr<IFontBuilder> fb,
 	deadzoneRadius2(0),
 	nlOffsetPx(0),
 	spaceSizeExist(false),
+	spaceHeight(0),
 	spaceSize(10)
 {
 }
@@ -772,19 +774,17 @@ StringRenderer::UsedGlyphCache StringRenderer::ExtractGlyphs(const StringUtf8& s
 /// calculated, return this calculated result
 /// </summary>
 /// <returns></returns>
-long StringRenderer::CalcSpaceSize()
+void StringRenderer::CalcSpaceSize()
 {
-	if (spaceSizeExist)
-	{
-		return spaceSize;
-	}
-
+	
 	//calc space size	
-	auto gi = this->fb->GetGlyph(' ');
+	FontInfo* usedFi = nullptr;
+	auto gi = this->fb->GetGlyph(' ', &usedFi);
 	if (gi)
 	{		
 		spaceSizeExist = true;
-		spaceSize = gi->adv;
+		spaceSize = gi->adv;		
+		spaceHeight = usedFi->newLineOffset;
 	}
 	else
 	{
@@ -792,17 +792,17 @@ long StringRenderer::CalcSpaceSize()
 		auto tmp = this->fb->GetGlyph('a');
 		if (tmp)
 		{			
+			spaceHeight = tmp->bmpH;
 			spaceSize = tmp->adv;
 		}
 		else
 		{
+			spaceHeight = this->fb->GetMaxNewLineOffset();
 			spaceSize = 10;
 		}
 	}
 
 	spaceSize += this->extraGlyphSpacingSize;
-
-	return spaceSize;
 
 }
 
@@ -836,7 +836,10 @@ bool StringRenderer::GenerateGeometry()
 	//wont be calculated again
 	this->CalcAnchoredPosition();
 
-	long spaceSize = this->CalcSpaceSize();
+	if (this->spaceSizeExist == false)
+	{
+		this->CalcSpaceSize();
+	}
 	
 
 	//Build geometry
@@ -872,7 +875,11 @@ bool StringRenderer::GenerateGeometry()
 
 				if (c <= 32)
 				{
-					x += spaceSize * scale;
+					this->AddEmptyQuad(x, y,
+						static_cast<float>(spaceSize), static_cast<float>(spaceHeight),
+						activeParams);
+
+					x += spaceSize * scale;					
 					continue;
 				}
 			

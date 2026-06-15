@@ -76,6 +76,10 @@ void BackendBase::SwapCanvasWidthHeight()
 	this->OnCanvasChanges();
 }
 
+void BackendBase::AddEmptyQuad(float x, float y, float w, float h, const AbstractRenderer::RenderParams& rp)
+{
+}
+
 void BackendBase::AddQuad(const GlyphInfo& gi, float x, float y, const AbstractRenderer::RenderParams& rp)
 {
 	

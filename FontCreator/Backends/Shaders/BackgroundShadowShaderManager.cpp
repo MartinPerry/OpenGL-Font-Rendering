@@ -113,12 +113,12 @@ void BackgroundShadowShaderManager::BindUniforms()
 	{
 		GL_CHECK(glUniform1f(cornerRadiusUniform, 0.0f));
 
-		float tmp = (1.0 - this->shadow.shadowPaddingSize) * 0.5;		
+		float tmp = (1.0f - this->shadow.shadowPaddingSize) * 0.5f;		
 		GL_CHECK(glUniform2f(shadowPaddingSizeUniform, tmp, tmp));			
 	}
 	else if (this->shape == BackgroundSettings::Shape::CIRCLE)
 	{
-		float tmp = (1.0 - this->shadow.shadowPaddingSize) * 0.5;
+		float tmp = (1.0f - this->shadow.shadowPaddingSize) * 0.5f;
 
 		GL_CHECK(glUniform1f(cornerRadiusUniform, tmp));		
 		GL_CHECK(glUniform2f(shadowPaddingSizeUniform, tmp, tmp));			
@@ -128,7 +128,7 @@ void BackgroundShadowShaderManager::BindUniforms()
 		float cornerRadius = this->roundCornerRadius / pxBoxWidth;
 		GL_CHECK(glUniform1f(cornerRadiusUniform, cornerRadius));
 
-		float tmp = (1.0 - this->shadow.shadowPaddingSize) * 0.5;		
+		float tmp = (1.0f - this->shadow.shadowPaddingSize) * 0.5f;		
 		GL_CHECK(glUniform2f(shadowPaddingSizeUniform, tmp, tmp));		
 	}
 

@@ -162,6 +162,11 @@ bool CustomImageFontBuilder::AddCharacter(CHAR_CODE c)
 	return true;
 }
 
+const std::vector<FontInfo>& CustomImageFontBuilder::GetFontInfos() const
+{
+	return this->customFi;
+}
+
 uint16_t CustomImageFontBuilder::GetMaxFontPixelHeight() const
 {
 	return this->customFi[0].maxPixelsHeight;

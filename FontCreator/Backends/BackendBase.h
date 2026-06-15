@@ -32,7 +32,7 @@ public:
 		
 	void SetRenderSizeThreshold(float heightPx, bool keepBackground = false);
 
-	virtual void Clear();
+	virtual void Clear();	
 	virtual void AddQuad(const GlyphInfo& gi, float x, float y, const AbstractRenderer::RenderParams& rp);
 	virtual void OnFinishQuadGroup(const AbstractRenderer::RenderParams& rp);
 
@@ -62,6 +62,7 @@ protected:
 	float psW; //1.0 / pixel size in width
 	float psH; //1.0 / pixel size in height
 
+	virtual void AddEmptyQuad(float x, float y, float w, float h, const AbstractRenderer::RenderParams& rp);
 	virtual void AddQuad(AbstractRenderer::Vertex& vmin, AbstractRenderer::Vertex& vmax, const AbstractRenderer::RenderParams& rp) = 0;
 
 	//must be hidden, because we only want to call it from actual renderer

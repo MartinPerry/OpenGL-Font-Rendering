@@ -173,8 +173,9 @@ protected:
 
 	int nlOffsetPx;
 	long spaceSize;
+	long spaceHeight;
 
-	long CalcSpaceSize();
+	void CalcSpaceSize();
 
 	bool CanAddString(const StringUtf8& uniStr,
 		int x, int y, const RenderParams & rp,

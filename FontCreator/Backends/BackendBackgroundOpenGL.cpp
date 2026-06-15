@@ -131,6 +131,10 @@ void BackendBackgroundOpenGL::Render(std::function<void(GLuint)> preDrawCallback
 	FONT_UNBIND_SHADER;
 }
 
+void BackendBackgroundOpenGL::AddEmptyQuad(float x, float y, float w, float h, const AbstractRenderer::RenderParams& rp)
+{
+	curQuadAabb.Update(x, y, w, h);
+}
 
 void BackendBackgroundOpenGL::AddQuad(AbstractRenderer::Vertex& vmin, AbstractRenderer::Vertex& vmax, 
 	const AbstractRenderer::RenderParams& rp)

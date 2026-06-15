@@ -80,6 +80,7 @@ protected:
 	
 	void OnCanvasChanges() override;
 
+	void AddEmptyQuad(float x, float y, float w, float h, const AbstractRenderer::RenderParams& rp) override;
 	void AddQuad(AbstractRenderer::Vertex& vmin, AbstractRenderer::Vertex& vmax, const AbstractRenderer::RenderParams& rp) override;
 };
 

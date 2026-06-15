@@ -369,7 +369,7 @@ void TestNumbers()
 	fn->AddNumber(15, 0.5f, 0.7f, rp, AbstractRenderer::TextAnchor::CENTER);
 	fn->AddNumber(1457895, 0.66f, 0.7f, rp, AbstractRenderer::TextAnchor::CENTER);
 	//fn->AddNumberCaption(60000, 0.5f, 0.4f, { 1,1,0,1 });
-	fn->Render();
+	//fn->Render();
 }
 
 void InitTestNumbers()
@@ -432,13 +432,14 @@ void TestStringBackground()
 	}
 
 	frWithBg->AddStringCaption(
-		CreateRandomString(10),
+		//CreateRandomString(10),
 		//u8"\U0001F300Pøíliš malý p\n(žluouèký)\nkùyòy",
+		u8" x    ",
 		0.5f, 0.85f,
 		AbstractRenderer::RenderParams({ 1,1,0,1 }, { 0, 1, 0, 1 }, 1.0)
 	);
 
-	//frWithBg->Render();
+	frWithBg->Render();
 }
 
 void InitTestStringBackground()

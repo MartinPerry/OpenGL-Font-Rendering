@@ -49,6 +49,7 @@ public:
 	bool AddString(const StringUtf8& str) override;
 	bool AddCharacter(CHAR_CODE c) override;
 
+	const std::vector<FontInfo>& GetFontInfos() const override;
 	uint16_t GetMaxFontPixelHeight() const override;
 
 	int16_t GetMaxNewLineOffset() const override;

@@ -172,7 +172,10 @@ void AbstractRenderer::Render()
 	this->backend->Render();
 }
 
-
+void AbstractRenderer::AddEmptyQuad(float x, float y, float w, float h, const RenderParams& rp)
+{
+	this->backend->AddEmptyQuad(x, y, w, h, rp);
+}
 
 void AbstractRenderer::AddQuad(const GlyphInfo& gi, int x, int y, const RenderParams& rp)
 {
