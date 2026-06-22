@@ -790,7 +790,7 @@ StringRenderer::UsedGlyphCache StringRenderer::ExtractGlyphs(const StringUtf8& s
 	uint32_t c;
 	while ((c = it.GetCurrentAndAdvance()) != it.DONE)	
 	{
-		if (c == '\n')
+		if (c <= 32)
 		{			
 			continue;
 		}
