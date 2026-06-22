@@ -173,8 +173,8 @@ protected:
 	int deadzoneRadius2;
 
 	int nlOffsetPx;
-	long spaceSize;
-	long spaceHeight;
+	int16_t spaceSize;
+	int16_t spaceHeight;
 
 	void CalcSpaceSize();
 

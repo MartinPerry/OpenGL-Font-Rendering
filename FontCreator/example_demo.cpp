@@ -174,7 +174,7 @@ void TestBasicRender()
 	*/
 
 
-	fr->SetCaptionOffset(80);
+	fr->SetCaptionOffset(10);
 
 
 
@@ -183,7 +183,7 @@ void TestBasicRender()
 		//UTF8_TEXT(CreateRandomString(10).c_str()),
 		u8"i i i i i",
 		//UTF8_TEXT("H\n1023hPa"),
-		0.5f, 0.35f,
+		0.5f, 0.5f,
 		AbstractRenderer::RenderParams({ 1,1,1,1 }, 1.0)
 	);
 
@@ -459,7 +459,7 @@ void TestStringBackground()
 		AbstractRenderer::TextAlign::ALIGN_CENTER
 	);
 	
-	frWithBg->Render();
+	//frWithBg->Render();
 }
 
 void InitTestStringBackground()
@@ -565,8 +565,8 @@ void InitTestToImage()
 		AbstractRenderer::RenderParams({ 1,1,0,1 }, 1.0),
 		AbstractRenderer::TextAnchor::LEFT_TOP);
 
-	imageSr->Render();
-	image->SaveToFile("D://test2.png");
+	//imageSr->Render();
+	//image->SaveToFile("D://test2.png");
 }
 
 //=============================================================================================
@@ -610,12 +610,12 @@ void display() {
 
 	//render here
 	
-	//TestBasicRender();
+	TestBasicRender();
 		
-	TestStringBackground();
+	//TestStringBackground();
 
 	//TestCustomIcon();
-	TestNumbers();
+	//TestNumbers();
 
 	glutSwapBuffers();	
 	//glutPostRedisplay();

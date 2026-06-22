@@ -842,11 +842,11 @@ GlyphInfo* FontBuilder::FillGlyphInfo(CHAR_CODE c, FontInfo & fi) const
 	GlyphInfo gInfo;
 	gInfo.code = c;
 	gInfo.fontIndex = fi.index;
-	gInfo.bmpX = static_cast<uint16_t>(glyphLeft * fi.scaleFactor);
-	gInfo.bmpY = static_cast<uint16_t>(glyphTop * fi.scaleFactor);
+	gInfo.bmpX = static_cast<int16_t>(glyphLeft * fi.scaleFactor);
+	gInfo.bmpY = static_cast<int16_t>(glyphTop * fi.scaleFactor);
 	gInfo.bmpW = static_cast<uint16_t>(glyphBmp.width * fi.scaleFactor);
 	gInfo.bmpH = static_cast<uint16_t>(glyphBmp.rows * fi.scaleFactor);
-	gInfo.adv = static_cast<long>(advanceX * fi.scaleFactor);
+	gInfo.adv = static_cast<int16_t>(advanceX * fi.scaleFactor);
 	gInfo.rawData = nullptr;
 
 	if (c > 32)

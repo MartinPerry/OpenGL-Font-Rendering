@@ -36,7 +36,7 @@ struct GlyphInfo
 	uint8_t * rawData = nullptr;
 
 	//advance to next glyph
-	long adv = 0;
+	int16_t adv = 0;
 	//advX = adv
 	//advY = 0 for horizontal
 

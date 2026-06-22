@@ -396,7 +396,7 @@ GlyphInfo* CustomImageFontBuilder::FillGlyphInfo(CHAR_CODE c, CustomGlyph& g)
 	gInfo.bmpY = 0;
 	gInfo.bmpW = (gt->second.w > 0) ? gt->second.w : static_cast<uint16_t>(width);
 	gInfo.bmpH = (gt->second.h > 0) ? gt->second.h : static_cast<uint16_t>(height);
-	gInfo.adv = (gt->second.adv > 0) ? gt->second.adv : static_cast<uint16_t>(width);
+	gInfo.adv = (gt->second.adv > 0) ? static_cast<int16_t>(gt->second.adv) : static_cast<int16_t>(width);
 	gInfo.rawData = nullptr;
 
 	if (c > 32)

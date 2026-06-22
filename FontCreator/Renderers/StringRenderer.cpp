@@ -591,6 +591,7 @@ void StringRenderer::CalcStringAABB(StringInfo & si, const UsedGlyphCache * gc) 
 
 	for (LineInfo & li : si.lines)
 	{	
+		float scale = li.renderParams ? li.renderParams->scale : si.renderParams.scale;
 
 		x = 0;
 
@@ -605,11 +606,9 @@ void StringRenderer::CalcStringAABB(StringInfo & si, const UsedGlyphCache * gc) 
 			//at least one line was processed
 			//offset to new line of the last line 
 			//is based on the scale of the actual line
-
-			float scale = li.renderParams ? li.renderParams->scale : si.renderParams.scale;
-
+			
 			prevLine->maxNewLineOffset = newLineOffset * scale;
-			y += newLineOffset;
+			y += newLineOffset * scale;
 		}		
 
 		newLineOffset = 0;
@@ -623,10 +622,11 @@ void StringRenderer::CalcStringAABB(StringInfo & si, const UsedGlyphCache * gc) 
 		
 			if (c <= 32)
 			{
-				li.aabb.Update(x, y - static_cast<float>(spaceHeight), 
-					static_cast<float>(spaceSize), static_cast<float>(spaceHeight));
+				li.aabb.Update(x, y - static_cast<float>(spaceHeight) * scale,
+					static_cast<float>(spaceSize) * scale, static_cast<float>(spaceHeight) * scale
+				);
 
-				x += (spaceSize + this->extraGlyphSpacingSize);
+				x += spaceSize * scale;
 				continue;
 			}
 
@@ -641,11 +641,12 @@ void StringRenderer::CalcStringAABB(StringInfo & si, const UsedGlyphCache * gc) 
 			newLineOffset = std::max(newLineOffset, static_cast<float>(std::get<1>(r)->newLineOffset + this->nlOffsetPx));
 			
 			
-			float fx = x + gi->bmpX;
-			float fy = y - gi->bmpY;
-			li.aabb.Update(fx, fy, static_cast<float>(gi->bmpW), static_cast<float>(gi->bmpH));
+			float fx = x + (gi->bmpX * scale);
+			float fy = y - (gi->bmpY * scale);
 
-			x += (gi->adv + this->extraGlyphSpacingSize);
+			li.aabb.Update(fx, fy, gi->bmpW * scale, gi->bmpH * scale);
+
+			x += (gi->adv + this->extraGlyphSpacingSize) * scale;
 		}
 											
 				
@@ -658,7 +659,32 @@ void StringRenderer::CalcStringAABB(StringInfo & si, const UsedGlyphCache * gc) 
 	}
 
 	for (auto & li : si.lines)
-	{						
+	{				
+		float scale = li.renderParams ? li.renderParams->scale : si.renderParams.scale;
+
+		/*
+		li.aabb.minX *= scale;
+		li.aabb.maxX *= scale;
+		li.aabb.minY *= scale;
+		li.aabb.maxY *= scale;
+		*/
+		/*
+		if (scale != 1.0)
+		{
+			float w = li.aabb.GetWidth();
+			float h = li.aabb.GetHeight();
+
+			//move to original -> scale -> move back
+			float cx = li.aabb.minX + w * 0.5f;
+			float cy = li.aabb.minY + h * 0.5f;
+
+			li.aabb.minX = (li.aabb.minX - cx) * scale + cx;
+			li.aabb.minY = (li.aabb.minY - cy) * scale + cy;
+
+			li.aabb.maxX = (li.aabb.maxX - cx) * scale + cx;
+			li.aabb.maxY = (li.aabb.maxY - cy) * scale + cy;
+		}
+		*/
 		si.global.UnionWithOffset(li.aabb, 0);
 	}
 	
@@ -702,8 +728,14 @@ void StringRenderer::CalcAnchoredPosition(StringInfo& si, float& captionMarkHeig
 	}
 	else if (si.anchor == TextAnchor::CENTER)
 	{
-		si.anchorX = static_cast<float>(si.x - static_cast<int>(si.global.GetWidth()) / 2);
-		si.anchorY = static_cast<float>(si.y - std::min(0.0f, si.global.minY) - static_cast<int>(si.global.GetHeight()) / 2);
+		float centerX = si.global.minX + si.global.GetWidth() * 0.5f;
+		float centerY = si.global.minY + si.global.GetHeight() * 0.5f;
+
+		si.anchorX = static_cast<float>(si.x) - centerX;
+		si.anchorY = static_cast<float>(si.y) - centerY;
+
+		//si.anchorX = static_cast<float>(si.x - static_cast<int>(si.global.GetWidth()) / 2);		
+		//si.anchorY = static_cast<float>(si.y - std::min(0.0f, si.global.minY) - static_cast<int>(si.global.GetHeight()) / 2);
 	}
 	else if (si.anchor == TextAnchor::LEFT_DOWN)
 	{
@@ -736,9 +768,9 @@ void StringRenderer::CalcLineAlign(const StringInfo & si, const LineInfo & li, f
 {	
 	if (si.align == TextAlign::ALIGN_CENTER)
 	{
-		float blockCenterX = si.global.GetWidth() / 2;		
-		float lineCenterX = li.aabb.GetWidth() / 2;
-		
+		float blockCenterX = si.global.minX + si.global.GetWidth() * 0.5f;
+		float lineCenterX = li.aabb.minX + li.aabb.GetWidth() * 0.5f;
+				
 		x += (blockCenterX - lineCenterX);
 	}
 }
