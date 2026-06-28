@@ -533,6 +533,16 @@ AABB StringRenderer::EstimateStringAABB(const StringUtf8& str,
 			continue;
 		}
 
+		if (c <= 32)
+		{
+			aabb.Update(x, y - static_cast<float>(spaceHeight),
+				static_cast<float>(spaceSize), static_cast<float>(spaceHeight)
+			);
+
+			x += spaceSize * scale;
+			continue;
+		}
+
 		FontInfo * fi = nullptr;
 		auto gi = this->fb->GetGlyph(c, &fi);
 		if (gi)
@@ -622,8 +632,8 @@ void StringRenderer::CalcStringAABB(StringInfo & si, const UsedGlyphCache * gc) 
 		
 			if (c <= 32)
 			{
-				li.aabb.Update(x, y - static_cast<float>(spaceHeight) * scale,
-					static_cast<float>(spaceSize) * scale, static_cast<float>(spaceHeight) * scale
+				li.aabb.Update(x , y - static_cast<float>(spaceHeight),
+					static_cast<float>(spaceSize), static_cast<float>(spaceHeight)
 				);
 
 				x += spaceSize * scale;
@@ -659,32 +669,7 @@ void StringRenderer::CalcStringAABB(StringInfo & si, const UsedGlyphCache * gc) 
 	}
 
 	for (auto & li : si.lines)
-	{				
-		float scale = li.renderParams ? li.renderParams->scale : si.renderParams.scale;
-
-		/*
-		li.aabb.minX *= scale;
-		li.aabb.maxX *= scale;
-		li.aabb.minY *= scale;
-		li.aabb.maxY *= scale;
-		*/
-		/*
-		if (scale != 1.0)
-		{
-			float w = li.aabb.GetWidth();
-			float h = li.aabb.GetHeight();
-
-			//move to original -> scale -> move back
-			float cx = li.aabb.minX + w * 0.5f;
-			float cy = li.aabb.minY + h * 0.5f;
-
-			li.aabb.minX = (li.aabb.minX - cx) * scale + cx;
-			li.aabb.minY = (li.aabb.minY - cy) * scale + cy;
-
-			li.aabb.maxX = (li.aabb.maxX - cx) * scale + cx;
-			li.aabb.maxY = (li.aabb.maxY - cy) * scale + cy;
-		}
-		*/
+	{						
 		si.global.UnionWithOffset(li.aabb, 0);
 	}
 	
@@ -821,18 +806,18 @@ void StringRenderer::CalcSpaceSize()
 		spaceHeight = usedFi->newLineOffset;
 	}
 	else
-	{
+	{		
 		//we want to store only real space if it exist		
-		auto tmp = this->fb->GetGlyph('a');
+		auto tmp = this->fb->GetGlyph('x');
 		if (tmp)
-		{			
-			spaceHeight = tmp->bmpH;
+		{						
 			spaceSize = tmp->adv;
+			spaceHeight = tmp->bmpH;
 		}
 		else
-		{
-			spaceHeight = this->fb->GetMaxNewLineOffset();
+		{			
 			spaceSize = 10;
+			spaceHeight = spaceSize;// this->fb->GetMaxNewLineOffset();
 		}
 	}
 

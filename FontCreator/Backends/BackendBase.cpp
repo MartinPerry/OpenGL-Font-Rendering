@@ -83,8 +83,8 @@ void BackendBase::AddEmptyQuad(float x, float y, float w, float h, const Abstrac
 void BackendBase::AddQuad(const GlyphInfo& gi, float x, float y, const AbstractRenderer::RenderParams& rp)
 {
 	
-	float fx = x + gi.bmpX *rp.scale;
-	float fy = y - gi.bmpY *rp.scale;
+	float fx = x + gi.bmpX * rp.scale;
+	float fy = y - gi.bmpY * rp.scale;
 	
 	//build geometry
 	AbstractRenderer::Vertex min, max;
@@ -94,8 +94,8 @@ void BackendBase::AddQuad(const GlyphInfo& gi, float x, float y, const AbstractR
 	min.u = static_cast<float>(gi.tx);
 	min.v = static_cast<float>(gi.ty);
 
-	max.x = fx + gi.bmpW *rp.scale;
-	max.y = fy + gi.bmpH *rp.scale;
+	max.x = fx + gi.bmpW * rp.scale;
+	max.y = fy + gi.bmpH * rp.scale;
 	max.u = static_cast<float>(gi.tx + gi.bmpW);
 	max.v = static_cast<float>(gi.ty + gi.bmpH);
 

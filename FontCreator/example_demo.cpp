@@ -434,6 +434,7 @@ void TestStringBackground()
 
 	auto rp = AbstractRenderer::RenderParams({ 0,0,0,1 }, 1.0);
 
+	/*
 	frWithBg->AddString(
 		//CreateRandomString(10),
 		//u8"\U0001F300Pøíliš malý p\n(žluouèký)\nkùyòy",
@@ -443,11 +444,11 @@ void TestStringBackground()
 		AbstractRenderer::TextAnchor::CENTER,
 		AbstractRenderer::TextAlign::ALIGN_CENTER
 	);
-
+	*/
 	
-	rp.scale = 1.0;
+	rp.scale = 6.0;
 	rp.bgColor = { 1, 1, 0, 1 };
-	//rp.textureName = "D://cyclone-square.png";
+	rp.textureName = "D://cyclone-square.png";
 
 	frWithBg->AddString(
 		//CreateRandomString(10),
@@ -459,7 +460,7 @@ void TestStringBackground()
 		AbstractRenderer::TextAlign::ALIGN_CENTER
 	);
 	
-	//frWithBg->Render();
+	frWithBg->Render();
 }
 
 void InitTestStringBackground()
@@ -607,15 +608,20 @@ void display() {
 	//glPrimitiveRestartIndex(-1);
 	//glEnable(GL_PRIMITIVE_RESTART);
 	
-
+	//=========================================================================
 	//render here
+	//=========================================================================
 	
-	TestBasicRender();
+	//TestBasicRender();
 		
-	//TestStringBackground();
+	TestStringBackground();
 
 	//TestCustomIcon();
 	//TestNumbers();
+
+	//=========================================================================
+	//=========================================================================
+	//=========================================================================
 
 	glutSwapBuffers();	
 	//glutPostRedisplay();
