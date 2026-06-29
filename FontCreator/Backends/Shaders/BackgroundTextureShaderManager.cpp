@@ -12,8 +12,8 @@ BackgroundTextureShaderManager::BackgroundTextureShaderManager() :
     a(1),
     bgTextureUniform(-1)
 {
-    std::vector<uint8_t> dummy = {255};
-    emptyTextureId = this->InitTexture(dummy, 1, 1, 1);
+    std::vector<uint8_t> dummy = { 255, 255, 255, 255 };
+    emptyTextureId = this->InitTexture(dummy, 1, 1, 4);
 
 }
 

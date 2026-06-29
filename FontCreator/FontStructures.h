@@ -173,6 +173,11 @@ struct Color
 {
 	float r, g, b, a;
 
+	static Color CreateFromRGB(int r, int g, int b) noexcept
+	{
+		return Color(r / 255.0f, g / 255.0f, b / 255.0f, 1.0f);
+	}
+
 	Color() noexcept :
 		Color(1.0f, 1.0f, 1.0f, 1.0f)
 	{}
