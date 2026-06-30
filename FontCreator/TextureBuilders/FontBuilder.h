@@ -22,7 +22,8 @@ class TextureAtlasPack;
 class FontBuilder : public IFontBuilder
 {
 public:
-	FontBuilder(const FontBuilderSettings& fs);
+	FontBuilder(const FontBuilderSettings& r);
+	FontBuilder(const FontBuilderSettings& r, std::shared_ptr<TextureAtlasPack> texPacker);
 	~FontBuilder();
 
 	void Release() override;
@@ -80,7 +81,7 @@ protected:
 	std::unordered_set<CHAR_CODE> reused; //codes that were already added and are also in current string
 	std::unordered_set<CHAR_CODE> newCodes; //newly added codes
 
-	TextureAtlasPack * texPacker;
+	std::shared_ptr<TextureAtlasPack> texPacker;
 		
 	int InitializeFont(const std::string & fontFacePath);	
 	bool SetFontSizePixels(FontInfo & f, uint16_t size);

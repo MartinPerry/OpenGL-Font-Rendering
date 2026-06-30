@@ -47,6 +47,7 @@
 #endif
 
 
+
 int g_width = 800;
 int g_height = 600;
 
@@ -55,6 +56,8 @@ StringRenderer* frWithBg;
 StringRenderer* srCustom;
 NumberRenderer * fn;
 
+StringRenderer* sharedAtlas1;
+StringRenderer* sharedAtlas2;
 
 std::vector<int32_t> allChars;
 
@@ -180,22 +183,21 @@ void TestBasicRender()
 
 
 	fr->AddStringCaption(
-		//UTF8_TEXT(CreateRandomString(10).c_str()),
+		//CreateRandomString(10).c_str(),
 		u8"i i i i i",
 		//UTF8_TEXT("H\n1023hPa"),
 		0.5f, 0.5f,
 		AbstractRenderer::RenderParams({ 1,1,1,1 }, 1.0)
 	);
 
-	/*
+	
 	fr->AddString(
-		//UTF8_TEXT(CreateRandomString(10).c_str()),
-		UTF8_TEXT("i"),
-		//UTF8_TEXT("H\n1023hPa"),
+		CreateRandomString(10).c_str(),		
+		//u8"H\n1023hPa",
 		0.5f, 0.35f,
 		AbstractRenderer::RenderParams({ 1,1,0,1 }, 1.0)
 	);
-	*/
+	
 	//=================================
 	//debug
 	if (auto* si = fr->GetLastStringInfo())
@@ -220,9 +222,7 @@ void TestBasicRender()
 	fr->SetExtraGlyphSpacingSize(20);
 	fr->Clear();
 	fr->AddStringCaption(
-		//UTF8_TEXT(CreateRandomString(10).c_str()),
-		UTF8_TEXT("iii iii"),
-		//UTF8_TEXT("H\n1023hPa"),
+		//CreateRandomString(10).c_str(),				
 		0.5f, 0.35f,
 		AbstractRenderer::RenderParams({ 1,1,0,1 }, 1.0)
 	);
@@ -520,6 +520,107 @@ void InitTestStringBackground()
 //=============================================================================================
 //=============================================================================================
 
+void TestSharedAtlas()
+{
+	sharedAtlas1->Clear();
+	sharedAtlas2->Clear();
+
+	
+	auto rp = AbstractRenderer::RenderParams({ 0,0,0,1 }, 1.0);
+
+	sharedAtlas1->AddString(
+		CreateRandomString(10),		
+		//u8"ahoj",
+		0.5f, 0.5f,
+		rp,
+		AbstractRenderer::TextAnchor::CENTER,
+		AbstractRenderer::TextAlign::ALIGN_CENTER
+	);
+	
+	sharedAtlas2->AddString(
+		CreateRandomString(10),
+		//u8"ahoj",
+		0.4f, 0.2f,
+		rp,
+		AbstractRenderer::TextAnchor::CENTER,
+		AbstractRenderer::TextAlign::ALIGN_CENTER
+	);
+
+
+	sharedAtlas1->Render();
+	sharedAtlas2->Render();
+}
+
+void InitSharedAtlas()
+{
+	auto ftSize = 12_pt;
+
+	auto fontFiles = AbstractRenderer::GetFontsInDirectory("../fonts2/");
+
+	std::vector<Font> fonts;
+	for (auto d : fontFiles)
+	{
+		Font f(d, ftSize);
+
+		fonts.push_back(f);
+	}
+
+	RenderSettings r;
+	r.deviceW = g_width;
+	r.deviceH = g_height;
+
+	std::shared_ptr<TextureAtlasPack> sharedAtlas = std::make_shared<TextureAtlasPack>(512, 512, 1, 1);
+	
+	//==================================================================
+
+	FontBuilderSettings fs;
+	fs.screenDpi = 260;
+	fs.textureW = 400;
+	fs.textureH = 400;
+	fs.screenScale = 1.0;
+	fs.fonts = fonts;
+	fs.sdf = SDF();
+	fs.sdf->outlineColor = { 0, 0, 0, 1 };
+	fs.sdf->outlineWidth = 0.1f;
+	fs.sdf->softness = 0.05f;
+	
+	auto fb1 = std::make_shared<FontBuilder>(fs, sharedAtlas);
+
+	BackgroundSettings bs;
+	//bs.color = { 0,1, 1, 0.6f };
+	bs.padding = 8;
+	bs.cornerRadius = 40;// 20;
+	bs.shadow = std::nullopt;
+
+	auto sm = std::make_shared<DefaultFontShaderManager>(std::nullopt);
+	auto backend = std::make_unique<BackendOpenGL>(r, nullptr, nullptr, sm);
+	auto bstm = std::make_shared<BackgroundTextureShaderManager>();
+	backend->SetBackground(bs, bstm);
+	
+	sharedAtlas1 = new StringRenderer(fb1, std::move(backend));
+
+	//==================================================================
+
+	FontBuilderSettings fs2;
+	fs2.screenDpi = 260;
+	fs2.textureW = 512;
+	fs2.textureH = 512;
+	fs2.screenScale = 1.0;
+	fs2.fonts = fonts;
+	
+	auto fb2 = std::make_shared<FontBuilder>(fs2, sharedAtlas);
+
+	auto sm2 = std::make_shared<DefaultFontShaderManager>(std::nullopt);
+	auto backend2 = std::make_unique<BackendOpenGL>(r, nullptr, nullptr, sm2);
+
+	sharedAtlas2 = new StringRenderer(fb2, std::move(backend2));
+
+}
+
+//=============================================================================================
+//=============================================================================================
+//=============================================================================================
+
 void InitTestToImage()
 {
 	auto ftSize = 12_pt;
@@ -614,10 +715,12 @@ void display() {
 	
 	//TestBasicRender();
 		
-	TestStringBackground();
+	//TestStringBackground();
 
 	//TestCustomIcon();
 	//TestNumbers();
+
+	TestSharedAtlas();
 
 	//=========================================================================
 	//=========================================================================
@@ -698,6 +801,10 @@ void initGL() {
 
 	//======================================================================
 
+	InitSharedAtlas();
+
+	//======================================================================
+
 	InitTestToImage();
 
 	//======================================================================
@@ -743,7 +850,7 @@ void Normalize()
 
 int main(int argc, char ** argv)
 {
-		
+
 	//Normalize();
 	/*
 	//CharacterExtractor cr({ "arial.ttf" }, "arial_out.ttf");

@@ -1,5 +1,6 @@
 #include "./TextureAtlasPack.h"
 
+#define BUILD_CHAR_ID(x, y) ((uint64_t) x << 32) | y;
 
 //http://www.blackpawn.com/texts/lightmaps/default.html
 
@@ -10,8 +11,7 @@
 /// <param name="h"></param>
 /// <param name="border"></param>
 TextureAtlasPack::TextureAtlasPack(uint16_t w, uint16_t h, 
-	uint16_t border, uint8_t channelsCount) :
-	fontInfos(nullptr), 
+	uint16_t border, uint8_t channelsCount) :	
 	unused(nullptr), 
 	w(w), 
 	h(h), 
@@ -41,10 +41,17 @@ TextureAtlasPack::~TextureAtlasPack()
 }
 
 
+/*
 HashMap<CHAR_CODE, TextureAtlasPack::PackedInfo> & TextureAtlasPack::GetPackedInfos()
 {
 	return this->packedInfo;
 }
+
+const HashMap<CHAR_CODE, FontInfo*> & TextureAtlasPack::GetErasedGlyphs()
+{
+	return this->erased;
+}
+*/
 
 void TextureAtlasPack::SaveToFile(const std::string & path)
 {
@@ -104,9 +111,18 @@ void TextureAtlasPack::SetGridPacking(uint16_t binW, uint16_t binH)
 
 //======================== Add textures to atlas ===========================================
 
-void TextureAtlasPack::SetAllFontInfos(std::vector<FontInfo> * fontInfos)
+void TextureAtlasPack::AddFontInfos(std::vector<FontInfo>& fontInfos)
 {
-	this->fontInfos = fontInfos;
+	for (size_t i = 0; i < fontInfos.size(); i++)
+	{
+		FontInfo* fi = &fontInfos[i];
+		this->fontInfos.push_back(fi);
+	}
+}
+
+void TextureAtlasPack::AddFontInfo(FontInfo* fontInfo)
+{
+	this->fontInfos.push_back(fontInfo);
 }
 
 void TextureAtlasPack::SetUnusedGlyphs(std::list<FontInfo::GlyphIterator> * unused)
@@ -114,10 +130,6 @@ void TextureAtlasPack::SetUnusedGlyphs(std::list<FontInfo::GlyphIterator> * unus
 	this->unused = unused;
 }
 
-const HashMap<CHAR_CODE, int> & TextureAtlasPack::GetErasedGlyphs()
-{
-	return this->erased;
-}
 
 uint16_t TextureAtlasPack::GetTextureWidth() const
 {
@@ -201,17 +213,19 @@ bool TextureAtlasPack::PackGrid()
 
 	PackedInfo info;
 
-	for (auto & fi : *this->fontInfos)
+	for (FontInfo* fi : this->fontInfos)
 	{		
-		for (auto & [code, g] : fi.glyphs)
+		for (auto & [code, g] : fi->glyphs)
 		{
 			if (g.code <= 32)
 			{
 				//do not add white-space "characters" to texture
 				continue;
 			}
+			
+			uint64_t key = BUILD_CHAR_ID(g.code, fi->fontId);
 
-			if (this->packedInfo.find(g.code) != this->packedInfo.end())
+			if (this->packedInfo.find(key) != this->packedInfo.end())
 			{
 				//glyph already in texture
 				continue;
@@ -234,10 +248,10 @@ bool TextureAtlasPack::PackGrid()
 
 				//free space from unused
 
-				CHAR_CODE removedCode;
+				std::optional<PackedInfo> tmp = this->FreeSpace(g.bmpW, g.bmpH);
 
-				if (this->FreeSpace(g.bmpW, g.bmpH, &removedCode) == false)
-				{
+				if (tmp.has_value() == false)
+				{				
 					MY_LOG_INFO("Empty space in atlas not found and cannot be freed for glyph %lu", g.code);
 					//this->AddToErased(g.fontIndex, g.code);
 
@@ -247,12 +261,7 @@ bool TextureAtlasPack::PackGrid()
 					return false;
 				}
 				
-				auto tmp = this->packedInfo.extract(removedCode);
-				info = std::move(tmp->second);
-
-				//auto it = this->packedInfo.find(removedCode);
-				//info = it->second;
-				//this->packedInfo.erase(it);
+				info = std::move(*tmp);
 			}
 			else
 			{
@@ -277,7 +286,7 @@ bool TextureAtlasPack::PackGrid()
 			count++;
 			this->averageGlyphSize += g.bmpW * g.bmpH;
 
-			this->packedInfo.try_emplace(g.code, info);
+			this->packedInfo.try_emplace(key, info);
 		}
 	}
 
@@ -300,11 +309,11 @@ bool TextureAtlasPack::PackTight()
 
 	int b = (2 * this->border);
 
-	for (auto & fi : *this->fontInfos)
+	for (auto & fi : this->fontInfos)
 	{
 		std::vector<std::reference_wrapper<GlyphInfo>> sorted;
-		sorted.reserve(fi.glyphs.size());
-		for (auto& [k, g] : fi.glyphs)
+		sorted.reserve(fi->glyphs.size());
+		for (auto& [k, g] : fi->glyphs)
 		{
 			sorted.emplace_back(g);
 		}
@@ -316,24 +325,29 @@ bool TextureAtlasPack::PackTight()
 		
 		for (GlyphInfo& g : sorted)
 		{
-			if (this->packedInfo.find(g.code) != this->packedInfo.end())
-			{
-				//glyph already in texture
-				continue;
-			}
-
 			if (g.code <= 32)
 			{
 				//do not add space "character"
 				continue;
 			}
 
+			uint64_t key = BUILD_CHAR_ID(g.code, fi->fontId);
+
+			if (this->packedInfo.find(key) != this->packedInfo.end())
+			{
+				//glyph already in texture
+				continue;
+			}
+
+			
 			uint16_t px, py;
-			CHAR_CODE c;
+			
 
 			if (this->FindEmptySpace(g.bmpW + b, g.bmpH + b, &px, &py) == false)
 			{
-				if (this->FreeSpace(g.bmpW + b, g.bmpH + b, &c) == false)
+				std::optional<PackedInfo> tmp = this->FreeSpace(g.bmpW + b, g.bmpH + b);
+
+				if (tmp.has_value() == false)
 				{
 					MY_LOG_ERROR("Empty space in atlas not found and cannot be freed for glyph %lu", g.code);
 					MY_LOG_ERROR("Requested size: %d %d", g.bmpW + b, g.bmpH + b);
@@ -345,12 +359,7 @@ bool TextureAtlasPack::PackTight()
 					continue;
 				}
 
-				auto tmp = this->packedInfo.extract(c);
-				info = std::move(tmp->second);
-
-				//auto it = this->packedInfo.find(c);
-				//info = it->second;
-				//this->packedInfo.erase(it);
+				info = std::move(*tmp);				
 			}
 			else
 			{
@@ -364,7 +373,7 @@ bool TextureAtlasPack::PackTight()
 			g.tx = px + this->border;
 			g.ty = py + this->border;
 
-			this->packedInfo.try_emplace(g.code, info);
+			this->packedInfo.try_emplace(key, info);
 		}
 	}
 
@@ -379,11 +388,13 @@ void TextureAtlasPack::CopyDataToTexture()
 	const uint8_t BORDER_DEBUG_VALUE = 125;
 	const uint8_t BORDER_EMPTY_VALUE = 0;
 
-	for (FontInfo & fi : *this->fontInfos)
+	for (FontInfo* fi : this->fontInfos)
 	{
-		for (auto & [code, g] : fi.glyphs)
+		for (auto & [code, g] : fi->glyphs)
 		{
-			auto it = this->packedInfo.find(g.code);
+			uint64_t key = BUILD_CHAR_ID(g.code, fi->fontId);
+
+			auto it = this->packedInfo.find(key);
 			if (it == this->packedInfo.end())
 			{
 				continue;
@@ -726,12 +737,11 @@ void TextureAtlasPack::DivideNode(const Node & empty, uint16_t spaceWidth, uint1
 /// </summary>
 /// <param name="spaceWidth">requested width</param>
 /// <param name="spaceHeight">requested height</param>
-/// <param name="c">"char code" of glyph, which space will be replaced</param>
+/// <param name="key">"key" of glyph, which space will be replaced</param>
 /// <returns></returns>
-bool TextureAtlasPack::FreeSpace(int spaceWidth, int spaceHeight, CHAR_CODE * c)
+std::optional<TextureAtlasPack::PackedInfo> TextureAtlasPack::FreeSpace(int spaceWidth, int spaceHeight)
 {	
-	*c = 0;
-
+	
 	int b = (2 * this->border);
 	
 	for (auto & it : *this->unused)	
@@ -740,9 +750,15 @@ bool TextureAtlasPack::FreeSpace(int spaceWidth, int spaceHeight, CHAR_CODE * c)
 		if (it->second.bmpW + b < spaceWidth) continue;
 		if (it->second.bmpH + b < spaceHeight) continue;
 				
-		*c = it->first;
+		auto key = BUILD_CHAR_ID(it->first, it->second.fontInfo->fontId);
 
-		auto jt = this->erased.try_emplace(*c, it->second.fontIndex);
+		auto tmp = this->packedInfo.extract(key);
+		if (tmp.has_value() == false)
+		{
+			continue;
+		}
+
+		auto jt = this->erased.try_emplace(key, it->second.fontInfo);
 		if (jt.second == false)
 		{
 			//not inserted => already erased - space is not free anymore
@@ -752,10 +768,10 @@ bool TextureAtlasPack::FreeSpace(int spaceWidth, int spaceHeight, CHAR_CODE * c)
 		//space find				
 		//glyph added to erased				
 						
-		return true;
+		return tmp->second;
 	}
 
-	return false;
+	return std::nullopt;
 }
 
 void TextureAtlasPack::EraseAllUnused()
@@ -767,8 +783,9 @@ void TextureAtlasPack::EraseAllUnused()
 
 	for (auto & it : *this->unused)
 	{				
+		uint64_t key = BUILD_CHAR_ID(it->first, it->second.fontInfo->fontId);
 		//add glyph to erased				
-		this->erased.try_emplace(it->first, it->second.fontIndex);
+		this->erased.try_emplace(key, it->second.fontInfo);
 	}
 
 	this->unused->clear();
@@ -776,23 +793,26 @@ void TextureAtlasPack::EraseAllUnused()
 
 void TextureAtlasPack::AddToErased(int fontIndex, CHAR_CODE c)
 {
-	FontInfo & fi = (*this->fontInfos)[fontIndex];
+	FontInfo * fi = this->fontInfos[fontIndex];
 	
-	auto it = fi.glyphs.find(c);
-	if (it != fi.glyphs.end())
+	auto it = fi->glyphs.find(c);
+	if (it != fi->glyphs.end())
 	{
-		this->erased.try_emplace(c, fontIndex);
+		uint64_t key = BUILD_CHAR_ID(c, fi->fontId);
+
+		this->erased.try_emplace(key, fi);
 	}			
 }
 
 void TextureAtlasPack::RemoveErasedGlyphsFromFontInfo()
 {	
 	//remove unused, that were removed from texture	
-	for (const auto & [code, fontIndex] : this->erased)
-	{				
-		FontInfo& fi = (*this->fontInfos)[fontIndex];
+	for (const auto & [key, fi] : this->erased)
+	{						
+		uint32_t code = static_cast<uint32_t>(key >> 32);
+		//uint32_t fondId = static_cast<uint32_t>(key & 0xFFFFFFFFULL);
 
-		auto gi = fi.glyphs.extract(code);
+		auto gi = fi->glyphs.extract(code);
 
 		//FontInfo::GlyphIterator gi = fi.glyphs.find(code);
 		

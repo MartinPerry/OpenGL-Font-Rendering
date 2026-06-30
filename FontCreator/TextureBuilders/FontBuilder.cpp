@@ -21,19 +21,26 @@
 /// </summary>
 /// <param name="fonts"></param>
 /// <param name="r"></param>
-FontBuilder::FontBuilder(const FontBuilderSettings& r) : 
+FontBuilder::FontBuilder(const FontBuilderSettings& r) :
+	FontBuilder(r, std::make_shared<TextureAtlasPack>(r.textureW, r.textureH, LETTER_BORDER_SIZE))
+{
+	//we can change texPacker settings only if texPacker was not loaded from outside
+	
+	//this->texPacker->SetTightPacking();
+	//this->texPacker->SetGridPacking(fontSize, fontSize);	
+
+	int ps = this->GetMaxEmSize();// this->fb->GetMaxFontPixelHeight();
+	this->SetGridPacking(ps, ps);
+}
+
+FontBuilder::FontBuilder(const FontBuilderSettings& r, std::shared_ptr<TextureAtlasPack> texPacker) :
 	stroker(nullptr),
 	sdfSpread(r.sdf.has_value() ? r.sdf->spread : 0),
 	screenScale(r.screenScale),
-	screenDpi(r.screenDpi)
+	screenDpi(r.screenDpi),
+	texPacker(texPacker)
 {
-	
-	this->texPacker = new TextureAtlasPack(r.textureW, r.textureH, LETTER_BORDER_SIZE);
-	
-	//this->texPacker->SetTightPacking();
-	//this->texPacker->SetGridPacking(fontSize, fontSize);
 
-	
 	if (FT_Init_FreeType(&this->library))
 	{
 		MY_LOG_ERROR("Failed to initialize FreeType library.");
@@ -71,18 +78,18 @@ FontBuilder::FontBuilder(const FontBuilderSettings& r) :
 		}
 	}
 	
+	//after each change, reset font infos in texture packer	
+	this->texPacker->AddFontInfos(this->fis);
+
 	int maxEmSize = this->GetMaxEmSize();
 	this->UpdateBitmapFontsSizes(maxEmSize);
-		
-
-	int ps = this->GetMaxEmSize();// this->fb->GetMaxFontPixelHeight();
-	this->SetGridPacking(ps, ps);
+			
 }
 
 
 FontBuilder::~FontBuilder()
 {
-	SAFE_DELETE(this->texPacker);
+	this->texPacker = nullptr;
 
 	this->Release();
 }
@@ -136,9 +143,9 @@ int FontBuilder::InitializeFont(const std::string & fontFacePath)
 	FT_Face ff;
 	FT_Error error;
 
-	fi.faceName = fontFacePath.substr(fontFacePath.find_last_of("/\\") + 1);
-	std::string::size_type const p(fi.faceName.find_last_of('.'));
-	fi.faceName = fi.faceName.substr(0, p);
+	std::string tmp = fontFacePath.substr(fontFacePath.find_last_of("/\\") + 1);
+	std::string::size_type const p(tmp.find_last_of('.'));
+	fi.faceName = tmp.substr(0, p);
 
 	auto cache = FontCache::GetFontFace(fontFacePath);
 		
@@ -166,8 +173,7 @@ int FontBuilder::InitializeFont(const std::string & fontFacePath)
 
 	int lastIndex = static_cast<int>(this->fis.size());
 
-	fi.fontFace = ff;
-	fi.index = lastIndex;
+	fi.fontFace = ff;	
 	fi.onlyBitmapGlyphs = false;
 	fi.scaleFactor = 1.0f;
 	
@@ -181,10 +187,8 @@ int FontBuilder::InitializeFont(const std::string & fontFacePath)
 		}
 	}
 	
-	this->fis.push_back(std::move(fi));
+	this->fis.emplace_back(std::move(fi));
 
-	//after each change, reset font infos in texture packer	
-	this->texPacker->SetAllFontInfos(&this->fis);
 
 	return lastIndex;
 
@@ -519,7 +523,7 @@ int16_t FontBuilder::GetNewLineOffsetBasedOnGlyph(CHAR_CODE c)
 	auto gi = this->LoadGlyphInfo(c);
 	if (gi != nullptr)
 	{
-		return this->fis[gi->fontIndex].newLineOffset;		
+		return gi->fontInfo->newLineOffset;		
 	}
 	
 	return this->GetMaxNewLineOffset();
@@ -753,7 +757,7 @@ bool FontBuilder::CreateFontAtlas()
 	}
 
 #if defined(_WIN32) && defined(_DEBUG)
-	//this->texPacker->SaveToFile("D://packed_tex.png");
+	this->texPacker->SaveToFile("D://packed_tex.png");
 #endif
 	
 	this->texPacker->RemoveErasedGlyphsFromFontInfo();
@@ -841,7 +845,7 @@ GlyphInfo* FontBuilder::FillGlyphInfo(CHAR_CODE c, FontInfo & fi) const
 	
 	GlyphInfo gInfo;
 	gInfo.code = c;
-	gInfo.fontIndex = fi.index;
+	gInfo.fontInfo = &fi;
 	gInfo.bmpX = static_cast<int16_t>(glyphLeft * fi.scaleFactor);
 	gInfo.bmpY = static_cast<int16_t>(glyphTop * fi.scaleFactor);
 	gInfo.bmpW = static_cast<uint16_t>(glyphBmp.width * fi.scaleFactor);

@@ -2,8 +2,10 @@
 #define FONT_STRUCTURES_H
 
 typedef struct FT_FaceRec_*  FT_Face;
-typedef uint32_t CHAR_CODE;
 
+using CHAR_CODE = uint32_t;
+
+struct FontInfo;
 class FontBuilder;
 
 #include <stdint.h>
@@ -21,7 +23,7 @@ class FontBuilder;
 struct GlyphInfo
 {
 	CHAR_CODE code = 0;
-	int fontIndex = 0;
+	FontInfo* fontInfo = nullptr;
 
 	//"glyph" texture size
 	uint16_t bmpW = 0;
@@ -58,9 +60,14 @@ struct GlyphInfo
 /// </summary>
 struct FontInfo
 {	
+	inline static uint32_t counter = 0;
+
 	//!!!! in ankerl - iterator is not valid after item erase !!!!
 	using GlyphIterator = HashMap<CHAR_CODE, GlyphInfo>::iterator;
 	
+	//global index based on static counter - each font in app has its unieuq index
+	const uint32_t fontId;
+
 	std::string faceName;
 	uint16_t maxPixelsWidth;
 	uint16_t maxPixelsHeight;
@@ -73,11 +80,13 @@ struct FontInfo
 		
 
 	FT_Face fontFace;
-	int index;
-		
+	//int index;
+			
 	float scaleFactor;
 	
-
+	FontInfo() :
+		fontId(FontInfo::counter++)
+	{}
 };
 
 
@@ -211,8 +220,9 @@ struct RenderSettings
 
 struct IFontBuilderSettings
 {
-	uint16_t textureW;
-	uint16_t textureH;
+	//not used, when texture atlas is shared
+	uint16_t textureW = 0;
+	uint16_t textureH = 0;
 
 	uint16_t screenDpi = 0;
 

@@ -17,6 +17,9 @@ CustomImageFontBuilder::CustomImageFontBuilder(const std::vector<CustomGlyph>& g
 
 	this->InitializeFont(fs);
 	this->BuildSizes(fs);
+
+	this->texPacker = new TextureAtlasPack(fs.textureW, fs.textureH, LETTER_BORDER_SIZE, this->channelsCount);	
+	this->texPacker->AddFontInfos(this->customFi);
 }
 
 CustomImageFontBuilder::~CustomImageFontBuilder()
@@ -42,17 +45,10 @@ void CustomImageFontBuilder::InitializeFont(const IFontBuilderSettings& fs)
 	fi.maxPixelsHeight = 0;
 	fi.newLineOffset = 0;
 	fi.onlyBitmapGlyphs = true;
-	fi.fontFace = nullptr;
-	fi.index = 0;
+	fi.fontFace = nullptr;	
 	fi.scaleFactor = 1.0f;
 
 	this->customFi.push_back(fi);
-
-	this->texPacker = new TextureAtlasPack(fs.textureW, fs.textureH, LETTER_BORDER_SIZE, this->channelsCount);
-
-
-	//after each change, reset font infos in texture packer	
-	this->texPacker->SetAllFontInfos(&this->customFi);
 }
 
 
@@ -391,7 +387,7 @@ GlyphInfo* CustomImageFontBuilder::FillGlyphInfo(CHAR_CODE c, CustomGlyph& g)
 
 	GlyphInfo gInfo;
 	gInfo.code = c;
-	gInfo.fontIndex = 0;
+	gInfo.fontInfo = &this->customFi[0];
 	gInfo.bmpX = 0;
 	gInfo.bmpY = 0;
 	gInfo.bmpW = (gt->second.w > 0) ? gt->second.w : static_cast<uint16_t>(width);

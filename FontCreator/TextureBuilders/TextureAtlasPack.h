@@ -30,13 +30,14 @@ public:
 	TextureAtlasPack(uint16_t w, uint16_t h, uint16_t border, uint8_t channelsCount = 1);	
 	~TextureAtlasPack();
 
+	//const HashMap<CHAR_CODE, FontInfo*> & GetErasedGlyphs();
+	//HashMap<CHAR_CODE, PackedInfo> & GetPackedInfos();
 
-	HashMap<CHAR_CODE, PackedInfo> & GetPackedInfos();
-
-	void SetAllFontInfos(std::vector<FontInfo> * fontInfos);
+	//void SetAllFontInfos(std::vector<FontInfo> * fontInfos);
+	void AddFontInfos(std::vector<FontInfo>& fontInfos);
+	void AddFontInfo(FontInfo* fontInfo);
 	void SetUnusedGlyphs(std::list<FontInfo::GlyphIterator> * unused);
-	const HashMap<CHAR_CODE, int> & GetErasedGlyphs();
-
+	
 	void SetTightPacking();
 	void SetGridPacking(uint16_t binW, uint16_t binH);
 
@@ -78,16 +79,15 @@ private:
 	};
 
 	PACKING_METHOD method;
-	
+	using CHAR_ID = uint64_t;
 
 	std::list<Node> freeSpace;
 	std::mt19937 mt;
 	std::uniform_int_distribution<int> uniDist01;
-		
-	//std::list<GlyphInfo> * glyphs;
-	std::vector<FontInfo>* fontInfos;
+			
+	std::vector<FontInfo *> fontInfos;
 	std::list<FontInfo::GlyphIterator>* unused;
-	HashMap<CHAR_CODE, int> erased; //[code] = fontIndex
+	HashMap<CHAR_ID, FontInfo*> erased;
 	
 	uint16_t gridBinW;
 	uint16_t gridBinH;
@@ -100,7 +100,7 @@ private:
 
 	int freePixels;
 	uint8_t * rawPackedData;	
-	HashMap<CHAR_CODE, PackedInfo> packedInfo;
+	HashMap<CHAR_ID, PackedInfo> packedInfo;
 	
 	void Clear();
 	void EraseAllUnused();	
@@ -117,7 +117,7 @@ private:
 	bool PackTight();
 	//bool PerPixelFit(int spaceWidth, int spaceHeight, int * px, int * py);
 
-	bool FreeSpace(int spaceWidth, int spaceHeight, CHAR_CODE * c);
+	std::optional<PackedInfo> FreeSpace(int spaceWidth, int spaceHeight);
 
 	
 };
