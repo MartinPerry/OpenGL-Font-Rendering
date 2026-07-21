@@ -31,8 +31,7 @@ public:
 	~NumberRenderer();
 
 	void SetFontSize(const FontSize& fs, int defaultFontSizeInPx = 0);
-
-	void SetExistenceCheck(bool val) noexcept;	
+	
 	void SetOverlapCheck(bool val, float enlargePercent = 0.0f) noexcept;
 	void SetDecimalPrecission(int digits) noexcept;
 
@@ -138,8 +137,7 @@ protected:
 	};
 
 	static const std::array<uint64_t, 10> INT_DIVISORS;
-
-	bool checkIfExist;
+	
 	bool overlapCheck;
 	float enlargePercent;
 	int newLineOffset;

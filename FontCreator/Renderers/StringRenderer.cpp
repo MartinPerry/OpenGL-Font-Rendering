@@ -376,18 +376,21 @@ bool StringRenderer::CanAddString(const StringUtf8& uniStr,
 	int x, int y, const RenderParams & rp,
 	TextAnchor anchor, TextAlign align, TextType type) const
 {
-	for (const StringInfo & s : this->strs)
+	if (this->checkIfExist)
 	{
-		if ((s.x == x) && (s.y == y) &&
-			//(s.renderParams.scale == rp.scale) &&
-			(s.align == align) && (s.anchor == anchor) && (s.type == type))
+		for (const StringInfo& s : this->strs)
 		{
-
-			if (s.str == uniStr)
+			if ((s.x == x) && (s.y == y) &&
+				//(s.renderParams.scale == rp.scale) &&
+				(s.align == align) && (s.anchor == anchor) && (s.type == type))
 			{
-				//same string on the same position and with same align
-				//already exist - do not add it again
-				return false;
+
+				if (s.str == uniStr)
+				{
+					//same string on the same position and with same align
+					//already exist - do not add it again
+					return false;
+				}
 			}
 		}
 	}

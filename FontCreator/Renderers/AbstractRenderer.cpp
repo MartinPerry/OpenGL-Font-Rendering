@@ -47,6 +47,7 @@ AbstractRenderer::AbstractRenderer(std::shared_ptr<IFontBuilder> fb,
 	ci({ u8"", 0 }),
 	axisYOrigin(AxisYOrigin::TOP),
 	extraGlyphSpacingSize(0),
+	checkIfExist(true),
 	checkVisibility(true),
 	strChanged(false)
 {
@@ -121,6 +122,16 @@ void AbstractRenderer::SwapCanvasWidthHeight()
 	
 	this->strChanged = true;
 }
+
+/// <summary>
+/// Set whether we want to check if added number already exist
+/// </summary>
+/// <param name="val"></param>
+void AbstractRenderer::SetExistenceCheck(bool val) noexcept
+{
+	this->checkIfExist = val;
+}
+
 
 void AbstractRenderer::SetAxisYOrigin(AxisYOrigin axisY)
 {

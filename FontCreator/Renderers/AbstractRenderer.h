@@ -67,6 +67,7 @@ public:
 	std::shared_ptr<IFontBuilder> GetFontBuilder();
 	void SetCanvasSize(int w, int h);
 		
+	void SetExistenceCheck(bool val) noexcept;
 	void SetAxisYOrigin(AxisYOrigin axisY);
 	void SetCaption(const StringUtf8& mark);
 	void SetCaption(const StringUtf8& mark, int offsetInPixels);
@@ -104,6 +105,7 @@ protected:
 
 	CaptionInfo ci;
 
+	bool checkIfExist;
 	bool checkVisibility;
 	bool strChanged;
 

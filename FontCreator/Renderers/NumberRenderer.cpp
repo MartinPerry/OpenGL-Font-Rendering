@@ -60,8 +60,7 @@ NumberRenderer* NumberRenderer::CreateDefault(const FontBuilderSettings& fs,
 NumberRenderer::NumberRenderer(const FontBuilderSettings& fs, std::unique_ptr<BackendBase>&& backend) :
 	AbstractRenderer(fs, std::move(backend)),
 	decimalPlaces(0),
-	decimalMult(1),
-	checkIfExist(true),
+	decimalMult(1),	
 	overlapCheck(false),
 	enlargePercent(0.0f)
 {
@@ -71,8 +70,7 @@ NumberRenderer::NumberRenderer(const FontBuilderSettings& fs, std::unique_ptr<Ba
 NumberRenderer::NumberRenderer(std::shared_ptr<IFontBuilder> fb, std::unique_ptr<BackendBase>&& backend) :
 	AbstractRenderer(fb, std::move(backend)),
 	decimalPlaces(0),
-	decimalMult(1),
-	checkIfExist(true),
+	decimalMult(1),	
 	overlapCheck(false),
 	enlargePercent(0.0f)
 {
@@ -210,15 +208,6 @@ void NumberRenderer::SetFontSize(const FontSize& fs, int defaultFontSizeInPx)
 	this->fb->SetAllFontSize(fs, defaultFontSizeInPx);
 
 	this->Init();
-}
-
-/// <summary>
-/// Set whether we want to check if added number already exist
-/// </summary>
-/// <param name="val"></param>
-void NumberRenderer::SetExistenceCheck(bool val) noexcept
-{
-	this->checkIfExist = val;
 }
 
 /// <summary>
