@@ -2,7 +2,8 @@
 
 #include "./Shaders.h"
 
-BackgroundShadowShaderManager::BackgroundShadowShaderManager(Shadow shadow) :
+BackgroundShadowShaderManager::BackgroundShadowShaderManager(const RenderSettings& r, Shadow shadow) :
+	IBackgroundShaderManager(r),
 	shadow(shadow),
 	positionLocation(-1),
 	colorLocation(-1),
@@ -11,6 +12,7 @@ BackgroundShadowShaderManager::BackgroundShadowShaderManager(Shadow shadow) :
 	blurRadiusUniform(-1),
 	shadowDirUniform(-1),
 	shadowColorUniform(-1),
+	shadowPaddingSizeUniform(-1),
 	shape(BackgroundSettings::Shape::SQUARE),
 	roundCornerRadius(0.0f),
 	r(1.0f),
@@ -143,31 +145,6 @@ void BackgroundShadowShaderManager::BindUniforms()
 
 }
 
-void BackgroundShadowShaderManager::Clear()
-{
-	this->startingElements.clear();
-	this->counts.clear();
-}
-
-void BackgroundShadowShaderManager::PreRender()
-{
-
-}
-
-void BackgroundShadowShaderManager::Render(int quadsCount)
-{
-	auto type = GL_TRIANGLES;
-
-#if (defined(__APPLE__) || defined(__ANDROID_API__))
-	for (int i = 0; i < counts.size(); ++i)
-	{
-		GL_CHECK(glDrawArrays(type, startingElements[i], counts[i]));
-	}
-#else
-	GL_CHECK(glMultiDrawArrays(type, startingElements.data(), counts.data(), (GLsizei)counts.size()));
-#endif
-}
-
 int BackgroundShadowShaderManager::GetQuadVertices() const
 {
 	return 6;
@@ -259,15 +236,7 @@ void BackgroundShadowShaderManager::FillQuadVertexData(
 	*/
 
 
-	counts.push_back(this->GetQuadVertices());
-	if (startingElements.size() == 0)
-	{
-		startingElements.push_back(0);
-	}
-	else
-	{
-		startingElements.push_back(startingElements.back() + this->GetQuadVertices());
-	}
+	this->AddGeometryInfo(rp);
 }
 
 

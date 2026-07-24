@@ -14,7 +14,7 @@
 #include "./Backends/BackendImage.h"
 #include "./Backends/Shaders/DefaultFontShaderManager.h"
 #include "./Backends/Shaders/ColoredFontShaderManager.h"
-#include "./Backends/Shaders/SingleColorBackgroundShaderManager.h"
+#include "./Backends/Shaders/BackgroundSingleColorShaderManager.h"
 #include "./Backends/Shaders/BackgroundTextureShaderManager.h"
 #include "./Backends/Shaders/BackgroundShaderManager.h"
 #include "./Backends/Shaders/Shaders.h"
@@ -341,7 +341,7 @@ void InitTestCustomIcon()
 
 	auto cfb = std::make_shared<CustomImageFontBuilder>(gd, ifs);
 
-	auto sm = std::make_shared<ColoredFontShaderManager>(true);
+	auto sm = std::make_shared<ColoredFontShaderManager>(r, true);
 	auto backend = std::make_unique<BackendOpenGL>(r, nullptr, nullptr, sm);
 
 	srCustom = new StringRenderer(cfb, std::move(backend));
@@ -433,6 +433,17 @@ void TestStringBackground()
 	}
 
 	auto rp = AbstractRenderer::RenderParams({ 0,0,0,1 }, 1.0);
+	rp.layerId = 0;
+	
+	frWithBg->AddString(
+		//CreateRandomString(10),
+		//u8"\U0001F300Pøíliš malý p\n(žluouèký)\nkùyòy",
+		u8"Ahoj",
+		0.5f, 0.5f,
+		rp,
+		AbstractRenderer::TextAnchor::CENTER,
+		AbstractRenderer::TextAlign::ALIGN_CENTER
+	);
 
 	/*
 	frWithBg->AddString(
@@ -447,8 +458,9 @@ void TestStringBackground()
 	*/
 	
 	rp.scale = 6.0;
-	rp.bgColor = { 1, 1, 0, 1 };
+	rp.bgColor = { 0, 1, 0, 1 };
 	rp.textureName = "D://cyclone-square.png";
+	rp.layerId = 1;
 
 	frWithBg->AddString(
 		//CreateRandomString(10),
@@ -480,6 +492,7 @@ void InitTestStringBackground()
 	RenderSettings r;
 	r.deviceW = g_width;
 	r.deviceH = g_height;
+	r.layersCount = 2;
 
 
 	FontBuilderSettings fs;
@@ -488,10 +501,10 @@ void InitTestStringBackground()
 	fs.textureH = 512;
 	fs.screenScale = 1.0;
 	fs.fonts = fonts;
-	fs.sdf = SDF();
-	fs.sdf->outlineColor = { 0, 0, 0, 1 };
-	fs.sdf->outlineWidth = 0.1f;
-	fs.sdf->softness = 0.05f;
+	//fs.sdf = SDF();
+	//fs.sdf->outlineColor = { 0, 0, 0, 1 };
+	//fs.sdf->outlineWidth = 0.1f;
+	//fs.sdf->softness = 0.05f;
 
 
 	BackgroundSettings bs;
@@ -500,9 +513,9 @@ void InitTestStringBackground()
 	bs.cornerRadius = 40;// 20;
 	bs.shadow = std::nullopt;
 
-	auto sm = std::make_shared<DefaultFontShaderManager>(std::nullopt);
+	auto sm = std::make_shared<DefaultFontShaderManager>(r, std::nullopt);
 	auto backend = std::make_unique<BackendOpenGL>(r, nullptr, nullptr, sm);
-	auto bstm = std::make_shared<BackgroundTextureShaderManager>();	
+	auto bstm = std::make_shared<BackgroundTextureShaderManager>(r);	
 	backend->SetBackground(bs, bstm);
 	frWithBg = new StringRenderer(fs, std::move(backend));
 
@@ -592,9 +605,9 @@ void InitSharedAtlas()
 	bs.cornerRadius = 40;// 20;
 	bs.shadow = std::nullopt;
 
-	auto sm = std::make_shared<DefaultFontShaderManager>(std::nullopt);
+	auto sm = std::make_shared<DefaultFontShaderManager>(r, std::nullopt);
 	auto backend = std::make_unique<BackendOpenGL>(r, nullptr, nullptr, sm);
-	auto bstm = std::make_shared<BackgroundTextureShaderManager>();
+	auto bstm = std::make_shared<BackgroundTextureShaderManager>(r);
 	backend->SetBackground(bs, bstm);
 	
 	sharedAtlas1 = new StringRenderer(fb1, std::move(backend));
@@ -610,7 +623,7 @@ void InitSharedAtlas()
 	
 	auto fb2 = std::make_shared<FontBuilder>(fs2, sharedAtlas);
 
-	auto sm2 = std::make_shared<DefaultFontShaderManager>(std::nullopt);
+	auto sm2 = std::make_shared<DefaultFontShaderManager>(r, std::nullopt);
 	auto backend2 = std::make_unique<BackendOpenGL>(r, nullptr, nullptr, sm2);
 
 	sharedAtlas2 = new StringRenderer(fb2, std::move(backend2));
@@ -678,7 +691,7 @@ void InitTestToImage()
 
 void display() {
 
-	glClearColor(1.2f, 1.0f, 1.0f, 1.0f);
+	glClearColor(0.8f, 0.8f, 0.8f, 1.0f);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 	glViewport(0, 0, g_width, g_height);
@@ -715,12 +728,12 @@ void display() {
 	
 	//TestBasicRender();
 		
-	//TestStringBackground();
+	TestStringBackground();
 
 	//TestCustomIcon();
 	//TestNumbers();
 
-	TestSharedAtlas();
+	//TestSharedAtlas();
 
 	//=========================================================================
 	//=========================================================================

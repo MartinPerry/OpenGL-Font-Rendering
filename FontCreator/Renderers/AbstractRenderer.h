@@ -40,6 +40,7 @@ public:
 	{		
 		mutable Color color;
 		float scale = 1.0f;			
+		int layerId = 0;
 		std::optional<Color> bgColor = std::nullopt;
         std::optional<std::string> textureName = std::nullopt;
 		

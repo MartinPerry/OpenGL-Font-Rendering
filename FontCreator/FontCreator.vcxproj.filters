@@ -105,7 +105,7 @@
     <ClCompile Include="Renderers\StringRenderer.cpp">
       <Filter>Source Files\Renderers</Filter>
     </ClCompile>
-    <ClCompile Include="Backends\Shaders\SingleColorBackgroundShaderManager.cpp">
+    <ClCompile Include="Backends\Shaders\BackgroundSingleColorShaderManager.cpp">
       <Filter>Source Files\Backends\Shaders</Filter>
     </ClCompile>
     <ClCompile Include="Backends\Shaders\BackgroundShaderManager.cpp">
@@ -136,6 +136,9 @@
       <Filter>Source Files\Backends\Shaders</Filter>
     </ClCompile>
     <ClCompile Include="Backends\Shaders\BackgroundTextureShaderManager.cpp">
+      <Filter>Source Files\Backends\Shaders</Filter>
+    </ClCompile>
+    <ClCompile Include="Backends\Shaders\IBackgroundShaderManager.cpp">
       <Filter>Source Files\Backends\Shaders</Filter>
     </ClCompile>
   </ItemGroup>
@@ -200,7 +203,7 @@
     <ClInclude Include="Renderers\StringRenderer.h">
       <Filter>Header Files\Renderers</Filter>
     </ClInclude>
-    <ClInclude Include="Backends\Shaders\SingleColorBackgroundShaderManager.h">
+    <ClInclude Include="Backends\Shaders\BackgroundSingleColorShaderManager.h">
       <Filter>Header Files\Backends\Shaders</Filter>
     </ClInclude>
     <ClInclude Include="Backends\Shaders\BackgroundShaderManager.h">
@@ -261,6 +264,9 @@
       <Filter>Header Files\Backends\Shaders</Filter>
     </ClInclude>
     <ClInclude Include="Backends\Shaders\BackgroundTextureShaderManager.h">
+      <Filter>Header Files\Backends\Shaders</Filter>
+    </ClInclude>
+    <ClInclude Include="Backends\Shaders\IBackgroundShaderManager.h">
       <Filter>Header Files\Backends\Shaders</Filter>
     </ClInclude>
   </ItemGroup>

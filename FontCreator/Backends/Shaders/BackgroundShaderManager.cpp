@@ -2,11 +2,11 @@
 
 #include "./Shaders.h"
 
-BackgroundShaderManager::BackgroundShaderManager() :
+BackgroundShaderManager::BackgroundShaderManager(const RenderSettings& r) :
+	IBackgroundShaderManager(r),
 	positionLocation(-1),
 	colorLocation(-1),
-	aabbLocation(-1),
-	shape(BackgroundSettings::Shape::SQUARE),
+	aabbLocation(-1),	
 	roundCornerRadius(0.0f),
 	min_x(0),
 	min_y(0),
@@ -80,35 +80,6 @@ void BackgroundShaderManager::BindUniforms()
 {
 }
 
-void BackgroundShaderManager::Clear()
-{
-	this->startingElements.clear();
-	this->counts.clear();
-}
-
-void BackgroundShaderManager::PreRender()
-{
-	
-}
-
-void BackgroundShaderManager::Render(int quadsCount)
-{
-	auto type = (shape == BackgroundSettings::Shape::SQUARE) ? GL_TRIANGLES : GL_TRIANGLE_FAN;
-	
-#if (defined(__APPLE__) || defined(__ANDROID_API__))
-	for (int i = 0; i < counts.size(); ++i)
-	{
-		GL_CHECK(glDrawArrays(type, startingElements[i], counts[i]));
-	}
-#else
-	GL_CHECK(glMultiDrawArrays(type, startingElements.data(), counts.data(), (GLsizei)counts.size()));
-#endif
-}
-
-int BackgroundShaderManager::GetQuadVertices() const
-{
-	return (shape == BackgroundSettings::Shape::SQUARE) ? 6 : 38;
-}
 
 
 void BackgroundShaderManager::FillQuadVertexData(
@@ -224,15 +195,8 @@ void BackgroundShaderManager::FillQuadVertexData(
 		this->FillCircle(cx, cy, rx, ry, rp, vec);
 	}
 
-	counts.push_back(this->GetQuadVertices());
-	if (startingElements.size() == 0)
-	{
-		startingElements.push_back(0);
-	}
-	else
-	{
-		startingElements.push_back(startingElements.back() + this->GetQuadVertices());
-	}
+
+	this->AddGeometryInfo(rp);
 }
 
 void BackgroundShaderManager::FillRoundCornersQuad(float cx, float cy, float dx, float dy, float rx, float ry, 

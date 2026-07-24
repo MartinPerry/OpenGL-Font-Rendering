@@ -1,30 +1,30 @@
-#include "./SingleColorBackgroundShaderManager.h"
+#include "./BackgroundSingleColorShaderManager.h"
 
 #include "./Shaders.h"
 
-SingleColorBackgroundShaderManager::SingleColorBackgroundShaderManager() :
+BackgroundSingleColorShaderManager::BackgroundSingleColorShaderManager(const RenderSettings& r) :
+	IBackgroundShaderManager(r),
 	positionLocation(-1),	
 	colorUniform(-1),
 	r(1.0f),
 	g(1.0f),
 	b(1.0f),
-	a(1.0f),
-	shape(BackgroundSettings::Shape::SQUARE),
+	a(1.0f),	
 	roundCornerRadius(0)
 {
 }
 
-const char* SingleColorBackgroundShaderManager::GetVertexShaderSource() const
+const char* BackgroundSingleColorShaderManager::GetVertexShaderSource() const
 {
 	return SINGLE_COLOR_BACKGROUND_VERTEX_SHADER_SOURCE;
 }
 
-const char* SingleColorBackgroundShaderManager::GetPixelShaderSource() const
+const char* BackgroundSingleColorShaderManager::GetPixelShaderSource() const
 {
 	return SINGLE_COLOR_BACKGROUND_PIXEL_SHADER_SOURCE;
 }
 
-void SingleColorBackgroundShaderManager::SetColor(float r, float g, float b, float a)
+void BackgroundSingleColorShaderManager::SetColor(float r, float g, float b, float a)
 {
 	this->r = r;
 	this->g = g;
@@ -32,7 +32,7 @@ void SingleColorBackgroundShaderManager::SetColor(float r, float g, float b, flo
 	this->a = a;
 }
 
-void SingleColorBackgroundShaderManager::SetShape(BackgroundSettings::Shape shape, float radius)
+void BackgroundSingleColorShaderManager::SetShape(BackgroundSettings::Shape shape, float radius)
 {	
 	this->shape = shape;
 	this->roundCornerRadius = radius;
@@ -41,7 +41,7 @@ void SingleColorBackgroundShaderManager::SetShape(BackgroundSettings::Shape shap
 /// <summary>
 /// Get shader uniforms and attributes locations
 /// </summary>
-void SingleColorBackgroundShaderManager::GetAttributtesUniforms()
+void BackgroundSingleColorShaderManager::GetAttributtesUniforms()
 {	
 	GL_CHECK(colorUniform = glGetUniformLocation(shaderProgram, "bgColor"));
 
@@ -49,7 +49,7 @@ void SingleColorBackgroundShaderManager::GetAttributtesUniforms()
 	//GL_CHECK(texCoordLocation = glGetAttribLocation(shaderProgram, "TEXCOORD0"));
 }
 
-void SingleColorBackgroundShaderManager::BindVertexAtribs()
+void BackgroundSingleColorShaderManager::BindVertexAtribs()
 {
 	const GLsizei POSITION_SIZE = 2;
 	const GLsizei TEXCOORD_SIZE = 2;
@@ -73,46 +73,13 @@ void SingleColorBackgroundShaderManager::BindVertexAtribs()
 	*/
 }
 
-void SingleColorBackgroundShaderManager::BindUniforms()
+void BackgroundSingleColorShaderManager::BindUniforms()
 {
 	GL_CHECK(glUniform4f(colorUniform, r, g, b, a));	
 }
 
 
-void SingleColorBackgroundShaderManager::Clear()
-{
-	this->startingElements.clear();
-	this->counts.clear();
-}
-
-void SingleColorBackgroundShaderManager::PreRender()
-{	
-}
-
-void SingleColorBackgroundShaderManager::Render(int quadsCount)
-{
-	auto type = (shape == BackgroundSettings::Shape::SQUARE) ? GL_TRIANGLES : GL_TRIANGLE_FAN;
-
-	//GL_CHECK(glDrawArrays(type, 0, quadsCount * this->GetQuadVertices()));	
-	//return;
-
-
-#if (defined(__APPLE__) || defined(__ANDROID_API__))
-	for (int i = 0; i < counts.size(); ++i)
-	{
-		GL_CHECK(glDrawArrays(type, startingElements[i], counts[i]));
-}
-#else
-	GL_CHECK(glMultiDrawArrays(type, startingElements.data(), counts.data(), (GLsizei)counts.size()));
-#endif
-}
-
-int SingleColorBackgroundShaderManager::GetQuadVertices() const
-{
-	return (shape == BackgroundSettings::Shape::SQUARE) ? 6 : 38;
-}
-
-void SingleColorBackgroundShaderManager::FillQuadVertexData(
+void BackgroundSingleColorShaderManager::FillQuadVertexData(
 	const AbstractRenderer::Vertex& minVertex,
 	const AbstractRenderer::Vertex& maxVertex,
 	const AbstractRenderer::RenderParams& rp,
@@ -199,18 +166,10 @@ void SingleColorBackgroundShaderManager::FillQuadVertexData(
 		this->FillCircle(cx, cy, rx, ry, vec);
 	}
 
-	counts.push_back(this->GetQuadVertices());
-	if (startingElements.size() == 0)
-	{
-		startingElements.push_back(0);
-	}
-	else
-	{
-		startingElements.push_back(startingElements.back() + this->GetQuadVertices());
-	}
+	this->AddGeometryInfo(rp);	
 }
 
-void SingleColorBackgroundShaderManager::FillRoundCornersQuad(float cx, float cy, float dx, float dy, float rx, float ry, std::vector<float>& vec) const
+void BackgroundSingleColorShaderManager::FillRoundCornersQuad(float cx, float cy, float dx, float dy, float rx, float ry, std::vector<float>& vec) const
 {	
 	static const float sina[45] = { 0.0f, 0.1736482f, 0.3420201f, 0.5f, 0.6427876f, 0.7660444f, 0.8660254f,
 		0.9396926f, 0.9848077f, 1.0f, 0.9848078f, 0.9396927f, 0.8660255f, 0.7660446f, 0.6427878f, 0.5000002f,
@@ -263,7 +222,7 @@ void SingleColorBackgroundShaderManager::FillRoundCornersQuad(float cx, float cy
 
 }
 
-void SingleColorBackgroundShaderManager::FillCircle(float cx, float cy, float rx, float ry, std::vector<float>& vec) const
+void BackgroundSingleColorShaderManager::FillCircle(float cx, float cy, float rx, float ry, std::vector<float>& vec) const
 {
 	int trianglesCount = 36;
 
@@ -294,7 +253,7 @@ void SingleColorBackgroundShaderManager::FillCircle(float cx, float cy, float rx
 	this->AddVertex(x, y, vec);
 }
 
-void SingleColorBackgroundShaderManager::AddVertex(float x, float y, std::vector<float>& vec) const
+void BackgroundSingleColorShaderManager::AddVertex(float x, float y, std::vector<float>& vec) const
 {	
 	vec.push_back(x);
 	vec.push_back(y);

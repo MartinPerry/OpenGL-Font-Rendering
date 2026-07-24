@@ -1,18 +1,20 @@
-#ifndef SINGLE_COLOR_BACKGROUND_SHADER_MANAGER_H
-#define SINGLE_COLOR_BACKGROUND_SHADER_MANAGER_H
+#ifndef BACKGROUND_SINGLE_COLOR_SHADER_MANAGER_H
+#define BACKGROUND_SINGLE_COLOR_SHADER_MANAGER_H
+
+struct RenderSettings;
 
 #include <vector>
 
 #include "../../Externalncludes.h"
 #include "../../Renderers/AbstractRenderer.h"
 
-#include "./IShaderManager.h"
+#include "./IBackgroundShaderManager.h"
 
-class SingleColorBackgroundShaderManager : public IShaderManager
+class BackgroundSingleColorShaderManager : public IBackgroundShaderManager
 {
 public:
-    SingleColorBackgroundShaderManager();
-    virtual ~SingleColorBackgroundShaderManager() = default;
+    BackgroundSingleColorShaderManager(const RenderSettings& r);
+    virtual ~BackgroundSingleColorShaderManager() = default;
 
     virtual const char* GetVertexShaderSource() const override;
     virtual const char* GetPixelShaderSource() const override;
@@ -24,31 +26,21 @@ public:
     void SetColor(float r, float g, float b, float a);
     void SetShape(BackgroundSettings::Shape shape, float radius = 0.0);
 
-    int GetQuadVertices() const override;
-
+    
     void FillQuadVertexData(const AbstractRenderer::Vertex& minVertex,
         const AbstractRenderer::Vertex& maxVertex,
         const AbstractRenderer::RenderParams& rp,
         std::vector<float>& vec) override;
-
-    void Clear() override;
-
-    void PreRender() override;
-
-    void Render(int quadsCount) override;
+    
 
 protected:
     GLint positionLocation;
     GLint colorUniform;
 
     float r, g, b, a;
-    BackgroundSettings::Shape shape;
+
     float roundCornerRadius;
-
   
-    std::vector<GLint> startingElements;
-    std::vector<GLint> counts;
-
     void FillRoundCornersQuad(float cx, float cy, float dx, float dy, float rx, float ry, std::vector<float>& vec) const;
     void FillCircle(float cx, float cy, float rx, float ry, std::vector<float>& vec) const;
 

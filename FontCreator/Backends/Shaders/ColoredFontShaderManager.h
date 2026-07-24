@@ -1,6 +1,8 @@
 #ifndef COLORED_FONT_SHADER_MANAGER_H
 #define COLORED_FONT_SHADER_MANAGER_H
 
+struct RenderSettings;
+
 #include <vector>
 #include <optional>
 
@@ -12,7 +14,7 @@
 class ColoredFontShaderManager : public IShaderManager
 {
 public:
-    ColoredFontShaderManager(bool enableTransparency);
+    ColoredFontShaderManager(const RenderSettings& r, bool enableTransparency);
     virtual ~ColoredFontShaderManager() = default;
 
     virtual const char* GetVertexShaderSource() const override;

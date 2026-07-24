@@ -53,6 +53,8 @@ BackendOpenGL::BackendOpenGL(const RenderSettings& r,
         this->shader.isDefault &= true;
     }
     
+	this->vbo.resize(r.layersCount, 0);
+	this->vao.resize(r.layersCount, 0);
 		
 	this->InitGL();
 	
@@ -73,8 +75,8 @@ BackendOpenGL::~BackendOpenGL()
 
 	GL_CHECK(glDeleteProgram(shader.program));
 	GL_CHECK(glDeleteTextures(1, &this->texture));
-	GL_CHECK(glDeleteBuffers(1, &this->vbo));
-	GL_CHECK(glDeleteVertexArrays(1, &this->vao));
+	GL_CHECK(glDeleteBuffers(this->vbo.size(), this->vbo.data()));
+	GL_CHECK(glDeleteVertexArrays(this->vao.size(), this->vao.data()));
 }
 
 /// <summary>
@@ -90,7 +92,7 @@ void BackendOpenGL::InitGL()
     
 
 	//create VBO
-	GL_CHECK(glGenBuffers(1, &this->vbo));
+	GL_CHECK(glGenBuffers(this->vbo.size(), this->vbo.data()));
 
 	//create VAO
 	this->InitVAO();
@@ -177,15 +179,18 @@ void BackendOpenGL::InitVAO()
 #endif
 
 	//init
-	GL_CHECK(glGenVertexArrays(1, &this->vao));
+	for (size_t i = 0; i < this->vao.size(); i++)
+	{
+		GL_CHECK(glGenVertexArrays(1, &this->vao[i]));
 
-	//bind data to it	
-	FONT_BIND_ARRAY_BUFFER(this->vbo);
+		//bind data to it	
+		FONT_BIND_ARRAY_BUFFER(this->vbo[i]);
 
-	FONT_BIND_VAO(this->vao);
+		FONT_BIND_VAO(this->vao[i]);
 
-	this->sm->BindVertexAtribs();
-	
+		this->sm->BindVertexAtribs();		
+	}
+
 	FONT_UNBIND_ARRAY_BUFFER;
 
 	FONT_UNBIND_VAO;
@@ -319,59 +324,73 @@ void BackendOpenGL::Render(std::function<void(GLuint)> preDrawCallback,
 
 	bool vboChanged = this->mainRenderer->GenerateGeometry();
 
-	if (this->background)
+	
+	if (this->IsGeomEmpty())
 	{
-		this->background->Render(nullptr, nullptr);
-	}
+		if (this->background)
+		{
+			this->background->Render(nullptr, nullptr);
+		}
 
-	if (this->geom.empty())
-	{
 		return;
 	}
+	
 
 	//wireframe
 	//glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+	    	
+	for (size_t i = 0; i < this->vbo.size(); i++)
+	{
+		if (this->background)
+		{
+			this->background->Render(i, nullptr, nullptr);
+		}
 
-	    
-	//activate texture
-	GL_CHECK(glActiveTexture(GL_TEXTURE0));
-	FONT_BIND_TEXTURE_2D(this->texture);
+		//activate texture
+		GL_CHECK(glActiveTexture(GL_TEXTURE0));
+		FONT_BIND_TEXTURE_2D(this->texture);
 
 
-	//activate shader	
-	FONT_BIND_SHADER(shader.program);
+		//activate shader	
+		FONT_BIND_SHADER(shader.program);
 
-	//render
-	FONT_BIND_ARRAY_BUFFER(this->vbo);
+		if (this->geom[i].empty())
+		{
+			continue;
+		}
+
+		//render
+		FONT_BIND_ARRAY_BUFFER(this->vbo[i]);
 
 #ifdef __ANDROID_API__
-	if (rs.glVersion == 2)
-	{
-		this->sm->BindVertexAtribs();
-	}
-	else
-	{
-		FONT_BIND_VAO(this->vao);
-	}
+		if (rs.glVersion == 2)
+		{
+			this->sm->BindVertexAtribs();
+		}
+		else
+		{
+			FONT_BIND_VAO(this->vao[i]);
+		}
 #else
-	FONT_BIND_VAO(this->vao);
+		FONT_BIND_VAO(this->vao[i]);
 #endif		
-	
-	this->sm->BindUniforms();
-	this->sm->PreRender();
 
-    if (preDrawCallback != nullptr)
-    {
-        preDrawCallback(shader.program);
-    }
-    
-	this->sm->Render(this->quadsCount);
-	
-	if (postDrawCallback != nullptr)
-	{
-		postDrawCallback();
+		this->sm->BindUniforms();
+		this->sm->PreRender();
+
+		if (preDrawCallback != nullptr)
+		{
+			preDrawCallback(shader.program);
+		}
+
+		this->sm->Render(this->quadsCount[i]);
+
+		if (postDrawCallback != nullptr)
+		{
+			postDrawCallback();
+		}
 	}
-	
+
 #ifdef __ANDROID_API__
 	if (rs.glVersion != 2)
 	{
@@ -380,7 +399,7 @@ void BackendOpenGL::Render(std::function<void(GLuint)> preDrawCallback,
 #else
 	FONT_UNBIND_VAO;
 #endif	
-
+	
 	//deactivate shader
 	FONT_UNBIND_SHADER;
 }
@@ -472,7 +491,7 @@ void BackendOpenGL::AddQuad(AbstractRenderer::Vertex& vmin, AbstractRenderer::Ve
 	vmax.u *= this->tW;
 	vmax.v *= this->tH;
 	
-    this->sm->FillQuadVertexData(vmin, vmax, rp, this->geom);
+    this->sm->FillQuadVertexData(vmin, vmax, rp, this->geom[rp.layerId]);
     
 	
 	if (this->background)
@@ -481,7 +500,7 @@ void BackendOpenGL::AddQuad(AbstractRenderer::Vertex& vmin, AbstractRenderer::Ve
 	}
 	
 
-	this->quadsCount++;
+	this->quadsCount[rp.layerId]++;
 }
 
 void BackendOpenGL::Clear()
@@ -511,16 +530,19 @@ void BackendOpenGL::FillGeometry()
 		this->background->FillGeometry();
 	}
 
-    if (this->geom.empty())
-    {
-        return;
-    }
-    
-	FONT_BIND_ARRAY_BUFFER(this->vbo);
-	GL_CHECK(glBufferData(GL_ARRAY_BUFFER, 
-		this->geom.size() * sizeof(float),
-		this->geom.data(),
-		GL_STREAM_DRAW));
-	FONT_UNBIND_ARRAY_BUFFER;
+	for (size_t i = 0; i < this->geom.size(); i++)
+	{
+		if (this->geom[i].empty())
+		{
+			continue;
+		}
+
+		FONT_BIND_ARRAY_BUFFER(this->vbo[i]);
+		GL_CHECK(glBufferData(GL_ARRAY_BUFFER,
+			this->geom[i].size() * sizeof(float),
+			this->geom[i].data(),
+			GL_STREAM_DRAW));
+		FONT_UNBIND_ARRAY_BUFFER;
+	}
 	
 }

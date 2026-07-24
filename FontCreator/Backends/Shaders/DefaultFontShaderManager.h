@@ -1,6 +1,7 @@
 #ifndef DEFAULT_FONT_SHADER_MANAGER_H
 #define DEFAULT_FONT_SHADER_MANAGER_H
 
+struct RenderSettings;
 class SdfShaderSupport;
 
 #include <vector>
@@ -15,7 +16,7 @@ class SdfShaderSupport;
 class DefaultFontShaderManager : public IShaderManager
 {
 public:
-    DefaultFontShaderManager(std::optional<SDF> sdf);
+    DefaultFontShaderManager(const RenderSettings& r, std::optional<SDF> sdf);
 	virtual ~DefaultFontShaderManager() = default;
     
     virtual const char* GetVertexShaderSource() const override;

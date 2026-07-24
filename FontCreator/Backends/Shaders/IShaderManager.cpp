@@ -4,6 +4,24 @@
 #	define NV_REPORT_COMPILE_ERRORS
 #endif
 
+
+IShaderManager::IShaderManager(const RenderSettings& r) :
+	shaderProgram(0),
+	canvasW(1),
+	canvasH(1)
+{
+}
+
+void IShaderManager::SetShaderProgram(GLuint program)
+{
+	this->shaderProgram = program;
+};
+
+uint8_t IShaderManager::GetTextureChannels() const
+{
+	return 1;
+}
+
 GLuint IShaderManager::BuildFromSources(const char* vSource, const char* pSource)
 {
 	GLuint program = 0;
@@ -100,7 +118,18 @@ GLuint IShaderManager::LinkGLSLProgram(GLuint vertexShader, GLuint fragmentShade
 	return program;
 }
 
+void IShaderManager::SetCanvasSize(int w, int h)
+{
+	canvasW = static_cast<float>(w);
+	canvasH = static_cast<float>(h);
+}
+
 void IShaderManager::Render(int quadsCount)
 {
 	GL_CHECK(glDrawArrays(GL_TRIANGLES, 0, quadsCount * this->GetQuadVertices()));
+}
+
+void IShaderManager::RenderLayer(int layerId, int quadsCount)
+{
+	this->Render(quadsCount);
 }

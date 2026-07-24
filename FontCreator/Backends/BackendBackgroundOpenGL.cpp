@@ -1,7 +1,7 @@
 #include "./BackendBackgroundOpenGL.h"
 
 #include "./Shaders/Shaders.h"
-#include "./Shaders/SingleColorBackgroundShaderManager.h"
+#include "./Shaders/BackgroundSingleColorShaderManager.h"
 #include "./Shaders/BackgroundShaderManager.h"
 #include "./Shaders/BackgroundShadowShaderManager.h"
 #include "./Shaders/BackgroundTextureShaderManager.h"
@@ -11,10 +11,10 @@ BackendBackgroundOpenGL::BackendBackgroundOpenGL(const BackgroundSettings& bs, c
 		nullptr, 		
 		nullptr,
 		bs.shadow.has_value() ?
-			std::dynamic_pointer_cast<IShaderManager>(std::make_shared<BackgroundShadowShaderManager>(*bs.shadow)) : (
+			std::dynamic_pointer_cast<IShaderManager>(std::make_shared<BackgroundShadowShaderManager>(r, *bs.shadow)) : (
 			bs.color.has_value() ? 
-				std::dynamic_pointer_cast<IShaderManager>(std::make_shared<SingleColorBackgroundShaderManager>()) :
-				std::dynamic_pointer_cast<IShaderManager>(std::make_shared<BackgroundShaderManager>())
+				std::dynamic_pointer_cast<IShaderManager>(std::make_shared<BackgroundSingleColorShaderManager>(r)) :
+				std::dynamic_pointer_cast<IShaderManager>(std::make_shared<BackgroundShaderManager>(r))
 			)
 	)
 {
@@ -40,7 +40,7 @@ void BackendBackgroundOpenGL::SetBackgroundSettings(const BackgroundSettings& bs
 {
 	this->bs = bs;
 
-	if (auto tmp = std::dynamic_pointer_cast<SingleColorBackgroundShaderManager>(this->sm))
+	if (auto tmp = std::dynamic_pointer_cast<BackgroundSingleColorShaderManager>(this->sm))
 	{
 		tmp->SetColor(bs.color->r, bs.color->g, bs.color->b, bs.color->a);
 		tmp->SetShape(bs.shape, bs.cornerRadius);
@@ -84,39 +84,45 @@ void BackendBackgroundOpenGL::Render(std::function<void(GLuint)> preDrawCallback
 	//std::shared_lock<std::shared_timed_mutex> lk(mainRenderer->m);
 #endif
 
-	
-	//bool vboChanged = this->mainRenderer->GenerateGeometry();
 
-	if (this->geom.empty())
+	if (this->IsGeomEmpty())
 	{
 		return;
 	}
-	
+
 	//wireframe
 	//glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 
 	//activate shader	
 	FONT_BIND_SHADER(shader.program);
 
-	//render
-	FONT_BIND_ARRAY_BUFFER(this->vbo);
-	
+	for (size_t i = 0; i < this->vbo.size(); i++)
+	{
+		if (this->geom[i].empty())
+		{
+			continue;
+		}
+
+		//render
+		FONT_BIND_ARRAY_BUFFER(this->vbo[i]);
+
 #ifdef __ANDROID_API__
-	if (rs.glVersion == 2)
-	{
-		this->sm->BindVertexAtribs();
-	}
-	else
-	{
-		FONT_BIND_VAO(this->vao);
-	}
+		if (rs.glVersion == 2)
+		{
+			this->sm->BindVertexAtribs();
+		}
+		else
+		{
+			FONT_BIND_VAO(this->vao[i]);
+		}
 #else
-	FONT_BIND_VAO(this->vao);
+		FONT_BIND_VAO(this->vao[i]);
 #endif		
-	
-	this->sm->BindUniforms();
-	this->sm->PreRender();
-	this->sm->Render(this->quadsCount);
+
+		this->sm->BindUniforms();
+		this->sm->PreRender();
+		this->sm->Render(this->quadsCount[i]);
+	}
 
 #ifdef __ANDROID_API__
 	if (rs.glVersion != 2)
@@ -129,6 +135,65 @@ void BackendBackgroundOpenGL::Render(std::function<void(GLuint)> preDrawCallback
 
 	//deactivate shader
 	FONT_UNBIND_SHADER;
+}
+
+void BackendBackgroundOpenGL::Render(int layerId, std::function<void(GLuint)> preDrawCallback,
+	std::function<void()> postDrawCallback)
+{
+	if (this->enabled == false)
+	{
+		return;
+	}
+
+#ifdef THREAD_SAFETY
+	//std::shared_lock<std::shared_timed_mutex> lk(mainRenderer->m);
+#endif
+
+		
+	//wireframe
+	//glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+
+	//activate shader	
+	FONT_BIND_SHADER(shader.program);
+
+	
+	if (this->geom[layerId].empty())
+	{
+		return;
+	}
+	
+	//render
+	FONT_BIND_ARRAY_BUFFER(this->vbo[layerId]);
+
+#ifdef __ANDROID_API__
+	if (rs.glVersion == 2)
+	{
+		this->sm->BindVertexAtribs();
+	}
+	else
+	{
+		FONT_BIND_VAO(this->vao[layerId]);
+	}
+#else
+	FONT_BIND_VAO(this->vao[layerId]);
+#endif		
+
+	this->sm->BindUniforms();
+	this->sm->PreRender();
+	this->sm->RenderLayer(layerId, this->quadsCount[layerId]);
+	
+#ifdef __ANDROID_API__
+	if (rs.glVersion != 2)
+	{
+		FONT_UNBIND_VAO;
+	}
+#else
+	FONT_UNBIND_VAO;
+#endif	
+
+	//deactivate shader
+	FONT_UNBIND_SHADER;
+	
 }
 
 void BackendBackgroundOpenGL::AddEmptyQuad(float x, float y, float w, float h, const AbstractRenderer::RenderParams& rp)
@@ -144,6 +209,7 @@ void BackendBackgroundOpenGL::AddQuad(AbstractRenderer::Vertex& vmin, AbstractRe
 
 void BackendBackgroundOpenGL::OnFinishQuadGroup(const AbstractRenderer::RenderParams& rp)
 {
+	
 	AbstractRenderer::Vertex min, max;
 
 	min.x = curQuadAabb.minX;
@@ -158,10 +224,10 @@ void BackendBackgroundOpenGL::OnFinishQuadGroup(const AbstractRenderer::RenderPa
 	max.x += (bs.padding * rp.scale * psW);
 	max.y += (bs.padding * rp.scale * psH);
 		
-	this->sm->FillQuadVertexData(min, max, rp, this->geom);
+	this->sm->FillQuadVertexData(min, max, rp, this->geom[rp.layerId]);
 
 	curQuadAabb = AABB();
 	
 
-	this->quadsCount++;
+	this->quadsCount[rp.layerId]++;
 }

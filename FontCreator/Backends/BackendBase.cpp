@@ -11,17 +11,25 @@ BackendBase::BackendBase(const RenderSettings& r) :
 {
 	this->psW = 1.0f / static_cast<float>(rs.deviceW); //pixel size in width
 	this->psH = 1.0f / static_cast<float>(rs.deviceH); //pixel size in height	
+
+	this->geom.resize(r.layersCount, {});
+	this->quadsCount.resize(r.layersCount, 0);
 }
 
 BackendBase::~BackendBase()
 {
 	this->Clear();
+
+	this->geom.clear();
 }
 
 void BackendBase::Clear()
 {
-	this->geom.clear();
-	this->quadsCount = 0;
+	for (size_t i = 0; i < this->geom.size(); i++)
+	{
+		this->geom[i].clear();
+		this->quadsCount[i] = 0;
+	}	
 }
 
 void BackendBase::SetBackground(std::optional<BackgroundSettings> bs)
@@ -74,6 +82,21 @@ void BackendBase::SwapCanvasWidthHeight()
 	this->psH = 1.0f / static_cast<float>(rs.deviceH); //pixel size in height
 
 	this->OnCanvasChanges();
+}
+
+bool BackendBase::IsGeomEmpty() const
+{
+	bool geomEmpty = true;
+	for (size_t i = 0; i < this->geom.size(); i++)
+	{
+		if (this->geom.empty() == false)
+		{
+			geomEmpty = false;
+			break;
+		}
+	}
+
+	return geomEmpty;
 }
 
 void BackendBase::AddEmptyQuad(float x, float y, float w, float h, const AbstractRenderer::RenderParams& rp)

@@ -2,7 +2,8 @@
 
 #include "./Shaders.h"
 
-ColoredFontShaderManager::ColoredFontShaderManager(bool enableTransparency) :
+ColoredFontShaderManager::ColoredFontShaderManager(const RenderSettings& r, bool enableTransparency) :
+    IShaderManager(r),
     enableTransparency(enableTransparency),
     positionLocation(0),
     texCoordLocation(0)    

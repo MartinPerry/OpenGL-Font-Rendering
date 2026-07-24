@@ -1,17 +1,19 @@
 #ifndef BACKGROUND_SHADOW_SHADER_MANAGER_H
 #define BACKGROUND_SHADOW_SHADER_MANAGER_H
 
+struct RenderSettings;
+
 #include <vector>
 
 #include "../../Externalncludes.h"
 #include "../../Renderers/AbstractRenderer.h"
 
-#include "./IShaderManager.h"
+#include "./IBackgroundShaderManager.h"
 
-class BackgroundShadowShaderManager : public IShaderManager
+class BackgroundShadowShaderManager : public IBackgroundShaderManager
 {
 public:
-    BackgroundShadowShaderManager(Shadow shadow);
+    BackgroundShadowShaderManager(const RenderSettings& r, Shadow shadow);
     virtual ~BackgroundShadowShaderManager() = default;
 
     virtual const char* GetVertexShaderSource() const override;
@@ -31,12 +33,7 @@ public:
         const AbstractRenderer::RenderParams& rp,
         std::vector<float>& vec) override;
 
-    void Clear() override;
-
-    void PreRender() override;
-
-    void Render(int quadsCount) override;
-
+      
 protected:
     GLint positionLocation;
     GLint colorLocation;
@@ -62,10 +59,7 @@ protected:
     float max_x;
     float max_y;
 
-    std::vector<GLint> startingElements;
-    std::vector<GLint> counts;
-
-   
+      
     void AddVertex(float x, float y, const AbstractRenderer::RenderParams& rp, std::vector<float>& vec) const;
 };
 

@@ -139,13 +139,16 @@ void BackendImage::UpdateTightCanvasSize()
 	
 	int nextQuadOffset = (format == Format::GRAYSCALE) ? 8 : 12;
 
-	for (size_t i = 0; i < this->geom.size(); i += nextQuadOffset)
-	{		
-		this->geom[i] = this->geom[i] - minX + tightSettings.borderLeft;
-		this->geom[i + 1] = this->geom[i + 1] - minY + tightSettings.borderTop;
+	for (auto& g : this->geom)
+	{
+		for (size_t i = 0; i < g.size(); i += nextQuadOffset)
+		{
+			g[i] = g[i] - minX + tightSettings.borderLeft;
+			g[i + 1] = g[i + 1] - minY + tightSettings.borderTop;
 
-		this->geom[i + 4] = this->geom[i + 4] - minX + tightSettings.borderLeft;
-		this->geom[i + 5] = this->geom[i + 5] - minY + tightSettings.borderTop;
+			g[i + 4] = g[i + 4] - minX + tightSettings.borderLeft;
+			g[i + 5] = g[i + 5] - minY + tightSettings.borderTop;
+		}
 	}
 
 }
@@ -198,73 +201,76 @@ void BackendImage::Render()
 
 	std::array<float, 4> rgba = { 1.0f, 1.0f, 1.0f, 1.0f };
 	
-	for (size_t i = 0; i < this->geom.size(); i += nextQuadOffset)
+	for (auto& g : this->geom)
 	{
-		//
-
-		int minX = static_cast<int>(this->geom[i]);
-		int minY = static_cast<int>(this->geom[i + 1]);
-
-		int minU = static_cast<int>(this->geom[i + 2]);
-		int minV = static_cast<int>(this->geom[i + 3]);
-
-		int maxX = static_cast<int>(this->geom[i + 4]);
-		int maxY = static_cast<int>(this->geom[i + 5]);
-
-		int maxU = static_cast<int>(this->geom[i + 6]);
-		int maxV = static_cast<int>(this->geom[i + 7]);
-
-		if (minU == std::numeric_limits<uint16_t>::max())
+		for (size_t i = 0; i < this->geom.size(); i += nextQuadOffset)
 		{
-			continue;
-		}
-			
+			//
 
-		if (format != Format::GRAYSCALE)
-		{
-			rgba[0] = this->geom[i + 8];
-			rgba[1] = this->geom[i + 9];
-			rgba[2] = this->geom[i + 10];
-			rgba[3] = this->geom[i + 11];
-		}
+			int minX = static_cast<int>(g[i]);
+			int minY = static_cast<int>(g[i + 1]);
 
-		//clamp to prevent being outside window
+			int minU = static_cast<int>(g[i + 2]);
+			int minV = static_cast<int>(g[i + 3]);
 
-		if (minX < 0)
-		{
-			//move texture U
-			minU = minU - minX;
-		}
-		if (minY < 0)
-		{
-			//move texture V
-			minV = minV - minY;
-		}
+			int maxX = static_cast<int>(g[i + 4]);
+			int maxY = static_cast<int>(g[i + 5]);
 
-		minX = std::clamp<int>(minX, 0, this->rs.deviceW);
-		maxX = std::clamp<int>(maxX, 0, this->rs.deviceW);
+			int maxU = static_cast<int>(g[i + 6]);
+			int maxV = static_cast<int>(g[i + 7]);
 
-		minY = std::clamp<int>(minY, 0, this->rs.deviceH);
-		maxY = std::clamp<int>(maxY, 0, this->rs.deviceH);
-		//
+			if (minU == std::numeric_limits<uint16_t>::max())
+			{
+				continue;
+			}
 
-		for (int y = minY, v = minV; y < maxY; y++, v++)
-		{			
-			for (int x = minX, u = minU; x < maxX; x++, u++)
-			{				
-				int index = (x + y * this->rs.deviceW) * static_cast<int>(format);
-				auto texVal = texData[u + v * this->mainRenderer->fb->GetTextureWidth()];
-				
-				this->colorBlend(texVal, img.rawData.data() + index, rgba, static_cast<int>(format));
 
-				/*
-				float alpha = texVal / 255.0;
-				for (int c = 0; c < static_cast<int>(format); c++)
+			if (format != Format::GRAYSCALE)
+			{
+				rgba[0] = g[i + 8];
+				rgba[1] = g[i + 9];
+				rgba[2] = g[i + 10];
+				rgba[3] = g[i + 11];
+			}
+
+			//clamp to prevent being outside window
+
+			if (minX < 0)
+			{
+				//move texture U
+				minU = minU - minX;
+			}
+			if (minY < 0)
+			{
+				//move texture V
+				minV = minV - minY;
+			}
+
+			minX = std::clamp<int>(minX, 0, this->rs.deviceW);
+			maxX = std::clamp<int>(maxX, 0, this->rs.deviceW);
+
+			minY = std::clamp<int>(minY, 0, this->rs.deviceH);
+			maxY = std::clamp<int>(maxY, 0, this->rs.deviceH);
+			//
+
+			for (int y = minY, v = minV; y < maxY; y++, v++)
+			{
+				for (int x = minX, u = minU; x < maxX; x++, u++)
 				{
-					uint8_t v = uint8_t(rgba[c] * texVal);
-					img.rawData[index + c] = (v * alpha) + (img.rawData[index + c] * (1.0 - alpha));
+					int index = (x + y * this->rs.deviceW) * static_cast<int>(format);
+					auto texVal = texData[u + v * this->mainRenderer->fb->GetTextureWidth()];
+
+					this->colorBlend(texVal, img.rawData.data() + index, rgba, static_cast<int>(format));
+
+					/*
+					float alpha = texVal / 255.0;
+					for (int c = 0; c < static_cast<int>(format); c++)
+					{
+						uint8_t v = uint8_t(rgba[c] * texVal);
+						img.rawData[index + c] = (v * alpha) + (img.rawData[index + c] * (1.0 - alpha));
+					}
+					*/
 				}
-				*/
 			}
 		}
 	}
@@ -306,16 +312,18 @@ void BackendImage::AddQuad(AbstractRenderer::Vertex& vmin, AbstractRenderer::Ver
 	//=====
 	//store it 
 
-	this->geom.push_back(vmin.x); this->geom.push_back(vmin.y);
-	this->geom.push_back(vmin.u); this->geom.push_back(vmin.v);
+	auto& g = this->geom[rp.layerId];
 
-	this->geom.push_back(vmax.x); this->geom.push_back(vmax.y);
-	this->geom.push_back(vmax.u); this->geom.push_back(vmax.v);
+	g.push_back(vmin.x); g.push_back(vmin.y);
+	g.push_back(vmin.u); g.push_back(vmin.v);
+
+	g.push_back(vmax.x); g.push_back(vmax.y);
+	g.push_back(vmax.u); g.push_back(vmax.v);
 
 	if (format != Format::GRAYSCALE)
 	{
-		this->geom.push_back(rp.color.r); this->geom.push_back(rp.color.g);
-		this->geom.push_back(rp.color.b); this->geom.push_back(rp.color.a);
+		g.push_back(rp.color.r); g.push_back(rp.color.g);
+		g.push_back(rp.color.b); g.push_back(rp.color.a);
 	}
 
 	if (vmin.x < quadsAABB.minX) quadsAABB.minX = vmin.x;
@@ -324,7 +332,7 @@ void BackendImage::AddQuad(AbstractRenderer::Vertex& vmin, AbstractRenderer::Ver
 	if (vmax.x > quadsAABB.maxX) quadsAABB.maxX = vmax.x;
 	if (vmax.y > quadsAABB.maxY) quadsAABB.maxY = vmax.y;
 
-	this->quadsCount++;
+	this->quadsCount[rp.layerId]++;
 }
 
 

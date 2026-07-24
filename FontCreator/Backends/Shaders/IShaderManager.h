@@ -1,6 +1,8 @@
 #ifndef ISHADER_MANAGER_H
 #define ISHADER_MANAGER_H
 
+struct RenderSettings;
+
 #include <vector>
 
 #include "../../Externalncludes.h"
@@ -10,22 +12,11 @@
 class IShaderManager
 {
 public:
-    IShaderManager() : 
-        shaderProgram(0),
-        canvasW(1),
-        canvasH(1)
-    {}
+    IShaderManager(const RenderSettings& r);
     virtual ~IShaderManager() = default;
 
-    void SetShaderProgram(GLuint program)
-    {
-        this->shaderProgram = program;
-    };
-
-    virtual uint8_t GetTextureChannels() const 
-    {
-        return 1;
-    }
+    void SetShaderProgram(GLuint program);
+    virtual uint8_t GetTextureChannels() const;
 
     virtual const char* GetVertexShaderSource() const = 0;
     virtual const char* GetPixelShaderSource() const = 0;
@@ -35,11 +26,8 @@ public:
     virtual void GetAttributtesUniforms() = 0;
     virtual void BindVertexAtribs() = 0;
     virtual void BindUniforms() = 0;
-    virtual void SetCanvasSize(int w, int h)
-    {
-        canvasW = static_cast<float>(w);
-        canvasH = static_cast<float>(h);
-    }
+    
+    virtual void SetCanvasSize(int w, int h);
 
     virtual int GetQuadVertices() const = 0;
 
@@ -53,6 +41,7 @@ public:
     virtual void PreRender() {	}
 
     virtual void Render(int quadsCount);
+    virtual void RenderLayer(int layerId, int quadsCount);
 
 protected:
     GLuint shaderProgram;

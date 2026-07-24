@@ -4,8 +4,8 @@
 
 #include "../../Externalncludes.h"
 
-BackgroundTextureShaderManager::BackgroundTextureShaderManager() :
-    BackgroundShaderManager(),
+BackgroundTextureShaderManager::BackgroundTextureShaderManager(const RenderSettings& r) :
+    BackgroundShaderManager(r),
     r(1),
     g(1),
     b(1),
@@ -15,19 +15,23 @@ BackgroundTextureShaderManager::BackgroundTextureShaderManager() :
     std::vector<uint8_t> dummy = { 255, 255, 255, 255 };
     emptyTextureId = this->InitTexture(dummy, 1, 1, 4);
 
+
+    usedTextures.resize(r.layersCount);
 }
 
 BackgroundTextureShaderManager::~BackgroundTextureShaderManager()
 {    
-    for (auto& texId : this->usedTextures)
+    for (auto& tmp : this->usedTextures)
     {
-        if (texId == emptyTextureId)
+        for (auto& texId : tmp)
         {
-            continue;
+            if (texId == emptyTextureId)
+            {
+                continue;
+            }
+            GL_CHECK(glDeleteTextures(1, &texId));
         }
-        GL_CHECK(glDeleteTextures(1, &texId));
     }
-
     GL_CHECK(glDeleteTextures(1, &this->emptyTextureId));
 }
 
@@ -64,7 +68,10 @@ void BackgroundTextureShaderManager::Clear()
 {
     BackgroundShaderManager::Clear();
     
-    this->usedTextures.clear();
+    for (auto& tmp : this->usedTextures)
+    {
+        tmp.clear();
+    }
 }
 
 void BackgroundTextureShaderManager::Render(int quadsCount)
@@ -75,18 +82,44 @@ void BackgroundTextureShaderManager::Render(int quadsCount)
     
     GLuint lastTexId = std::numeric_limits<GLuint>::max();
     
-    for (size_t i = 0; i < counts.size(); i++)
+    for (size_t j = 0; j < this->counts.size(); j++)
     {
-        GLuint texId = this->usedTextures[i];
+        for (size_t i = 0; i < counts[j].size(); i++)
+        {
+            GLuint texId = this->usedTextures[j][i];
+            if (texId != lastTexId)
+            {
+                FONT_BIND_TEXTURE_2D(texId);
+            }
+            lastTexId = texId;
+
+            GL_CHECK(glDrawArrays(type, startingElements[j][i], counts[j][i]));
+        }
+    }    
+}
+
+void BackgroundTextureShaderManager::RenderLayer(int layerId, int quadsCount)
+{
+    auto type = (shape == BackgroundSettings::Shape::SQUARE) ? GL_TRIANGLES : GL_TRIANGLE_FAN;
+
+    GL_CHECK(glActiveTexture(GL_TEXTURE0));
+
+    GLuint lastTexId = std::numeric_limits<GLuint>::max();
+
+    
+    for (size_t i = 0; i < counts[layerId].size(); i++)
+    {
+        GLuint texId = this->usedTextures[layerId][i];
         if (texId != lastTexId)
         {
             FONT_BIND_TEXTURE_2D(texId);
         }
         lastTexId = texId;
-        
-        GL_CHECK(glDrawArrays(type, startingElements[i], counts[i]));
+
+        GL_CHECK(glDrawArrays(type, startingElements[layerId][i], counts[layerId][i]));
     }
     
+
 }
 
 void BackgroundTextureShaderManager::FillQuadVertexData(const AbstractRenderer::Vertex& minVertex,
@@ -107,11 +140,11 @@ void BackgroundTextureShaderManager::FillQuadVertexData(const AbstractRenderer::
     
     if (rp.textureName.has_value())
     {
-        this->usedTextures.emplace_back(this->LoadTextureData(*rp.textureName));
+        this->usedTextures[rp.layerId].emplace_back(this->LoadTextureData(*rp.textureName));
     }
     else
     {
-        this->usedTextures.emplace_back(emptyTextureId);
+        this->usedTextures[rp.layerId].emplace_back(emptyTextureId);
     }
 }
 

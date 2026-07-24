@@ -1,6 +1,8 @@
 #ifndef BACKGROUND_TEXTURE_SHADER_MANAGER_H
 #define BACKGROUND_TEXTURE_SHADER_MANAGER_H
 
+struct RenderSettings;
+
 #include <vector>
 #include <unordered_map>
 
@@ -12,7 +14,7 @@
 class BackgroundTextureShaderManager : public BackgroundShaderManager
 {
 public:
-    BackgroundTextureShaderManager();
+    BackgroundTextureShaderManager(const RenderSettings& r);
     virtual ~BackgroundTextureShaderManager();
 
     virtual const char* GetVertexShaderSource() const override;
@@ -29,6 +31,7 @@ public:
 
     void Clear() override;
     void Render(int quadsCount) override;
+    void RenderLayer(int layerId, int quadsCount) override;
 
 protected:
     float r, g, b, a;
@@ -37,7 +40,7 @@ protected:
     GLuint emptyTextureId;
     
     std::unordered_map<std::string, int> texturesNames;
-    std::vector<GLuint> usedTextures;
+    std::vector<std::vector<GLuint>> usedTextures;
     
     GLuint LoadTextureData(const std::string& fileName);
     GLuint InitTexture(const std::vector<uint8_t>& data, int w, int h, int channelsCount);

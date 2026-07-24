@@ -31,7 +31,7 @@ const std::array<uint64_t, 10> NumberRenderer::INT_DIVISORS = {
 NumberRenderer * NumberRenderer::CreateSingleColor(Color color, const FontBuilderSettings& fs, 
 	const RenderSettings& r)
 {
-	auto sm = std::make_shared<SingleColorFontShaderManager>(fs.sdf);
+	auto sm = std::make_shared<SingleColorFontShaderManager>(r, fs.sdf);
 	sm->SetColor(color.r, color.g, color.b, color.a);
 
 	auto backend = std::make_unique<BackendOpenGL>(r, nullptr, nullptr, sm);
@@ -43,7 +43,7 @@ NumberRenderer * NumberRenderer::CreateSingleColor(Color color, const FontBuilde
 NumberRenderer* NumberRenderer::CreateDefault(const FontBuilderSettings& fs,
 	const RenderSettings& r)
 {
-	auto sm = std::make_shared<DefaultFontShaderManager>(fs.sdf);
+	auto sm = std::make_shared<DefaultFontShaderManager>(r, fs.sdf);
 
 	auto backend = std::make_unique<BackendOpenGL>(r, nullptr, nullptr, sm);
 

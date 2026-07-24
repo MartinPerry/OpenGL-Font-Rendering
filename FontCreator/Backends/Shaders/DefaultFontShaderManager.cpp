@@ -4,7 +4,8 @@
 
 #include "./SdfShaderSupport.h"
 
-DefaultFontShaderManager::DefaultFontShaderManager(std::optional<SDF> sdf) :
+DefaultFontShaderManager::DefaultFontShaderManager(const RenderSettings& r, std::optional<SDF> sdf) :
+    IShaderManager(r),
     sdf(sdf.has_value() ? std::make_shared<SdfShaderSupport>(*sdf) : nullptr),
     positionLocation(0),
     texCoordLocation(0),

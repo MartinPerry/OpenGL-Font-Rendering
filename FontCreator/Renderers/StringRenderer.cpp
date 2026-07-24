@@ -25,7 +25,7 @@
 StringRenderer * StringRenderer::CreateSingleColor(Color color, 
 	const FontBuilderSettings& fs, const RenderSettings& r)
 {
-	auto sm = std::make_shared<SingleColorFontShaderManager>(fs.sdf);
+	auto sm = std::make_shared<SingleColorFontShaderManager>(r, fs.sdf);
 	sm->SetColor(color.r, color.g, color.b, color.a);
 		
 	auto backend = std::make_unique<BackendOpenGL>(r, nullptr, nullptr, sm);
@@ -37,7 +37,7 @@ StringRenderer * StringRenderer::CreateSingleColor(Color color,
 StringRenderer* StringRenderer::CreateDefault(const FontBuilderSettings& fs,
 	const RenderSettings& r)
 {
-	auto sm = std::make_shared<DefaultFontShaderManager>(fs.sdf);
+	auto sm = std::make_shared<DefaultFontShaderManager>(r, fs.sdf);
 	
 	auto backend = std::make_unique<BackendOpenGL>(r, nullptr, nullptr, sm);
 

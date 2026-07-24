@@ -210,6 +210,8 @@ struct RenderSettings
 	uint16_t deviceW;
 	uint16_t deviceH;	
 
+	uint8_t layersCount = 1;
+
 	//OpenGL related
 	bool useTextureLinearFilter = false;
 

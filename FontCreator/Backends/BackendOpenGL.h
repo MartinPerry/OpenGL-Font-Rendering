@@ -43,7 +43,7 @@ public:
 	void FillFontTexture() override;
 	void FillGeometry() override;
 	
-	void Render() override;
+	void Render() override;	
     virtual void Render(std::function<void(GLuint)> preDrawCallback, std::function<void()> postDrawCallback);
 	
 	friend class AbstractRenderer;
@@ -65,8 +65,8 @@ protected:
 	
 	std::unique_ptr<BackendBackgroundOpenGL> background;
 
-	GLuint vbo;
-	GLuint vao;
+	std::vector<GLuint> vbo;
+	std::vector<GLuint> vao;
 	GLuint texture;
 	Shader shader;
 		

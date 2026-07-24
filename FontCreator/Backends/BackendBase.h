@@ -46,8 +46,8 @@ public:
 
 protected:
 	 	
-	int quadsCount;
-	std::vector<float> geom;
+	std::vector<int> quadsCount;
+	std::vector<std::vector<float>> geom;
 
 	AbstractRenderer* mainRenderer;
 
@@ -61,6 +61,8 @@ protected:
 	
 	float psW; //1.0 / pixel size in width
 	float psH; //1.0 / pixel size in height
+
+	bool IsGeomEmpty() const;
 
 	virtual void AddEmptyQuad(float x, float y, float w, float h, const AbstractRenderer::RenderParams& rp);
 	virtual void AddQuad(AbstractRenderer::Vertex& vmin, AbstractRenderer::Vertex& vmax, const AbstractRenderer::RenderParams& rp) = 0;

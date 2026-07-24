@@ -1,6 +1,7 @@
 #ifndef SINGLE_COLOR_FONT_SHADER_MANAGER_H
 #define SINGLE_COLOR_FONT_SHADER_MANAGER_H
 
+struct RenderSettings;
 class SdfShaderSupport;
 
 #include <vector>
@@ -15,7 +16,7 @@ class SdfShaderSupport;
 class SingleColorFontShaderManager : public IShaderManager
 {
 public:
-	SingleColorFontShaderManager(std::optional<SDF> sdf);
+	SingleColorFontShaderManager(const RenderSettings& r, std::optional<SDF> sdf);
 	virtual ~SingleColorFontShaderManager() = default;
 
 	virtual const char* GetVertexShaderSource() const override;
