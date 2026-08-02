@@ -483,13 +483,13 @@ void BackendOpenGL::AddQuad(AbstractRenderer::Vertex& vmin, AbstractRenderer::Ve
 
 	vmin.x *= psW;
 	vmin.y *= psH;
-	vmin.u *= this->tW;
-	vmin.v *= this->tH;
-
 	vmax.x *= psW;
 	vmax.y *= psH;
-	vmax.u *= this->tW;
-	vmax.v *= this->tH;
+	
+	vmin.u = (vmin.u - 0.5f) * this->tW;
+	vmin.v = (vmin.v - 0.5f) * this->tH;	
+	vmax.u = (vmax.u + 0.5f) * this->tW;
+	vmax.v = (vmax.v + 0.5f) * this->tH;
 	
     this->sm->FillQuadVertexData(vmin, vmax, rp, this->geom[rp.layerId]);
     

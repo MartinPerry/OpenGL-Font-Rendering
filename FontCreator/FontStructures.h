@@ -225,9 +225,11 @@ struct IFontBuilderSettings
 	//not used, when texture atlas is shared
 	uint16_t textureW = 0;
 	uint16_t textureH = 0;
+	uint16_t letterBorder = 0;
+
 
 	uint16_t screenDpi = 0;
-
+	
 	//how many times is resolution bigger than display pts units
 	//used on iPhones
 	float screenScale = 1.0f;

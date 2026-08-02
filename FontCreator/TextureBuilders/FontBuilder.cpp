@@ -22,7 +22,7 @@
 /// <param name="fonts"></param>
 /// <param name="r"></param>
 FontBuilder::FontBuilder(const FontBuilderSettings& r) :
-	FontBuilder(r, std::make_shared<TextureAtlasPack>(r.textureW, r.textureH, LETTER_BORDER_SIZE))
+	FontBuilder(r, std::make_shared<TextureAtlasPack>(r.textureW, r.textureH, r.letterBorder))
 {
 	//we can change texPacker settings only if texPacker was not loaded from outside
 	

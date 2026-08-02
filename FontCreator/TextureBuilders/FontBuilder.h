@@ -66,8 +66,6 @@ public:
 
 protected:
 
-	static const int LETTER_BORDER_SIZE = 0;
-
 	float screenScale;
 	uint16_t screenDpi;
 	int sdfSpread; //if SDF is used, value > 0

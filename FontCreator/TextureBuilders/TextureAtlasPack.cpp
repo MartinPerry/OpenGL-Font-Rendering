@@ -20,7 +20,8 @@ TextureAtlasPack::TextureAtlasPack(uint16_t w, uint16_t h,
 	method(PACKING_METHOD::TIGHT),
 	freePixels(w * h),
 	averageGlyphSize(2500),
-	gridBinW(0), gridBinH(0)
+	gridBinW(0), 
+	gridBinH(0)
 {
 		
 	std::random_device rd;
