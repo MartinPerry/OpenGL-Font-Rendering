@@ -20,10 +20,39 @@ public:
 	{
 		uint16_t x;
 		uint16_t y;
-		uint16_t width;
-		uint16_t height;
-		bool filled;
+		uint32_t packed;
 
+		//width, height -> max 1024x1024
+
+		uint16_t width() const
+		{
+			return packed & 0x3FF;
+		}
+
+		uint16_t height() const
+		{
+			return (packed >> 10) & 0x3FF;
+		}
+
+		bool filled() const
+		{
+			return (packed >> 20) & 1;
+		}
+
+		void setWidth(uint16_t v)
+		{
+			packed = (packed & ~(0x3FFu)) | (v & 0x3FFu);
+		}
+
+		void setHeight(uint16_t v)
+		{
+			packed = (packed & ~(0x3FFu << 10)) | ((v & 0x3FFu) << 10);
+		}
+
+		void setFilled(bool v)
+		{
+			packed = (packed & ~(1u << 20)) | (uint32_t(v) << 20);
+		}
 	};
 
 	
@@ -36,6 +65,7 @@ public:
 	//void SetAllFontInfos(std::vector<FontInfo> * fontInfos);
 	void AddFontInfos(std::vector<FontInfo>& fontInfos);
 	void AddFontInfo(FontInfo* fontInfo);
+	void RemoveFontInfo(FontInfo* fontInfo);
 	void SetUnusedGlyphs(std::list<FontInfo::GlyphIterator> * unused);
 	
 	void SetTightPacking();
@@ -46,6 +76,7 @@ public:
 	//void FillBuffer(uint8_t ** buf);
 	uint16_t GetTextureWidth() const;
 	uint16_t GetTextureHeight() const;
+	uint16_t GetFontBorder() const;
 	const uint8_t * GetTextureData() const;
 	
 	bool Pack();

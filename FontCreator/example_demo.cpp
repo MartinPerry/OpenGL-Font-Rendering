@@ -438,7 +438,7 @@ void TestStringBackground()
 	frWithBg->AddString(
 		//CreateRandomString(10),
 		//u8"\U0001F300Pøíliš malý p\n(žluouèký)\nkùyòy",
-		u8"Ahoj",
+		u8"Plzeò",
 		0.5f, 0.5f,
 		rp,
 		AbstractRenderer::TextAnchor::CENTER,
@@ -457,6 +457,7 @@ void TestStringBackground()
 	);
 	*/
 	
+	
 	rp.scale = 6.0;
 	rp.bgColor = { 0, 1, 0, 1 };
 	rp.textureName = "D://cyclone-square.png";
@@ -471,6 +472,7 @@ void TestStringBackground()
 		AbstractRenderer::TextAnchor::CENTER,
 		AbstractRenderer::TextAlign::ALIGN_CENTER
 	);
+	*/
 	
 	frWithBg->Render();
 }
@@ -492,6 +494,7 @@ void InitTestStringBackground()
 	RenderSettings r;
 	r.deviceW = g_width;
 	r.deviceH = g_height;
+	
 	r.layersCount = 2;
 
 
@@ -500,6 +503,7 @@ void InitTestStringBackground()
 	fs.textureW = 512;
 	fs.textureH = 512;
 	fs.screenScale = 1.0;
+	fs.letterBorder = 1;
 	fs.fonts = fonts;
 	//fs.sdf = SDF();
 	//fs.sdf->outlineColor = { 0, 0, 0, 1 };

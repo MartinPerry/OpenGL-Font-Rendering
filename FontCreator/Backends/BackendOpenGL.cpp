@@ -343,7 +343,7 @@ void BackendOpenGL::Render(std::function<void(GLuint)> preDrawCallback,
 	{
 		if (this->background)
 		{
-			this->background->Render(i, nullptr, nullptr);
+			this->background->Render(static_cast<int>(i), nullptr, nullptr);
 		}
 
 		//activate texture
@@ -475,21 +475,26 @@ void BackendOpenGL::AddQuad(AbstractRenderer::Vertex& vmin, AbstractRenderer::Ve
 			
 			vmax.x *= psW;
 			vmax.y *= psH;
+            
 			
 			this->background->AddQuad(vmin, vmax, rp);
 		}
 		return;
 	}
 
-	vmin.x *= psW;
-	vmin.y *= psH;
-	vmax.x *= psW;
-	vmax.y *= psH;
+    //move texture coordinates by offset and also position to compensate for "larger" texture fitted to "smaller" space
+    //since we have enlarged texture coordinates, we have created larger texture that fits to same space as before
+    //so we compensate this by enlarging geometry as well
+    
+    vmin.x = (vmin.x - this->uvOffset) * this->psW;
+    vmin.y = (vmin.y - this->uvOffset) * this->psH;
+    vmax.x = (vmax.x + this->uvOffset) * this->psW;
+    vmax.y = (vmax.y + this->uvOffset) * this->psH;
 	
-	vmin.u = (vmin.u - 0.5f) * this->tW;
-	vmin.v = (vmin.v - 0.5f) * this->tH;	
-	vmax.u = (vmax.u + 0.5f) * this->tW;
-	vmax.v = (vmax.v + 0.5f) * this->tH;
+	vmin.u = (vmin.u - this->uvOffset) * this->tW;
+	vmin.v = (vmin.v - this->uvOffset) * this->tH;
+	vmax.u = (vmax.u + this->uvOffset) * this->tW;
+	vmax.v = (vmax.v + this->uvOffset) * this->tH;
 	
     this->sm->FillQuadVertexData(vmin, vmax, rp, this->geom[rp.layerId]);
     

@@ -59,6 +59,7 @@ public:
 
 	uint16_t GetTextureWidth() const override;
 	uint16_t GetTextureHeight() const override;
+	uint16_t GetFontBorder() const override;
 	const uint8_t* GetTextureData() const override;
 
 	bool CreateFontAtlas() override;

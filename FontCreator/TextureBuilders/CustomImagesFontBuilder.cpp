@@ -220,6 +220,15 @@ uint16_t CustomImageFontBuilder::GetTextureHeight() const
 }
 
 /// <summary>
+/// Get font tetxure border size around glyphs
+/// </summary>
+/// <returns></returns>
+uint16_t CustomImageFontBuilder::GetFontBorder() const
+{
+	return this->texPacker->GetFontBorder();
+}
+
+/// <summary>
 /// Get font texture raw data
 /// </summary>
 /// <returns></returns>

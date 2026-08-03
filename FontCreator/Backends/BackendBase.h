@@ -61,6 +61,7 @@ protected:
 	
 	float psW; //1.0 / pixel size in width
 	float psH; //1.0 / pixel size in height
+	float uvOffset;
 
 	bool IsGeomEmpty() const;
 

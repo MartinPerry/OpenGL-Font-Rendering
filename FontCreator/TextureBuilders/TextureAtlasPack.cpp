@@ -38,7 +38,7 @@ TextureAtlasPack::TextureAtlasPack(uint16_t w, uint16_t h,
 
 TextureAtlasPack::~TextureAtlasPack()
 {
-	SAFE_DELETE_ARRAY(this->rawPackedData);
+	SAFE_DELETE_ARRAY(this->rawPackedData);	
 }
 
 
@@ -126,6 +126,11 @@ void TextureAtlasPack::AddFontInfo(FontInfo* fontInfo)
 	this->fontInfos.push_back(fontInfo);
 }
 
+void TextureAtlasPack::RemoveFontInfo(FontInfo* fontInfo)
+{
+	this->fontInfos.erase(std::remove(this->fontInfos.begin(), this->fontInfos.end(), fontInfo), this->fontInfos.end());
+}
+
 void TextureAtlasPack::SetUnusedGlyphs(std::list<FontInfo::GlyphIterator> * unused)
 {
 	this->unused = unused;
@@ -140,6 +145,11 @@ uint16_t TextureAtlasPack::GetTextureWidth() const
 uint16_t TextureAtlasPack::GetTextureHeight() const
 {
 	return this->h;
+}
+
+uint16_t TextureAtlasPack::GetFontBorder() const
+{
+	return this->border;
 }
 
 
@@ -271,13 +281,13 @@ bool TextureAtlasPack::PackGrid()
 
 				info.x = empty.x;
 				info.y = empty.y;
-				info.width = empty.w;
-				info.height = empty.h;
+				info.setWidth(empty.w);
+				info.setHeight(empty.h);
 
 				this->freeSpace.pop_front();
 			}
 
-			info.filled = false;
+			info.setFilled(false);
 
 			
 			g.tx = info.x + this->border;
@@ -308,7 +318,7 @@ bool TextureAtlasPack::PackTight()
 {	
 	PackedInfo info;
 
-	int b = (2 * this->border);
+	uint16_t b = (2 * this->border);
 
 	for (auto & fi : this->fontInfos)
 	{
@@ -366,10 +376,10 @@ bool TextureAtlasPack::PackTight()
 			{
 				info.x = px;
 				info.y = py;
-				info.width = g.bmpW + b;
-				info.height = g.bmpH + b;
+				info.setWidth(g.bmpW + b);
+				info.setHeight(g.bmpH + b);
 			}
-			info.filled = false;
+			info.setFilled(false);
 
 			g.tx = px + this->border;
 			g.ty = py + this->border;
@@ -401,7 +411,7 @@ void TextureAtlasPack::CopyDataToTexture()
 				continue;
 			}
 
-			if (it->second.filled)
+			if (it->second.filled())
 			{
 				continue;
 			}
@@ -463,12 +473,12 @@ void TextureAtlasPack::CopyDataToTexture()
 				this->freePixels -= g.bmpW;												
 			}
 
-			it->second.filled = true;
+			it->second.setFilled(true);
 
 #ifdef _DEBUG			
 			//debug - draw "visible borders" around letter
-			this->DrawBorder(it->second.x, it->second.y,
-				it->second.width, it->second.height, BORDER_DEBUG_VALUE);			
+			//this->DrawBorder(it->second.x, it->second.y,
+			//	it->second.width, it->second.height, BORDER_DEBUG_VALUE);			
 #endif
 
 		}
@@ -743,7 +753,7 @@ void TextureAtlasPack::DivideNode(const Node & empty, uint16_t spaceWidth, uint1
 std::optional<TextureAtlasPack::PackedInfo> TextureAtlasPack::FreeSpace(int spaceWidth, int spaceHeight)
 {	
 	
-	int b = (2 * this->border);
+	uint16_t b = (2 * this->border);
 	
 	for (auto & it : *this->unused)	
 	{			

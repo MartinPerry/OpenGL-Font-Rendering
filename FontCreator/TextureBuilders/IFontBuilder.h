@@ -28,6 +28,7 @@ public:
 
 	virtual uint16_t GetTextureWidth() const = 0;
 	virtual uint16_t GetTextureHeight() const = 0;
+	virtual uint16_t GetFontBorder() const = 0;
 	virtual const uint8_t* GetTextureData() const = 0;
 
 	virtual bool CreateFontAtlas() = 0;

@@ -89,9 +89,9 @@ FontBuilder::FontBuilder(const FontBuilderSettings& r, std::shared_ptr<TextureAt
 
 FontBuilder::~FontBuilder()
 {
-	this->texPacker = nullptr;
-
 	this->Release();
+
+	this->texPacker = nullptr;	
 }
 
 /// <summary>
@@ -108,7 +108,11 @@ void FontBuilder::Release()
 
 		FT_Done_Face(f.fontFace);
 		f.fontFace = nullptr;
+
+		this->texPacker->RemoveFontInfo(&f);
 	}
+
+	this->fis.clear();
 
 	FT_Stroker_Done(this->stroker);
 	FT_Done_FreeType(this->library);
@@ -575,6 +579,11 @@ uint16_t FontBuilder::GetTextureWidth() const
 uint16_t FontBuilder::GetTextureHeight() const
 {
 	return this->texPacker->GetTextureHeight();
+}
+
+uint16_t FontBuilder::GetFontBorder() const
+{
+	return this->texPacker->border;
 }
 
 /// <summary>

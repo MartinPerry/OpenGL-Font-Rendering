@@ -1,5 +1,6 @@
 #include "./BackendBase.h"
 
+#include "../TextureBuilders/IFontBuilder.h"
 
 BackendBase::BackendBase(const RenderSettings& r) : 
 	quadsCount(0),
@@ -7,7 +8,8 @@ BackendBase::BackendBase(const RenderSettings& r) :
 	rs(r),
 	enabled(true),
 	heightPx(std::numeric_limits<float>::lowest()),
-	heightThresholdKeepBackground(false)
+	heightThresholdKeepBackground(false),
+	uvOffset(0.0f)
 {
 	this->psW = 1.0f / static_cast<float>(rs.deviceW); //pixel size in width
 	this->psH = 1.0f / static_cast<float>(rs.deviceH); //pixel size in height	
@@ -40,6 +42,14 @@ void BackendBase::SetMainRenderer(AbstractRenderer* mainRenderer)
 {
 	this->mainRenderer = mainRenderer;	
 	this->SetCanvasSize(rs.deviceW, rs.deviceH);	
+
+	if (auto fb = mainRenderer->GetFontBuilder())
+	{
+		if (fb->GetFontBorder() > 0)
+		{
+			this->uvOffset = 0.5f;
+		}
+	}
 }
 
 const RenderSettings& BackendBase::GetSettings() const
@@ -137,6 +147,8 @@ void BackendBase::AddQuad(const GlyphInfo& gi, float x, float y, const AbstractR
 	}
 	*/
 	
+	
+
 	this->AddQuad(min, max, rp);
 }
 
