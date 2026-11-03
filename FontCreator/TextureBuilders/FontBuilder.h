@@ -42,7 +42,7 @@ public:
 	void SetGridPacking(uint16_t binW, uint16_t binH);
 
 	
-	const std::vector<FontInfo> & GetFontInfos() const;
+	const std::vector<FontInfo> & GetFontInfos() const override;
 	uint16_t GetMaxFontPixelHeight() const override;
 	uint16_t GetMaxFontPixelWidth() const;
 	uint16_t GetMaxEmSize() const;
