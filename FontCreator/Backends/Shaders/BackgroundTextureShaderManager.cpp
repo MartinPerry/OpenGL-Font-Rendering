@@ -98,7 +98,7 @@ void BackgroundTextureShaderManager::Render(int quadsCount)
     }    
 }
 
-void BackgroundTextureShaderManager::RenderLayer(int layerId, int quadsCount)
+void BackgroundTextureShaderManager::RenderLayer(int layerId)
 {
     auto type = (shape == BackgroundSettings::Shape::SQUARE) ? GL_TRIANGLES : GL_TRIANGLE_FAN;
 
@@ -127,22 +127,30 @@ void BackgroundTextureShaderManager::FillQuadVertexData(const AbstractRenderer::
     const AbstractRenderer::RenderParams& rp,
     std::vector<float>& vec)
 {
-    if (rp.bgColor.has_value())
+    bool hasBorder = false;
+
+    if (rp.bgInfo.has_value())
     {
         BackgroundShaderManager::FillQuadVertexData(minVertex, maxVertex, rp, vec);
+        hasBorder = (rp.bgInfo->borderSize > 0.0);        
     }
     else
     {
         AbstractRenderer::RenderParams tmp = rp;
-        tmp.bgColor = Color(r, g, b, a);
+        tmp.bgInfo = Color(r, g, b, a);
         BackgroundShaderManager::FillQuadVertexData(minVertex, maxVertex, tmp, vec);
     }
     
     if (rp.textureName.has_value())
     {
-        this->usedTextures[rp.layerId].emplace_back(this->LoadTextureData(*rp.textureName));
+        this->usedTextures[rp.layerId].emplace_back(this->LoadTextureData(*rp.textureName));                
     }
     else
+    {
+        this->usedTextures[rp.layerId].emplace_back(emptyTextureId);        
+    }
+
+    if (hasBorder)
     {
         this->usedTextures[rp.layerId].emplace_back(emptyTextureId);
     }

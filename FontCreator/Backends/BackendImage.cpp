@@ -331,8 +331,6 @@ void BackendImage::AddQuad(AbstractRenderer::Vertex& vmin, AbstractRenderer::Ver
 
 	if (vmax.x > quadsAABB.maxX) quadsAABB.maxX = vmax.x;
 	if (vmax.y > quadsAABB.maxY) quadsAABB.maxY = vmax.y;
-
-	this->quadsCount[rp.layerId]++;
 }
 
 

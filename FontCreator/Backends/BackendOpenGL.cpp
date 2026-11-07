@@ -339,11 +339,11 @@ void BackendOpenGL::Render(std::function<void(GLuint)> preDrawCallback,
 	//wireframe
 	//glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 	    	
-	for (size_t i = 0; i < this->vbo.size(); i++)
+	for (size_t layerId = 0; layerId < this->vbo.size(); layerId++)
 	{
 		if (this->background)
 		{
-			this->background->Render(static_cast<int>(i), nullptr, nullptr);
+			this->background->Render(static_cast<int>(layerId), nullptr, nullptr);
 		}
 
 		//activate texture
@@ -354,13 +354,13 @@ void BackendOpenGL::Render(std::function<void(GLuint)> preDrawCallback,
 		//activate shader	
 		FONT_BIND_SHADER(shader.program);
 
-		if (this->geom[i].empty())
+		if (this->geom[layerId].empty())
 		{
 			continue;
 		}
 
 		//render
-		FONT_BIND_ARRAY_BUFFER(this->vbo[i]);
+		FONT_BIND_ARRAY_BUFFER(this->vbo[layerId]);
 
 #ifdef __ANDROID_API__
 		if (rs.glVersion == 2)
@@ -369,10 +369,10 @@ void BackendOpenGL::Render(std::function<void(GLuint)> preDrawCallback,
 		}
 		else
 		{
-			FONT_BIND_VAO(this->vao[i]);
+			FONT_BIND_VAO(this->vao[layerId]);
 		}
 #else
-		FONT_BIND_VAO(this->vao[i]);
+		FONT_BIND_VAO(this->vao[layerId]);
 #endif		
 
 		this->sm->BindUniforms();
@@ -383,7 +383,7 @@ void BackendOpenGL::Render(std::function<void(GLuint)> preDrawCallback,
 			preDrawCallback(shader.program);
 		}
 
-		this->sm->Render(this->quadsCount[i]);
+		this->sm->RenderLayer(layerId);
 
 		if (postDrawCallback != nullptr)
 		{
@@ -503,9 +503,7 @@ void BackendOpenGL::AddQuad(AbstractRenderer::Vertex& vmin, AbstractRenderer::Ve
 	{
 		this->background->AddQuad(vmin, vmax, rp);
 	}
-	
-
-	this->quadsCount[rp.layerId]++;
+		
 }
 
 void BackendOpenGL::Clear()

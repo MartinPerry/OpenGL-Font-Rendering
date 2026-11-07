@@ -41,13 +41,13 @@ public:
 		mutable Color color;
 		float scale = 1.0f;			
 		int layerId = 0;
-		std::optional<Color> bgColor = std::nullopt;
+		std::optional<BackgroundInfo> bgInfo = std::nullopt;
         std::optional<std::string> textureName = std::nullopt;
 		
-		RenderParams() : color({ 0, 0, 0, 1 }), scale(1.0f) {};
-		RenderParams(float scale) : color({ 0, 0, 0, 1 }), scale(scale) {};
-		RenderParams(Color c, float scale) : color(c), scale(scale) {};
-		RenderParams(Color c, Color bgColor, float scale) : color(c), scale(scale), bgColor(bgColor) {};
+		RenderParams() : color(0, 0, 0, 1), scale(1.0f) {};
+		RenderParams(float scale) : color(0, 0, 0, 1), scale(scale) {};
+		RenderParams(const Color& c, float scale) : color(c), scale(scale) {};
+		RenderParams(const Color& c, const Color& bgColor, float scale) : color(c), scale(scale), bgInfo(bgColor) {};
 	};
     
 

@@ -31,7 +31,7 @@ public:
 
     void Clear() override;
     void Render(int quadsCount) override;
-    void RenderLayer(int layerId, int quadsCount) override;
+    void RenderLayer(int layerId) override;
 
 protected:
     float r, g, b, a;

@@ -45,8 +45,7 @@ public:
 	friend class BackendOpenGL;
 
 protected:
-	 	
-	std::vector<int> quadsCount;
+	 		
 	std::vector<std::vector<float>> geom;
 
 	AbstractRenderer* mainRenderer;

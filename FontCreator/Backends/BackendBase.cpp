@@ -3,7 +3,6 @@
 #include "../TextureBuilders/IFontBuilder.h"
 
 BackendBase::BackendBase(const RenderSettings& r) : 
-	quadsCount(0),
 	mainRenderer(nullptr),
 	rs(r),
 	enabled(true),
@@ -14,8 +13,7 @@ BackendBase::BackendBase(const RenderSettings& r) :
 	this->psW = 1.0f / static_cast<float>(rs.deviceW); //pixel size in width
 	this->psH = 1.0f / static_cast<float>(rs.deviceH); //pixel size in height	
 
-	this->geom.resize(r.layersCount, {});
-	this->quadsCount.resize(r.layersCount, 0);
+	this->geom.resize(r.layersCount, {});	
 }
 
 BackendBase::~BackendBase()
@@ -29,8 +27,7 @@ void BackendBase::Clear()
 {
 	for (size_t i = 0; i < this->geom.size(); i++)
 	{
-		this->geom[i].clear();
-		this->quadsCount[i] = 0;
+		this->geom[i].clear();		
 	}	
 }
 

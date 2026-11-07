@@ -10,6 +10,8 @@ IBackgroundShaderManager::IBackgroundShaderManager(const RenderSettings& r) :
 
 void IBackgroundShaderManager::Clear()
 {
+	IShaderManager::Clear();
+
 	for (size_t i = 0; i < this->startingElements.size(); i++)
 	{
 		this->startingElements[i].clear();
@@ -25,13 +27,13 @@ void IBackgroundShaderManager::PreRender()
 
 void IBackgroundShaderManager::Render(int quadsCount)
 {	
-	for (size_t j = 0; j < counts.size(); j++)
+	for (size_t layerId = 0; layerId < counts.size(); layerId++)
 	{
-		this->RenderLayer(j, quadsCount);
+		this->RenderLayer(layerId);
 	}
 }
 
-void IBackgroundShaderManager::RenderLayer(int layerId, int quadsCount)
+void IBackgroundShaderManager::RenderLayer(int layerId)
 {
 	auto type = (shape == BackgroundSettings::Shape::SQUARE) ? GL_TRIANGLES : GL_TRIANGLE_FAN;
 
@@ -53,16 +55,18 @@ int IBackgroundShaderManager::GetQuadVertices() const
 }
 
 
-void IBackgroundShaderManager::AddGeometryInfo(const AbstractRenderer::RenderParams& rp)
+void IBackgroundShaderManager::AddGeometryInfo(int layerId)
 {
 	int qv = this->GetQuadVertices();
-	counts[rp.layerId].push_back(qv);
-	if (startingElements[rp.layerId].size() == 0)
+	counts[layerId].push_back(qv);
+	if (startingElements[layerId].size() == 0)
 	{
-		startingElements[rp.layerId].push_back(0);
+		startingElements[layerId].push_back(0);
 	}
 	else
 	{
-		startingElements[rp.layerId].push_back(startingElements[rp.layerId].back() + qv);
+		startingElements[layerId].push_back(startingElements[layerId].back() + qv);
 	}
+
+	this->quadsCount[layerId]++;
 }

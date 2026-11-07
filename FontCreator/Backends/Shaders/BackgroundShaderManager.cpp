@@ -8,10 +8,10 @@ BackgroundShaderManager::BackgroundShaderManager(const RenderSettings& r) :
 	colorLocation(-1),
 	aabbLocation(-1),	
 	roundCornerRadius(0.0f),
-	min_x(0),
-	min_y(0),
-	max_x(0),
-	max_y(0)
+	min_x(0.0f),
+	min_y(0.0f),
+	max_x(0.0f),
+	max_y(0.0f)
 {
 }
 
@@ -88,7 +88,7 @@ void BackgroundShaderManager::FillQuadVertexData(
 	const AbstractRenderer::RenderParams& rp,
 	std::vector<float>& vec)
 {	
-	if (rp.bgColor.has_value() == false)
+	if (rp.bgInfo.has_value() == false)
 	{
 		return;
 	}
@@ -107,13 +107,31 @@ void BackgroundShaderManager::FillQuadVertexData(
 
 	if (shape == BackgroundSettings::Shape::SQUARE)
 	{
+		if((rp.bgInfo->borderSize > 0) && (rp.bgInfo->borderColor))
+		{
+			float bx = rp.bgInfo->borderSize / this->canvasW;
+			float by = rp.bgInfo->borderSize / this->canvasH;
+
+			//create copy of bgInfo
+			//and set borderColor to color
+			auto rpBorder = rp;
+			rpBorder.bgInfo->color = *rp.bgInfo->borderColor;
+			
+
+			this->AddVertex(minX - bx, minY + by, rpBorder, vec);
+			this->AddVertex(maxX + bx, minY + by, rpBorder, vec);
+			this->AddVertex(minX - bx, maxY - by, rpBorder, vec);
+
+			this->AddVertex(maxX + bx, minY + by, rpBorder, vec);
+			this->AddVertex(maxX + bx, maxY - by, rpBorder, vec);
+			this->AddVertex(minX - bx, maxY - by, rpBorder, vec);
+
+		}
+
 		this->AddVertex(minX, minY, rp, vec);
 		this->AddVertex(maxX, minY, rp, vec);
 		this->AddVertex(minX, maxY, rp, vec);
-
-		//========================================================
-		//========================================================
-
+		
 		this->AddVertex(maxX, minY, rp, vec);
 		this->AddVertex(maxX, maxY, rp, vec);
 		this->AddVertex(minX, maxY, rp, vec);
@@ -156,6 +174,20 @@ void BackgroundShaderManager::FillQuadVertexData(
 		max_x = cx + rx;
 		max_y = cy + ry;
 
+		if ((rp.bgInfo->borderSize > 0) && (rp.bgInfo->borderColor))
+		{
+			float bx = rp.bgInfo->borderSize / this->canvasW;
+			float by = rp.bgInfo->borderSize / this->canvasH;
+
+
+			//create copy of bgInfo
+			//and set borderColor to color
+			auto rpBorder = rp;
+			rpBorder.bgInfo->color = *rp.bgInfo->borderColor;
+
+			this->FillRoundCornersQuad(cx, cy, dx, dy, bx, by, rpBorder, vec);			
+		}
+
 		this->FillRoundCornersQuad(cx, cy, dx, dy, rx, ry, rp, vec);
 	}
 	else if (shape == BackgroundSettings::Shape::CIRCLE)
@@ -191,12 +223,29 @@ void BackgroundShaderManager::FillQuadVertexData(
 		min_y = cy - ry;
 		max_x = cx + rx;
 		max_y = cy + ry;
-		
+				
+		if ((rp.bgInfo->borderSize > 0) && (rp.bgInfo->borderColor))
+		{
+			float bx = rp.bgInfo->borderSize / this->canvasW;
+			float by = rp.bgInfo->borderSize / this->canvasH;
+
+			//create copy of bgInfo
+			//and set borderColor to color
+			auto rpBorder = rp;
+			rpBorder.bgInfo->color = *rp.bgInfo->borderColor;
+
+			this->FillCircle(cx, cy, bx + rx, by + ry, rpBorder, vec);			
+		}
+
 		this->FillCircle(cx, cy, rx, ry, rp, vec);
 	}
 
+	if ((rp.bgInfo->borderSize > 0) && (rp.bgInfo->borderColor))
+	{
+		this->AddGeometryInfo(rp.layerId);
+	}
 
-	this->AddGeometryInfo(rp);
+	this->AddGeometryInfo(rp.layerId);
 }
 
 void BackgroundShaderManager::FillRoundCornersQuad(float cx, float cy, float dx, float dy, float rx, float ry, 
@@ -287,12 +336,13 @@ void BackgroundShaderManager::FillCircle(float cx, float cy, float rx, float ry,
 
 }
 
+
 void BackgroundShaderManager::AddVertex(float x, float y, const AbstractRenderer::RenderParams& rp, 
 	std::vector<float>& vec) const
 {
 	vec.push_back(x); vec.push_back(y);	
-	vec.push_back(rp.bgColor->r); vec.push_back(rp.bgColor->g);
-	vec.push_back(rp.bgColor->b); vec.push_back(rp.bgColor->a);
+	vec.push_back(rp.bgInfo->color.r); vec.push_back(rp.bgInfo->color.g);
+	vec.push_back(rp.bgInfo->color.b); vec.push_back(rp.bgInfo->color.a);
 
 	if (this->aabbLocation != -1)
 	{

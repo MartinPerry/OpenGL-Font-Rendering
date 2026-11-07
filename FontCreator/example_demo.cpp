@@ -362,7 +362,7 @@ void TestNumbers()
 	//printf("%d\n", nmbr);
 	
 	auto rp = AbstractRenderer::DEFAULT_PARAMS;
-	rp.bgColor = { 1, 0, 0, 1 };
+	rp.bgInfo = Color(1, 0, 0, 1);
 	//rp.scale = 0.3f;
 
 	//fn->AddNumber((double)(nmbr + nmbr / 100.0), 0.5f, 0.5f);
@@ -445,7 +445,9 @@ void TestStringBackground()
 		AbstractRenderer::TextAlign::ALIGN_CENTER
 	);
 
-	rp.bgColor = Color(1, 0, 0, 1);
+	rp.bgInfo = Color(1, 0, 0, 1);
+	rp.bgInfo->borderColor = Color(0, 1, 0, 1);
+	rp.bgInfo->borderSize = 20.0f;
 	frWithBg->AddString(
 		//CreateRandomString(10),
 		//u8"\U0001F300Pøíliš malı p\n(luouèkı)\nkùyòy",
@@ -524,10 +526,10 @@ void InitTestStringBackground()
 
 	BackgroundSettings bs;
 	//bs.color = { 0,1, 1, 0.6f };
-	bs.padding = 8;
+	//bs.padding = 8;
 	//bs.cornerRadius = 40;// 20;
 	bs.shadow = std::nullopt;
-	bs.shape = BackgroundSettings::Shape::CIRCLE;
+	bs.shape = BackgroundSettings::Shape::SQUARE;
 
 	auto sm = std::make_shared<DefaultFontShaderManager>(r, std::nullopt);
 	auto backend = std::make_unique<BackendOpenGL>(r, nullptr, nullptr, sm);

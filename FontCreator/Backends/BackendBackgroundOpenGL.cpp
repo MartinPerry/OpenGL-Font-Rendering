@@ -96,15 +96,15 @@ void BackendBackgroundOpenGL::Render(std::function<void(GLuint)> preDrawCallback
 	//activate shader	
 	FONT_BIND_SHADER(shader.program);
 
-	for (size_t i = 0; i < this->vbo.size(); i++)
+	for (size_t layerId = 0; layerId < this->vbo.size(); layerId++)
 	{
-		if (this->geom[i].empty())
+		if (this->geom[layerId].empty())
 		{
 			continue;
 		}
 
 		//render
-		FONT_BIND_ARRAY_BUFFER(this->vbo[i]);
+		FONT_BIND_ARRAY_BUFFER(this->vbo[layerId]);
 
 #ifdef __ANDROID_API__
 		if (rs.glVersion == 2)
@@ -113,15 +113,15 @@ void BackendBackgroundOpenGL::Render(std::function<void(GLuint)> preDrawCallback
 		}
 		else
 		{
-			FONT_BIND_VAO(this->vao[i]);
+			FONT_BIND_VAO(this->vao[layerId]);
 		}
 #else
-		FONT_BIND_VAO(this->vao[i]);
+		FONT_BIND_VAO(this->vao[layerId]);
 #endif		
 
 		this->sm->BindUniforms();
 		this->sm->PreRender();
-		this->sm->Render(this->quadsCount[i]);
+		this->sm->RenderLayer(layerId);
 	}
 
 #ifdef __ANDROID_API__
@@ -180,7 +180,7 @@ void BackendBackgroundOpenGL::Render(int layerId, std::function<void(GLuint)> pr
 
 	this->sm->BindUniforms();
 	this->sm->PreRender();
-	this->sm->RenderLayer(layerId, this->quadsCount[layerId]);
+	this->sm->RenderLayer(layerId);
 	
 #ifdef __ANDROID_API__
 	if (rs.glVersion != 2)
@@ -227,7 +227,5 @@ void BackendBackgroundOpenGL::OnFinishQuadGroup(const AbstractRenderer::RenderPa
 	this->sm->FillQuadVertexData(min, max, rp, this->geom[rp.layerId]);
 
 	curQuadAabb = AABB();
-	
-
-	this->quadsCount[rp.layerId]++;
+		
 }

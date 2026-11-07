@@ -203,6 +203,18 @@ struct Color
 };
 
 /// <summary>
+/// Background representation
+/// </summary>
+struct BackgroundInfo
+{
+	Color color;
+	std::optional<Color> borderColor = std::nullopt;
+	float borderSize = 0.0f;
+
+	BackgroundInfo(const Color& c) : color(c) {}
+};
+
+/// <summary>
 /// Render settings for font renderer
 /// </summary>
 struct RenderSettings

@@ -136,5 +136,7 @@ void SingleColorFontShaderManager::FillQuadVertexData(
 	v[4] = c;
 	v[5] = d;
 	*/
+
+	this->quadsCount[rp.layerId]++;
 }
 

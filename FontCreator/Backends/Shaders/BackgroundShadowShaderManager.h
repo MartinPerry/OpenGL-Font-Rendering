@@ -46,9 +46,7 @@ protected:
     GLint shadowColorUniform;
 
     Shadow shadow;
-
-    float xx, yy;
-
+   
     BackgroundSettings::Shape shape;
     float roundCornerRadius;
     

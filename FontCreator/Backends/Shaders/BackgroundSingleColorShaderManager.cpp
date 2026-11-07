@@ -97,9 +97,6 @@ void BackgroundSingleColorShaderManager::FillQuadVertexData(
 		this->AddVertex(minX, minY, vec);
 		this->AddVertex(maxX, minY, vec);
 		this->AddVertex(minX, maxY, vec);
-
-		//========================================================
-		//========================================================
 		
 		this->AddVertex(maxX, minY, vec);
 		this->AddVertex(maxX, maxY, vec);
@@ -166,7 +163,7 @@ void BackgroundSingleColorShaderManager::FillQuadVertexData(
 		this->FillCircle(cx, cy, rx, ry, vec);
 	}
 
-	this->AddGeometryInfo(rp);	
+	this->AddGeometryInfo(rp.layerId);	
 }
 
 void BackgroundSingleColorShaderManager::FillRoundCornersQuad(float cx, float cy, float dx, float dy, float rx, float ry, std::vector<float>& vec) const

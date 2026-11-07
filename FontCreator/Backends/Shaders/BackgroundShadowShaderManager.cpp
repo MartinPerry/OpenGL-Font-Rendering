@@ -236,7 +236,7 @@ void BackgroundShadowShaderManager::FillQuadVertexData(
 	*/
 
 
-	this->AddGeometryInfo(rp);
+	this->AddGeometryInfo(rp.layerId);	
 }
 
 
@@ -244,10 +244,10 @@ void BackgroundShadowShaderManager::AddVertex(float x, float y, const AbstractRe
 	std::vector<float>& vec) const
 {
 	vec.push_back(x); vec.push_back(y);
-	if (rp.bgColor)
+	if (rp.bgInfo)
 	{
-		vec.push_back(rp.bgColor->r); vec.push_back(rp.bgColor->g);
-		vec.push_back(rp.bgColor->b); vec.push_back(rp.bgColor->a);
+		vec.push_back(rp.bgInfo->color.r); vec.push_back(rp.bgInfo->color.g);
+		vec.push_back(rp.bgInfo->color.b); vec.push_back(rp.bgInfo->color.a);
 	}
 	else 
 	{

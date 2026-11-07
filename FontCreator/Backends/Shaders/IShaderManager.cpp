@@ -10,6 +10,15 @@ IShaderManager::IShaderManager(const RenderSettings& r) :
 	canvasW(1),
 	canvasH(1)
 {
+	this->quadsCount.resize(r.layersCount, 0);	
+}
+
+void IShaderManager::Clear()
+{
+	for (size_t i = 0; i < this->quadsCount.size(); i++)
+	{
+		this->quadsCount[i] = 0;
+	}
 }
 
 void IShaderManager::SetShaderProgram(GLuint program)
@@ -129,7 +138,7 @@ void IShaderManager::Render(int quadsCount)
 	GL_CHECK(glDrawArrays(GL_TRIANGLES, 0, quadsCount * this->GetQuadVertices()));
 }
 
-void IShaderManager::RenderLayer(int layerId, int quadsCount)
+void IShaderManager::RenderLayer(int layerId)
 {
-	this->Render(quadsCount);
+	this->Render(this->quadsCount[layerId]);
 }

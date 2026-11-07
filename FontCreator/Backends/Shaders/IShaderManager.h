@@ -36,18 +36,20 @@ public:
         const AbstractRenderer::RenderParams& rp,
         std::vector<float>& vec) = 0;
 
-    virtual void Clear() { }
+    virtual void Clear();
 
     virtual void PreRender() {	}
 
     virtual void Render(int quadsCount);
-    virtual void RenderLayer(int layerId, int quadsCount);
+    virtual void RenderLayer(int layerId);
 
 protected:
     GLuint shaderProgram;
 
     float canvasW;
     float canvasH;
+
+    std::vector<int> quadsCount;
 
     GLuint CompileGLSLShader(GLenum target, const char* shader) const;
     GLuint LinkGLSLProgram(GLuint vertexShader, GLuint fragmentShader) const;

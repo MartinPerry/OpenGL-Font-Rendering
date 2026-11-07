@@ -22,7 +22,7 @@ public:
 
     virtual void PreRender() override;
     virtual void Render(int quadsCount) override;
-    virtual void RenderLayer(int layerId, int quadsCount) override;
+    virtual void RenderLayer(int layerId) override;
 
 protected:
 
@@ -31,7 +31,7 @@ protected:
     std::vector<std::vector<GLint>> startingElements;
     std::vector<std::vector<GLint>> counts;
 
-    void AddGeometryInfo(const AbstractRenderer::RenderParams& rp);
+    void AddGeometryInfo(int layerId);
 };
 
 
