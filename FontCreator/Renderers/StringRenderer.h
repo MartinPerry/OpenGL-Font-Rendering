@@ -48,8 +48,8 @@ public:
 	struct StringInfo
 	{
 		StringUtf8 str;
-		int x;
-		int y;
+		int16_t x;
+		int16_t y;
 
 		TextAnchor anchor;
 		TextAlign align;
@@ -67,8 +67,8 @@ public:
 			TextAnchor anchor,
 			TextAlign align, TextType type) noexcept :
 			str(str),
-			x(x),
-			y(y),
+			x(static_cast<int16_t>(x)),
+			y(static_cast<int16_t>(y)),
 			anchor(anchor),
 			align(align),
 			type(type),
@@ -82,8 +82,8 @@ public:
 			TextAlign align, TextType type,
 			const RenderParams& rp) noexcept :
 			str(std::move(str)),
-			x(x),
-			y(y),
+			x(static_cast<int16_t>(x)),
+			y(static_cast<int16_t>(y)),
 			anchor(anchor),
 			align(align),
 			type(type),

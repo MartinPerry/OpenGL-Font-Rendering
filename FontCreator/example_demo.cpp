@@ -445,6 +445,17 @@ void TestStringBackground()
 		AbstractRenderer::TextAlign::ALIGN_CENTER
 	);
 
+	rp.bgColor = Color(1, 0, 0, 1);
+	frWithBg->AddString(
+		//CreateRandomString(10),
+		//u8"\U0001F300Pøíliš malý p\n(žluouèký)\nkùyòy",
+		u8"jede",
+		0.5f, 0.8f,
+		rp,
+		AbstractRenderer::TextAnchor::CENTER,
+		AbstractRenderer::TextAlign::ALIGN_CENTER
+	);
+
 	/*
 	frWithBg->AddString(
 		//CreateRandomString(10),
@@ -457,10 +468,10 @@ void TestStringBackground()
 	);
 	*/
 	
-	
+	/*
 	rp.scale = 6.0;
 	rp.bgColor = { 0, 1, 0, 1 };
-	rp.textureName = "D://cyclone-square.png";
+	rp.textureName = "D://cyclone_square.png";
 	rp.layerId = 1;
 
 	frWithBg->AddString(
@@ -514,8 +525,9 @@ void InitTestStringBackground()
 	BackgroundSettings bs;
 	//bs.color = { 0,1, 1, 0.6f };
 	bs.padding = 8;
-	bs.cornerRadius = 40;// 20;
+	//bs.cornerRadius = 40;// 20;
 	bs.shadow = std::nullopt;
+	bs.shape = BackgroundSettings::Shape::CIRCLE;
 
 	auto sm = std::make_shared<DefaultFontShaderManager>(r, std::nullopt);
 	auto backend = std::make_unique<BackendOpenGL>(r, nullptr, nullptr, sm);

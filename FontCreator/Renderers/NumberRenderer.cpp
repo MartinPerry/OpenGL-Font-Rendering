@@ -192,6 +192,7 @@ void NumberRenderer::Precompute()
 		for (int j = 0; j < 2; j++)
 		{
 			const GlyphInfo * gi = this->precomputed[i].gi[j];
+
 			this->precomputed[i].aabb.Update(x + gi->bmpX, -gi->bmpY, gi->bmpW, gi->bmpH);			
 			x += gi->adv;
 		}
@@ -573,7 +574,7 @@ AABB NumberRenderer::CalcNumberAABB(double val, int x, int y,
 	int yOffset = y;
 
 	//reset position to count form zero
-	y = 0; //not used
+	y = 0;
 	x = 0;
 
 	AABB aabb;
@@ -582,7 +583,12 @@ AABB NumberRenderer::CalcNumberAABB(double val, int x, int y,
 	{
 		const GlyphInfo & gi = this->gi['-'];
 		
-		aabb.Update(x + gi.bmpX, -gi.bmpY, gi.bmpW, gi.bmpH);		
+        float fx = x + (gi.bmpX * scale);
+        float fy = y - (gi.bmpY * scale);
+
+        aabb.Update(fx, fy, gi.bmpW * scale, gi.bmpH * scale);
+        
+		//aabb.Update(x + gi.bmpX, -gi.bmpY, gi.bmpW, gi.bmpH);
 		x += static_cast<int>(gi.adv + this->extraGlyphSpacingSize);
 	}
 
@@ -591,7 +597,12 @@ AABB NumberRenderer::CalcNumberAABB(double val, int x, int y,
 		//one digit number
 		const GlyphInfo & gi = this->gi[intPart + '0'];
 
-		aabb.Update(x + gi.bmpX, -gi.bmpY, gi.bmpW, gi.bmpH);
+        float fx = x + (gi.bmpX * scale);
+        float fy = y - (gi.bmpY * scale);
+
+        aabb.Update(fx, fy, gi.bmpW * scale, gi.bmpH * scale);
+        
+		//aabb.Update(x + gi.bmpX, -gi.bmpY, gi.bmpW, gi.bmpH);
 		x += static_cast<int>((gi.adv + this->extraGlyphSpacingSize) * scale);
 	}
 	else if (intPart <= 99)
@@ -599,7 +610,7 @@ AABB NumberRenderer::CalcNumberAABB(double val, int x, int y,
 		//two digit number
 		const Precomputed& t = precomputed[intPart];		
 		
-		aabb.UnionWithOffset(t.aabb, static_cast<float>(x));
+		aabb.UnionWithOffsetAndScale(t.aabb, static_cast<float>(x), scale);
 		x += static_cast<int>((t.xOffset + this->extraGlyphSpacingSize) * scale);
 	}
 	else
@@ -611,7 +622,7 @@ AABB NumberRenderer::CalcNumberAABB(double val, int x, int y,
 			const auto tmp = intPart / divisor;
 			const Precomputed & t = precomputed[tmp];
 			
-			aabb.UnionWithOffset(t.aabb, static_cast<float>(x));
+			aabb.UnionWithOffsetAndScale(t.aabb, static_cast<float>(x), scale);
 			x += static_cast<int>((t.xOffset + this->extraGlyphSpacingSize) * scale);
 			
 			intPart = intPart - tmp * divisor;			
@@ -623,7 +634,12 @@ AABB NumberRenderer::CalcNumberAABB(double val, int x, int y,
 			//one digit remaining number
 			const GlyphInfo & gi = this->gi[intPart + '0'];
 			
-			aabb.Update(x + gi.bmpX, -gi.bmpY, gi.bmpW, gi.bmpH);
+            float fx = x + (gi.bmpX * scale);
+            float fy = y - (gi.bmpY * scale);
+
+            aabb.Update(fx, fy, gi.bmpW * scale, gi.bmpH * scale);
+            
+			//aabb.Update(x + gi.bmpX, -gi.bmpY, gi.bmpW, gi.bmpH);
 			x += static_cast<int>((gi.adv + this->extraGlyphSpacingSize) * scale);
 			
 		}
@@ -634,7 +650,12 @@ AABB NumberRenderer::CalcNumberAABB(double val, int x, int y,
 	{
 		const GlyphInfo & gi = this->gi['.'];
 		
-		aabb.Update(x + gi.bmpX, -gi.bmpY, gi.bmpW, gi.bmpH);
+		float fx = x + (gi.bmpX * scale);
+		float fy = y - (gi.bmpY * scale);
+
+		aabb.Update(fx, fy, gi.bmpW * scale, gi.bmpH * scale);
+
+		//aabb.Update(x + gi.bmpX, -gi.bmpY, gi.bmpW, gi.bmpH);
 		x += static_cast<int>((gi.adv + this->extraGlyphSpacingSize) * scale);		
 		
 		while (fractPartReversed)
@@ -642,7 +663,12 @@ AABB NumberRenderer::CalcNumberAABB(double val, int x, int y,
 			const int cc = (fractPartReversed % 10);			
 			const GlyphInfo & gi = this->gi[cc + '0'];
 			
-			aabb.Update(x + gi.bmpX, -gi.bmpY, gi.bmpW, gi.bmpH);
+			float fx = x + (gi.bmpX * scale);
+			float fy = y - (gi.bmpY * scale);
+
+			aabb.Update(fx, fy, gi.bmpW * scale, gi.bmpH * scale);
+
+			//aabb.Update(x + gi.bmpX, -gi.bmpY, gi.bmpW, gi.bmpH);
 			x += static_cast<int>((gi.adv + this->extraGlyphSpacingSize) * scale);
 			
 			fractPartReversed /= 10;
@@ -674,7 +700,7 @@ void NumberRenderer::GetAnchoredPosition(const NumberRenderer::NumberInfo & si,
 		y = si.y + si.h; // this->newLineOffset; //y position is "line letter start" - move it to letter height
 	}
 	else if (si.anchor == TextAnchor::CENTER)
-	{			
+	{
 		x = si.x - si.w / 2;
 		y = si.y + si.h / 2; // (this->newLineOffset / 2); //move top position to TOP_LEFT
 											//and calc center from all lines and move TOP_LEFT down

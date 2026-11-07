@@ -349,10 +349,13 @@ struct AABB
 
 	void Update(float x, float y, float w, float h) noexcept
 	{
+		float xw = x + w;
+		float yh = y + h;
+
 		if (x < minX) minX = x;
 		if (y < minY) minY = y;
-		if (x + w > maxX) maxX = x + w;
-		if (y + h > maxY) maxY = y + h;
+		if (xw > maxX) maxX = xw;
+		if (yh > maxY) maxY = yh;
 	}
 
 	void UnionWithOffset(const AABB& b, float xOffset) noexcept
@@ -362,6 +365,15 @@ struct AABB
 
 		maxX = std::max(maxX, b.maxX + xOffset);
 		maxY = std::max(maxY, b.maxY);
+	}
+
+	void UnionWithOffsetAndScale(const AABB& b, float xOffset, float scale) noexcept
+	{
+		minX = std::min(minX, b.minX + xOffset) * scale;
+		minY = std::min(minY, b.minY) * scale;
+
+		maxX = std::max(maxX, b.maxX + xOffset) * scale;
+		maxY = std::max(maxY, b.maxY) * scale;
 	}
 
 	bool Intersect(const AABB& bb) const noexcept
