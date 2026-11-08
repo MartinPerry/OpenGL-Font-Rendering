@@ -42,7 +42,10 @@ void BackendBackgroundOpenGL::SetBackgroundSettings(const BackgroundSettings& bs
 
 	if (auto tmp = std::dynamic_pointer_cast<BackgroundSingleColorShaderManager>(this->sm))
 	{
-		tmp->SetColor(bs.color->r, bs.color->g, bs.color->b, bs.color->a);
+		if (bs.color.has_value())
+		{
+			tmp->SetColor(bs.color->r, bs.color->g, bs.color->b, bs.color->a);
+		}
 		tmp->SetShape(bs.shape, bs.cornerRadius);
 	}
     else if (auto tmp = std::dynamic_pointer_cast<BackgroundTextureShaderManager>(this->sm))
@@ -209,7 +212,11 @@ void BackendBackgroundOpenGL::AddQuad(AbstractRenderer::Vertex& vmin, AbstractRe
 
 void BackendBackgroundOpenGL::OnFinishQuadGroup(const AbstractRenderer::RenderParams& rp)
 {
-	
+	if (curQuadAabb.IsEmpty())
+	{
+		return;
+	}
+
 	AbstractRenderer::Vertex min, max;
 
 	min.x = curQuadAabb.minX;

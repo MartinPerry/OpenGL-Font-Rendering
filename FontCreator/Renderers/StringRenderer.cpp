@@ -798,15 +798,38 @@ StringRenderer::UsedGlyphCache StringRenderer::ExtractGlyphs(const StringUtf8& s
 /// <returns></returns>
 void StringRenderer::CalcSpaceSize()
 {
-	
+	size_t linesCount = 1;
+	for (const StringInfo& si : this->strs)
+	{
+		linesCount = std::max(linesCount, si.lines.size());
+	}
+
 	//calc space size	
 	FontInfo* usedFi = nullptr;
 	auto gi = this->fb->GetGlyph(' ', &usedFi);
 	if (gi)
 	{		
 		spaceSizeExist = true;
-		spaceSize = gi->adv;		
-		spaceHeight = usedFi->newLineOffset;
+		spaceSize = gi->adv;	
+
+		if (linesCount == 1)
+		{		
+			//only one line - set height of space to be limited since we dont need to count for offset
+			//of new line
+			auto tmp = this->fb->GetGlyph('x');
+			if (tmp)
+			{				
+				spaceHeight = tmp->bmpH;
+			}
+			else
+			{				
+				spaceHeight = spaceSize;// this->fb->GetMaxNewLineOffset();
+			}			
+		}
+		else
+		{
+			spaceHeight = usedFi->newLineOffset;
+		}
 	}
 	else
 	{		
@@ -824,6 +847,7 @@ void StringRenderer::CalcSpaceSize()
 		}
 	}
 
+	
 	spaceSize += this->extraGlyphSpacingSize;
 
 }

@@ -85,7 +85,13 @@ struct FontInfo
 	float scaleFactor;
 	
 	FontInfo() :
-		fontId(FontInfo::counter++)
+		fontId(FontInfo::counter++),
+		maxPixelsWidth(0),
+		maxPixelsHeight(0),
+		newLineOffset(0),
+		onlyBitmapGlyphs(false),
+		fontFace(nullptr),
+		scaleFactor(1.0f)
 	{}
 };
 

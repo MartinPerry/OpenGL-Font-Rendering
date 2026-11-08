@@ -16,6 +16,7 @@
 #include "./Backends/Shaders/ColoredFontShaderManager.h"
 #include "./Backends/Shaders/BackgroundSingleColorShaderManager.h"
 #include "./Backends/Shaders/BackgroundTextureShaderManager.h"
+#include "./Backends/Shaders/BackgroundShadowShaderManager.h"
 #include "./Backends/Shaders/BackgroundShaderManager.h"
 #include "./Backends/Shaders/Shaders.h"
 
@@ -434,7 +435,7 @@ void TestStringBackground()
 
 	auto rp = AbstractRenderer::RenderParams({ 0,0,0,1 }, 1.0);
 	rp.layerId = 0;
-	
+	/*
 	frWithBg->AddString(
 		//CreateRandomString(10),
 		//u8"\U0001F300Pøíliš malý p\n(žluouèký)\nkùyòy",
@@ -444,14 +445,14 @@ void TestStringBackground()
 		AbstractRenderer::TextAnchor::CENTER,
 		AbstractRenderer::TextAlign::ALIGN_CENTER
 	);
-
+	*/
 	rp.bgInfo = Color(1, 0, 0, 1);
 	rp.bgInfo->borderColor = Color(0, 1, 0, 1);
 	rp.bgInfo->borderSize = 20.0f;
 	frWithBg->AddString(
 		//CreateRandomString(10),
 		//u8"\U0001F300Pøíliš malý p\n(žluouèký)\nkùyòy",
-		u8"jede",
+		u8"102.5 km",
 		0.5f, 0.8f,
 		rp,
 		AbstractRenderer::TextAnchor::CENTER,
@@ -523,19 +524,33 @@ void InitTestStringBackground()
 	//fs.sdf->outlineWidth = 0.1f;
 	//fs.sdf->softness = 0.05f;
 
+	Shadow shadow;
+	shadow.blurRadius = 0.01;
+	shadow.dirX = 0.04f;
+	shadow.dirY = 0.04f;
+	shadow.shadowPaddingSize = 0.2;
+	shadow.color = Color(0, 0, 0, 0.35f);
 
 	BackgroundSettings bs;
 	//bs.color = { 0,1, 1, 0.6f };
 	//bs.padding = 8;
 	//bs.cornerRadius = 40;// 20;
+	//bs.shadow = shadow;// std::nullopt;
+	//bs.shape = BackgroundSettings::Shape::CIRCLE;
+	bs.color = { 0.7f, 0.7f, 0.7f, 1.0f };
+	bs.padding = 4;
+	bs.cornerRadius = 12;
+	bs.shape = BackgroundSettings::Shape::ROUNDED_CORNER_SQUARE;
 	bs.shadow = std::nullopt;
-	bs.shape = BackgroundSettings::Shape::SQUARE;
 
 	auto sm = std::make_shared<DefaultFontShaderManager>(r, std::nullopt);
 	auto backend = std::make_unique<BackendOpenGL>(r, nullptr, nullptr, sm);
-	auto bstm = std::make_shared<BackgroundTextureShaderManager>(r);	
-	backend->SetBackground(bs, bstm);
+	//auto bstm = std::make_shared<BackgroundTextureShaderManager>(r);	
+	//auto bstm = std::make_shared<BackgroundSingleColorShaderManager>(r);
+	//auto bstm = std::make_shared<BackgroundShadowShaderManager>(r, shadow);
+	//backend->SetBackground(bs, bstm);
 	frWithBg = new StringRenderer(fs, std::move(backend));
+	frWithBg->SetBackgroundSettings(bs);
 
 	//frWithBg = StringRenderer::CreateDefault(fs, r);
 	//frWithBg = StringRenderer::CreateSingleColor({ 1,0,1,1 }, fs, r);
