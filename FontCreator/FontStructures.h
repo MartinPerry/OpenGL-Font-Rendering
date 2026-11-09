@@ -387,11 +387,11 @@ struct AABB
 
 	void UnionWithOffsetAndScale(const AABB& b, float xOffset, float scale) noexcept
 	{
-		minX = std::min(minX, b.minX + xOffset) * scale;
-		minY = std::min(minY, b.minY) * scale;
+		minX = std::min(minX, xOffset + b.minX * scale);
+		minY = std::min(minY, b.minY * scale);
 
-		maxX = std::max(maxX, b.maxX + xOffset) * scale;
-		maxY = std::max(maxY, b.maxY) * scale;
+		maxX = std::max(maxX, xOffset + b.maxX * scale);
+		maxY = std::max(maxY, b.maxY * scale);		
 	}
 
 	bool Intersect(const AABB& bb) const noexcept

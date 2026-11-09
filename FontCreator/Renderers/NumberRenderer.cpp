@@ -188,8 +188,9 @@ void NumberRenderer::Precompute()
 
 		
 		//precompute AABBs for double numbers
+		//they are reversed, so start with higher index
 		int x = 0;		
-		for (int j = 0; j < 2; j++)
+		for (int j = 1; j >= 0; j--)
 		{
 			const GlyphInfo * gi = this->precomputed[i].gi[j];
 

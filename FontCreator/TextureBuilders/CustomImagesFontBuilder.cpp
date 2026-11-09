@@ -368,13 +368,19 @@ GlyphInfo* CustomImageFontBuilder::FillGlyphInfo(CHAR_CODE c, CustomGlyph& g)
 	uint8_t* fileData = LoadDataFontFromFile(g.fileName, &fileDataSize);
 	
 	auto error = lodepng::decode(buffer, width, height, state, fileData, fileDataSize);
-
+	
 	SAFE_DELETE_ARRAY(fileData);
 
 	//if there's an error, display it
 	if (error)
 	{
 		MY_LOG_ERROR("decoder error %d: %s", error,  lodepng_error_text(error));
+		return nullptr;
+	}
+
+	if (width * height != buffer.size())
+	{
+		MY_LOG_ERROR("Decoded data are not 1-channel");
 		return nullptr;
 	}
 

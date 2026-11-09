@@ -381,8 +381,8 @@ bool TextureAtlasPack::PackTight()
 			}
 			info.setFilled(false);
 
-			g.tx = px + this->border;
-			g.ty = py + this->border;
+			g.tx = info.x + this->border;
+			g.ty = info.y + this->border;
 
 			this->packedInfo.try_emplace(key, info);
 		}

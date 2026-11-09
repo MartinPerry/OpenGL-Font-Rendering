@@ -962,6 +962,8 @@ bool FontBuilder::FillGlyphGraphics(FontInfo& fi, FT_UInt ci,
 		glyphLeft = bitmapGlyph->left;
 		glyphTop = bitmapGlyph->top;
 		advanceX = static_cast<int>(glyph->advance.x >> 16); // FT_Glyph advance is 16.16
+
+		FT_Done_Glyph(glyph);
 	}
 
 	return true;
