@@ -165,6 +165,11 @@ protected:
 		TextAnchor anchor = TextAnchor::LEFT_TOP,
 		TextType type = TextType::TEXT);
 
+	bool CheckIfExist(double value, int x, int y, const RenderParams& rp,
+		TextAnchor anchor, TextType type);
+
+	void RecalcZonesGrid() override;
+
 	bool AddNumber(NumberInfo & n, int x, int y);
 
 	bool GenerateGeometry() override;

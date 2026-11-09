@@ -49,7 +49,8 @@ AbstractRenderer::AbstractRenderer(std::shared_ptr<IFontBuilder> fb,
 	extraGlyphSpacingSize(0),
 	checkIfExist(true),
 	checkVisibility(true),
-	strChanged(false)
+	strChanged(false),
+	zoneCellSize(1)
 {
 
 	this->backend->SetMainRenderer(this);
@@ -128,7 +129,13 @@ void AbstractRenderer::SwapCanvasWidthHeight()
 /// </summary>
 /// <param name="val"></param>
 void AbstractRenderer::SetExistenceCheck(bool val) noexcept
-{
+{	
+	if ((val) && (val != this->checkIfExist))
+	{
+		//change of state to enabled existence checks - recalc zones
+		this->RecalcZonesGrid();
+	}
+
 	this->checkIfExist = val;
 }
 
@@ -164,15 +171,34 @@ int AbstractRenderer::GetCaptionOffset() const
 	return this->ci.offset;
 }
 
-
-/// <summary>
-/// Remove all added strings
-/// </summary>
 void AbstractRenderer::Clear()
 {
-	this->strChanged = true;
+	this->zonesGrid.clear();
 
+	this->ClearGeom();
+}
+
+void AbstractRenderer::ClearGeom()
+{
+	this->strChanged = true;	
 	this->backend->Clear();
+}
+
+uint64_t AbstractRenderer::GetZoneCell(int32_t x, int32_t y) const
+{	
+	return this->GetCellKey(x / zoneCellSize, y / zoneCellSize);	
+}
+
+uint64_t AbstractRenderer::GetCellKey(int32_t x, int32_t y) const
+{
+	return (uint64_t(uint32_t(y)) << 32) | uint64_t(uint32_t(x));	
+}
+
+void AbstractRenderer::AddToZone(int x, int y, size_t index)
+{
+	uint64_t key = this->GetZoneCell(x, y);
+	auto dit = this->zonesGrid.try_emplace(key);
+	dit.first->second.push_back(index);	
 }
 
 /// <summary>

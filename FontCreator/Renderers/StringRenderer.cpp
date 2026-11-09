@@ -48,7 +48,7 @@ StringRenderer::StringRenderer(const FontBuilderSettings& fs,
 	std::unique_ptr<BackendBase>&& backend) :
 	AbstractRenderer(fs, std::move(backend)),
 	isBidiEnabled(true),
-	deadzoneRadius2(0),
+	deadzoneRadius(0),
 	nlOffsetPx(0),
 	spaceSizeExist(false),
 	spaceHeight(0),
@@ -60,7 +60,7 @@ StringRenderer::StringRenderer(std::shared_ptr<IFontBuilder> fb,
 	std::unique_ptr<BackendBase>&& backend) :
 	AbstractRenderer(fb, std::move(backend)),
 	isBidiEnabled(true),
-	deadzoneRadius2(0),
+	deadzoneRadius(0),
 	nlOffsetPx(0),
 	spaceSizeExist(false),
 	spaceHeight(0),
@@ -86,7 +86,7 @@ void StringRenderer::Clear()
 #endif
 
 	AbstractRenderer::Clear();
-	this->strs.clear();
+	this->strs.clear();	
 }
 
 size_t StringRenderer::GetStringsCount() const noexcept
@@ -143,9 +143,13 @@ void StringRenderer::SetBidiEnabled(bool val) noexcept
 /// of already added string, new one is not added
 /// </summary>
 /// <param name="radiusPx"></param>
-void StringRenderer::SetStringDeadzone(int radiusPx) noexcept
+void StringRenderer::SetStringDeadzone(int radiusPx)
 {
-    this->deadzoneRadius2 = radiusPx * radiusPx;
+    this->deadzoneRadius = radiusPx;
+
+	this->zoneCellSize = std::max(1, radiusPx);
+	
+	this->RecalcZonesGrid();	
 }
 
 float StringRenderer::GetMaxLineHeight() const 
@@ -327,8 +331,11 @@ bool StringRenderer::AddStringInternal(const StringUtf8& str,
 		
 	//this->fb->AddString(uniStr);
 
-	auto & added = this->strs.emplace_back(std::move(uniStr), x, y, anchor, align, type, rp);	
-	auto & lines = added.lines;
+	auto& added = this->strs.emplace_back(std::move(uniStr), x, y, anchor, align, type, rp);	
+
+	this->AddToZone(x, y, this->strs.size() - 1);
+	
+	auto& lines = added.lines;
 
 	lines.emplace_back(0);
 
@@ -376,8 +383,33 @@ bool StringRenderer::CanAddString(const StringUtf8& uniStr,
 	int x, int y, const RenderParams & rp,
 	TextAnchor anchor, TextAlign align, TextType type) const
 {
-	if (this->checkIfExist)
+	if ((this->checkIfExist) && (zonesGrid.empty() == false))
 	{
+		uint64_t key = this->GetZoneCell(x, y);
+
+		auto it = zonesGrid.find(key);
+		if (it != zonesGrid.end())
+		{
+			for (size_t i : it->second)
+			{
+				const auto& s = strs[i];
+
+				if ((s.x == x) && (s.y == y) &&
+					//(s.renderParams.scale == rp.scale) &&
+					(s.align == align) && (s.anchor == anchor) && (s.type == type))
+				{
+
+					if (s.str == uniStr)
+					{
+						//same string on the same position and with same align
+						//already exist - do not add it again
+						return false;
+					}
+				}
+			}
+		}
+
+		/*
 		for (const StringInfo& s : this->strs)
 		{
 			if ((s.x == x) && (s.y == y) &&
@@ -393,6 +425,7 @@ bool StringRenderer::CanAddString(const StringUtf8& uniStr,
 				}
 			}
 		}
+		*/
 	}
 
 	if (this->checkVisibility)
@@ -424,7 +457,7 @@ bool StringRenderer::CanAddString(const StringUtf8& uniStr,
 		}
 	}
     
-	if ((deadzoneRadius2 > 0) && (uniStr != ci.mark))
+	if ((deadzoneRadius > 0) && (uniStr != ci.mark))
 	{
 		if (this->DeadzoneCheck(x, y))
 		{
@@ -444,9 +477,77 @@ bool StringRenderer::CanAddString(const StringUtf8& uniStr,
 /// <returns></returns>
 bool StringRenderer::DeadzoneCheck(int x, int y) const
 {
+	if (zonesGrid.empty())
+	{
+		return false;
+	}
+
 	const int upVectorX = 0;
 	const int upVectorY = (this->axisYOrigin == AbstractRenderer::AxisYOrigin::DOWN) ? -1 : 1;
 
+	float dz2 = deadzoneRadius * deadzoneRadius;
+
+	const int cellX = (x / zoneCellSize);
+	const int cellY = (y / zoneCellSize);
+
+	for (int dy = -1; dy <= 1; dy++)
+	{
+		for (int dx = -1; dx <= 1; dx++)
+		{
+			uint64_t key = this->GetCellKey(cellX + dx, cellY + dy);
+
+			auto it = zonesGrid.find(key);
+			if (it == zonesGrid.end())
+			{
+				continue;
+			}
+
+			for (size_t i : it->second)
+			{
+				const auto& s = strs[i];
+				
+				if (s.type == TextType::CAPTION_SYMBOL)
+				{
+					continue;
+				}
+
+				const int dx = (s.x - x);
+				const int dy = (s.y - y);
+
+				const int dist2 = dx * dx + dy * dy;
+				if (dist2 < dz2)
+				{
+					if (dist2 == 0)
+					{
+						return true;
+					}
+
+					//update distance based on dot product
+					//if new string is in line with existing, we want higher radius
+					//if new string is above, we are ok with a smaller radius
+
+					const float lenInv = 1.0f / std::sqrt(static_cast<float>(dist2));
+
+					const float dot = (upVectorX * (dx * lenInv) + upVectorY * (dy * lenInv));
+
+					//upper weight is shorter.. based on string estimated length
+					//the longer the string is, the thinner deadzone is
+					const float minWeight = (1.0f / s.str.length()) * s.lines.size();
+					const float maxWeight = 1.0;
+					const float dist2Weighted = dist2 * (maxWeight + dot * (minWeight - maxWeight));
+
+					if (dist2Weighted < dz2)
+					{
+						return true;
+					}
+				}
+			}
+		}
+	}
+
+	return false;
+
+	/*
 	//test if new string is in "dead zone" of existing strings
 	//if yes - do not add it
 	for (const StringInfo& s : this->strs)
@@ -460,7 +561,7 @@ bool StringRenderer::DeadzoneCheck(int x, int y) const
 		const int dy = (s.y - y);
 
 		const int dist2 = dx * dx + dy * dy;
-		if (dist2 < this->deadzoneRadius2)
+		if (dist2 < dz2)
 		{
 			if (dist2 == 0)
 			{
@@ -481,7 +582,7 @@ bool StringRenderer::DeadzoneCheck(int x, int y) const
 			const float maxWeight = 1.0;
 			const float dist2Weighted = dist2 * (maxWeight + dot * (minWeight - maxWeight));
 
-			if (dist2Weighted < this->deadzoneRadius2)
+			if (dist2Weighted < dz2)
 			{
 				return true;
 			}
@@ -489,6 +590,19 @@ bool StringRenderer::DeadzoneCheck(int x, int y) const
 	}
 
 	return false;
+	*/
+}
+
+void StringRenderer::RecalcZonesGrid()
+{
+	this->zonesGrid.clear();
+
+	for (size_t i = 0; i < this->strs.size(); i++)
+	{
+		const auto& si = this->strs[i];
+
+		this->AddToZone(si.x, si.y, i);		
+	}
 }
 
 /// <summary>
@@ -891,7 +1005,7 @@ bool StringRenderer::GenerateGeometry()
 
 	//Build geometry
 	
-    AbstractRenderer::Clear();
+    this->ClearGeom();
 	
 	//this->geom.reserve(this->strs.size() * 80);
 

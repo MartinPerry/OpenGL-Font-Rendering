@@ -115,7 +115,7 @@ public:
 
 	void SetBidiEnabled(bool val) noexcept;
 	
-    void SetStringDeadzone(int radiusPx) noexcept;
+    void SetStringDeadzone(int radiusPx);
 	
 	float GetMaxLineHeight() const;
 
@@ -166,11 +166,11 @@ protected:
 	
 	
 	std::vector<StringInfo> strs;
-
+	
 	bool isBidiEnabled;		
 	bool spaceSizeExist;
 	
-	int deadzoneRadius2;
+	int deadzoneRadius;
 
 	int nlOffsetPx;
 	int16_t spaceSize;
@@ -183,6 +183,9 @@ protected:
 		TextAnchor anchor, TextAlign align, TextType type) const;
 
 	bool DeadzoneCheck(int x, int y) const;
+	
+	void RecalcZonesGrid() override;
+
 
 	bool AddStringInternal(const StringUtf8& str,
 		int x, int y, const RenderParams & rp,

@@ -291,27 +291,12 @@ bool NumberRenderer::AddIntegralNumberInternal(long val,
 		y = this->backend->GetSettings().deviceH - y;
 	}
 
-	if (this->checkIfExist)
+	if ((this->checkIfExist) && (zonesGrid.empty() == false))
 	{
-		for (const NumberInfo & s : this->nmbrs)
+		if (this->CheckIfExist(val, x, y, rp, anchor, type))
 		{
-			if ((s.x == x) && (s.y == y) &&
-				(s.anchor == anchor) && (s.type == type))
-			{
-				if ((s.negative) && (-s.val == val))
-				{
-					//same number on the same position and with same align
-					//already exist - do not add it again
-					return false;
-				}
-				else if (s.val == val)
-				{
-					//same number on the same position and with same align
-					//already exist - do not add it again
-					return false;
-				}
-			}
-		}
+			return false;
+		}		
 	}
 
 	NumberInfo i(val, rp, anchor, type);				
@@ -339,26 +324,11 @@ bool NumberRenderer::AddFloatNumberInternal(double val,
 		y = this->backend->GetSettings().deviceH - y;
 	}
 
-	if (this->checkIfExist)
+	if ((this->checkIfExist) && (zonesGrid.empty() == false))
 	{
-		for (const NumberInfo & s : this->nmbrs)
+		if (this->CheckIfExist(val, x, y, rp, anchor, type))
 		{
-			if ((s.x == x) && (s.y == y) &&
-				(s.anchor == anchor) && (s.type == type))
-			{
-				if ((s.negative) && (-s.val == val))
-				{
-					//same number on the same position and with same align
-					//already exist - do not add it again
-					return false;
-				}
-				else if (s.val == val)
-				{
-					//same number on the same position and with same align
-					//already exist - do not add it again
-					return false;
-				}
-			}
+			return false;
 		}
 	}
 
@@ -378,6 +348,62 @@ bool NumberRenderer::AddFloatNumberInternal(double val,
 	}
 
 	return this->AddNumber(i, x, y);
+}
+
+bool NumberRenderer::CheckIfExist(double val, int x, int y, const RenderParams& rp,
+	TextAnchor anchor, TextType type)
+{
+	uint64_t key = this->GetZoneCell(x, y);
+
+	auto it = zonesGrid.find(key);
+	if (it != zonesGrid.end())
+	{
+		for (size_t i : it->second)
+		{
+			const auto& s = nmbrs[i];
+
+			if ((s.x == x) && (s.y == y) &&
+				(s.anchor == anchor) && (s.type == type))
+			{
+				if ((s.negative) && (-s.val == val))
+				{
+					//same number on the same position and with same align
+					//already exist - do not add it again
+					return true;
+				}
+				else if (s.val == val)
+				{
+					//same number on the same position and with same align
+					//already exist - do not add it again
+					return true;
+				}
+			}
+		}
+	}
+
+	/*
+	for (const NumberInfo& s : this->nmbrs)
+	{
+		if ((s.x == x) && (s.y == y) &&
+			(s.anchor == anchor) && (s.type == type))
+		{
+			if ((s.negative) && (-s.val == val))
+			{
+				//same number on the same position and with same align
+				//already exist - do not add it again
+				return false;
+			}
+			else if (s.val == val)
+			{
+				//same number on the same position and with same align
+				//already exist - do not add it again
+				return false;
+			}
+		}
+	}
+	*/
+
+	return false;
 }
 
 /// <summary>
@@ -460,6 +486,13 @@ bool NumberRenderer::AddNumber(NumberInfo& n, int x, int y)
 	if (this->overlapCheck)
 	{
 		this->nmbrsAABB.push_back(aabb);
+	}
+
+	if (this->checkIfExist)
+	{
+		//zones are used only for existence check, no need to add to zone if we dont use
+		//existence checks
+		this->AddToZone(n.x, n.y, this->nmbrs.size() - 1);
 	}
 
 	this->strChanged = true;
@@ -590,7 +623,7 @@ AABB NumberRenderer::CalcNumberAABB(double val, int x, int y,
         aabb.Update(fx, fy, gi.bmpW * scale, gi.bmpH * scale);
         
 		//aabb.Update(x + gi.bmpX, -gi.bmpY, gi.bmpW, gi.bmpH);
-		x += static_cast<int>(gi.adv + this->extraGlyphSpacingSize);
+		x += static_cast<int>((gi.adv + this->extraGlyphSpacingSize) * scale);
 	}
 
 	if (intPart <= 9)
@@ -685,6 +718,18 @@ AABB NumberRenderer::CalcNumberAABB(double val, int x, int y,
 	return aabb;
 }
 
+void NumberRenderer::RecalcZonesGrid()
+{
+	this->zonesGrid.clear();
+
+	for (size_t i = 0; i < this->nmbrs.size(); i++)
+	{
+		const auto& ni = this->nmbrs[i];
+
+		this->AddToZone(ni.x, ni.y, i);
+	}
+}
+
 /// <summary>
 /// Calculate start position of text using anchors
 /// </summary>
@@ -728,7 +773,7 @@ bool NumberRenderer::GenerateGeometry()
 	}
 			
 	//Build geometry	
-	AbstractRenderer::Clear();
+	this->ClearGeom();
 	//this->geom.reserve(400);
 	
 	for (const NumberRenderer::NumberInfo & si : this->nmbrs)

@@ -7,6 +7,7 @@ class BackendBase;
 #include <vector>
 #include <list>
 #include <unordered_set>
+#include <unordered_map>
 #include <functional>
 #include <shared_mutex>
 #include <algorithm>
@@ -83,10 +84,9 @@ public:
 
 	
 	void SwapCanvasWidthHeight();
-
+	
 	void Clear();
 
-	
 	virtual void Render();
 	
 	friend class BackendBase;
@@ -113,12 +113,21 @@ protected:
 	AxisYOrigin axisYOrigin;
 	int extraGlyphSpacingSize;
 				
+	std::unordered_map<uint64_t, std::vector<size_t>> zonesGrid;
+	int32_t zoneCellSize;
+
 #ifdef THREAD_SAFETY
 	std::shared_timed_mutex m;
 #endif
 		
 	AbstractRenderer(std::shared_ptr<IFontBuilder> fb, std::unique_ptr<BackendBase>&& backend);
 
+	uint64_t GetZoneCell(int32_t x, int32_t y) const;
+	uint64_t GetCellKey(int32_t x, int32_t y) const;
+	void AddToZone(int x, int y, size_t index);
+	virtual void RecalcZonesGrid() = 0;
+
+	void ClearGeom();
 	virtual bool GenerateGeometry() = 0;
 
 	void AddEmptyQuad(float x, float y, float w, float h, const RenderParams& rp);
