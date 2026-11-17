@@ -179,7 +179,8 @@ void BackgroundSingleColorShaderManager::FillRoundCornersQuad(float cx, float cy
 
 
 	int i;
-	float x, y;
+    float x = 0;
+    float y = 0;
 
 
 	this->AddVertex(cx, cy, vec);

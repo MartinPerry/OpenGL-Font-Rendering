@@ -119,32 +119,32 @@ struct FontSize
 	SizeType sizeType;
 };
 
-inline FontSize operator "" _px(long double value) noexcept
+inline FontSize operator ""_px(long double value) noexcept
 {
 	return FontSize(static_cast<float>(value), FontSize::SizeType::px);
 };
 
-inline FontSize operator "" _px(unsigned long long value) noexcept
+inline FontSize operator ""_px(unsigned long long value) noexcept
 {
 	return FontSize(static_cast<float>(value), FontSize::SizeType::px);
 };
 
-inline FontSize operator "" _pt(long double value) noexcept
+inline FontSize operator ""_pt(long double value) noexcept
 {
 	return FontSize(static_cast<float>(value), FontSize::SizeType::pt);
 };
 
-inline FontSize operator "" _pt(unsigned long long value) noexcept
+inline FontSize operator ""_pt(unsigned long long value) noexcept
 {
 	return FontSize(static_cast<float>(value), FontSize::SizeType::pt);
 };
 
-inline FontSize operator "" _em(long double value) noexcept
+inline FontSize operator ""_em(long double value) noexcept
 {
 	return FontSize(static_cast<float>(value), FontSize::SizeType::em);
 };
 
-inline FontSize operator "" _em(unsigned long long value) noexcept
+inline FontSize operator ""_em(unsigned long long value) noexcept
 {
 	return FontSize(static_cast<float>(value), FontSize::SizeType::em);
 };
